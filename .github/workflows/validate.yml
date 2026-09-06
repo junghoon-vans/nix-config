@@ -10,7 +10,7 @@ jobs:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-      - uses: DeterminateSystems/nix-installer-action@786fff0690178f1234e4e1fe9b536e94f5433196 # v20
+      - uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25 # v22
       - name: Check Nix formatting
         run: nix develop --command sh -c 'nixfmt --check $(git ls-files "*.nix")'
       - name: Lint Nix
