@@ -195,12 +195,12 @@ export VISUAL=nvim
 path=(${path:#$HOME/.local/bin})
 path+=("$HOME/.local/bin")
 
-# Bun global CLI tools, including omp, are installed here by bootstrap-omp.
-# Keep this after mise so Nix remains the Bun runtime provider.
+# Bun global CLI shims are installed under this user-local directory.
 if [[ -d "$HOME/.bun/bin" ]]; then
   path=(${path:#$HOME/.bun/bin})
   path+=("$HOME/.bun/bin")
 fi
+
 
 export ANTHROPIC_MODEL="sonnet"
 

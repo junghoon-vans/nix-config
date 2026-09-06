@@ -11,24 +11,27 @@ in
     ../../modules/darwin.nix
     ../../modules/languages
     ../../modules/omp.nix
+    ../../modules/apm.nix
     ../../modules/maintenance.nix
   ];
 
   nixpkgs.hostPlatform = "aarch64-darwin";
   nix.enable = false;
 
-  workstation.languages = {
-    gno.enable = true;
-    go.enable = true;
-    node.enable = true;
-    typescript.enable = true;
-    python.enable = true;
-    rust.enable = true;
-    bun.enable = true;
-    xml.enable = true;
+  workstation = {
+    languages = {
+      gno.enable = true;
+      go.enable = true;
+      node.enable = true;
+      typescript.enable = true;
+      python.enable = true;
+      rust.enable = true;
+      bun.enable = true;
+      xml.enable = true;
+    };
+    omp.enable = true;
+    apm.enable = true;
   };
-
-  workstation.omp.enable = true;
 
   users.users.${user.username}.home = user.homeDirectory;
 

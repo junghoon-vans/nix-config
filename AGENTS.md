@@ -39,8 +39,7 @@ local override such as `~/.zshrc.local` when machine-specific configuration is r
   Package upgrades require explicit review.
 - Treat `home.file` changes as potentially user-visible replacements. Preserve the configured
   backup behavior and document migrations when a path is renamed.
-- Keep `bootstrap-gno` and `bootstrap-omp` version-pinned. Verify every downloaded binary
-  before installation.
+- Keep fetched release artifacts version-pinned and integrity-hashed.
 - LaunchAgent maintenance must default to the least destructive behavior. Changes that delete
   Docker images, containers, caches, or user data need explicit human approval.
 
@@ -49,7 +48,7 @@ local override such as `~/.zshrc.local` when machine-specific configuration is r
 Do not run commands that mutate the workstation or external state without explicit approval:
 
 - `darwin-rebuild switch`, `nix-darwin ... switch`, or an equivalent activation
-- `bootstrap-gno` or `bootstrap-omp`
+- `bootstrap-agent-skills`
 - `brew update`, `brew upgrade`, package removal, or Homebrew cleanup
 - Docker prune/cleanup commands or the disk-maintenance script outside dry-run mode
 - Credential, token, permission, or remote repository-setting changes
