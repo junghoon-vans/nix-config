@@ -59,6 +59,7 @@
       "session-manager-plugin"
       "orbstack"
       "tailscale-app"
+      "karabiner-elements"
       "jordanbaird-ice"
       "hop"
       "headlamp"
