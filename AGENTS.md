@@ -8,7 +8,7 @@ NixOS configuration.
 - `hosts/junghoonui-MacBookAir/` and `hosts/junghoonui-MacBookPro/` compose the supported hosts.
 - `modules/` contains reusable nix-darwin and Home Manager modules.
 - `home/` contains static payloads managed by Home Manager.
-- `apm.yml` declares external Oh My Pi skills.
+- `apm.yml` declares external Oh My Pi skills and MCP servers.
 - `flake.lock` is the authoritative dependency pin set.
 
 Keep host-specific settings in the host module. Extract a module only when the setting is

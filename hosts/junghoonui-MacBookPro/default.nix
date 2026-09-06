@@ -12,6 +12,7 @@ in
     ../../modules/languages
     ../../modules/omp.nix
     ../../modules/apm.nix
+    ../../modules/mcp/gnomcp.nix
     ../../modules/maintenance.nix
   ];
 
@@ -33,6 +34,7 @@ in
     };
     omp.enable = true;
     apm.enable = true;
+    mcp.gnomcp.enable = true;
   };
 
   users.users.${user.username}.home = user.homeDirectory;
