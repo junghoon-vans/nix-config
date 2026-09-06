@@ -2,7 +2,7 @@
 
 let
   user = {
-    name = "junghoon";
+    username = "junghoon";
     homeDirectory = "/Users/junghoon";
   };
 in
@@ -32,13 +32,13 @@ in
 
   workstation.omp.enable = true;
 
-  users.users.${user.name}.home = user.homeDirectory;
+  users.users.${user.username}.home = user.homeDirectory;
 
   nix-homebrew = {
     enable = true;
     enableRosetta = true;
     autoMigrate = true;
-    user = user.name;
+    user = user.username;
     mutableTaps = true;
     taps = {
       "homebrew/homebrew-core" = inputs.homebrew-core;
@@ -56,11 +56,11 @@ in
       inherit inputs;
       workstationUser = user;
     };
-    users.${user.name} = import ../../modules/home-manager.nix;
+    users.${user.username} = import ../../modules/home-manager.nix;
   };
 
   system = {
-    primaryUser = user.name;
+    primaryUser = user.username;
     configurationRevision = inputs.self.rev or inputs.self.dirtyRev or null;
     stateVersion = 6;
   };
