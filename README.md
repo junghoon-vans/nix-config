@@ -27,17 +27,42 @@ A managed path has exactly one owner. APM-generated skill output is never declar
 
 ## Bootstrap
 
-The Nix configuration installs the APM CLI through the declared Homebrew formula.
-After the switch, bootstrap the pinned Oh My Pi release and deploy its skills:
+This configuration manages macOS and user settings after Nix is installed. It deliberately sets `nix.enable = false`, so Nix installation and daemon management remain external to this repository.
+
+### Prerequisites
+
+On a new Apple Silicon Mac:
+
+1. Install Xcode Command Line Tools:
+
+   ```sh
+   xcode-select --install
+   ```
+
+2. Install Nix in multi-user mode using the [official Nix installation instructions](https://nix.dev/install-nix).
+3. Clone this repository:
+
+   ```sh
+   git clone https://github.com/junghoon-vans/nix-config.git ~/workspace/nix-workstation
+   cd ~/workspace/nix-workstation
+   ```
+
+### First activation
+
+Use flakes explicitly so the command also works when they are not enabled globally:
 
 ```sh
-sudo nix run nix-darwin/master#darwin-rebuild -- switch --flake .#junghoonui-MacBookAir
+sudo nix --extra-experimental-features "nix-command flakes" run nix-darwin/master#darwin-rebuild -- switch --flake .#junghoonui-MacBookAir
+```
+
+The switch installs declared Homebrew packages, system language runtimes, Home Manager files, and the bootstrap commands. Then install the pinned toolchains that are intentionally kept outside the Nix store:
+
+```sh
+bootstrap-gno
 bootstrap-omp .
 ```
 
-`bootstrap-omp` installs `@oh-my-pi/pi-coding-agent@18.1.11` through Bun, verifies
-`omp`, copies this repository’s APM manifest to `~/.apm/apm.yml`, and deploys the
-skill-only dependencies. Home Manager never owns APM output paths.
+`bootstrap-gno` downloads checksum-verified Gno binaries and installs the pinned Gno language server. `bootstrap-omp` installs `@oh-my-pi/pi-coding-agent@18.1.11` through the Nix-managed Bun runtime, verifies `omp`, copies this repository’s APM manifest to `~/.apm/apm.yml`, and deploys the skill-only dependencies. Home Manager never owns APM output paths.
 
 ## Languages
 
