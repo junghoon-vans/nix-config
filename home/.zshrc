@@ -97,6 +97,10 @@ elif [[ -d "/usr/local/Homebrew" || -x "/usr/local/bin/brew" ]]; then
 fi
 
 typeset -U path PATH
+if [[ -n "${HOMEBREW_PREFIX:-}" && ! -f "$HOMEBREW_PREFIX/share/zsh/site-functions/_brew" ]]; then
+  fpath=(${fpath:#"$HOMEBREW_PREFIX/share/zsh/site-functions"})
+fi
+
 
 source $ZSH/oh-my-zsh.sh
 
@@ -149,6 +153,11 @@ if command -v mise &>/dev/null && [ -z "${MISE_SHELL:-}" ]; then
   eval "$(mise activate zsh)"
 fi
 
+if [[ "$TERM_PROGRAM" == "Apple_Terminal" && "$PWD" == "$HOME" && -d "$HOME/workspace" ]]; then
+  cd "$HOME/workspace"
+fi
+
+
 # ========================================
 # General Aliases
 # ========================================
@@ -156,25 +165,6 @@ alias ..='cd ..'
 alias ...='cd ../..'
 alias ....='cd ../../..'
 
-# ========================================
-# Codex HUD
-# ========================================
-# codex-hud alias
-codex() {
-  if [[ -x "$HOME/.local/bin/codex-hud" ]]; then
-    "$HOME/.local/bin/codex-hud" "$@"
-  else
-    command codex "$@"
-  fi
-}
-
-codex-resume() {
-  if [[ -x "$HOME/.local/bin/codex-hud" ]]; then
-    "$HOME/.local/bin/codex-hud" resume "$@"
-  else
-    command codex resume "$@"
-  fi
-}
 
 
 # ========================================

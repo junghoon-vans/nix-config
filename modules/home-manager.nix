@@ -17,7 +17,7 @@
     ".omp/agent/config.yml".source = ../home/.omp/agent/config.yml;
     ".config/gh/config.yml".source = ../home/.config/gh/config.yml;
     ".config/karabiner/karabiner.json".source = ../home/.config/karabiner/karabiner.json;
-    ".config/mise/config.toml".source = ../home/.config/mise/config.toml;
+    ".config/terminal/com.apple.Terminal.plist".source = ../home/terminal/com.apple.Terminal.plist;
     ".config/nvim/init.lua".source = ../home/.config/nvim/init.lua;
     ".config/nvim/lua/config/lazy.lua".source = ../home/.config/nvim/lua/config/lazy.lua;
     ".config/nvim/lua/config/options.lua".source = ../home/.config/nvim/lua/config/options.lua;
@@ -56,5 +56,9 @@
 
   home.activation.createScreenshotsDirectory = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     $DRY_RUN_CMD mkdir -p "$HOME/Pictures/Screenshots"
+  '';
+
+  home.activation.applyTerminalPreferences = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    $DRY_RUN_CMD /usr/bin/defaults import com.apple.Terminal "$HOME/.config/terminal/com.apple.Terminal.plist"
   '';
 }
