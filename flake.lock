@@ -173,6 +173,23 @@
         "type": "github"
       }
     },
+    "protobuf36": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1787218376,
+        "narHash": "sha256-VGXFfqLm7IEJ9MQpMYhdVW5qPZbrYZ6q+0Y1TqQkjks=",
+        "owner": "protocolbuffers",
+        "repo": "protobuf",
+        "rev": "3f17acbf7ffbda81db8be17505554c726e558bb2",
+        "type": "github"
+      },
+      "original": {
+        "owner": "protocolbuffers",
+        "ref": "v36.0",
+        "repo": "protobuf",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "home-manager": "home-manager",
@@ -184,6 +201,7 @@
         "nix-homebrew": "nix-homebrew",
         "nixpkgs": "nixpkgs",
         "oh-my-zsh": "oh-my-zsh",
+        "protobuf36": "protobuf36",
         "spaceship-prompt": "spaceship-prompt",
         "zsh-autosuggestions": "zsh-autosuggestions",
         "zsh-completions": "zsh-completions",

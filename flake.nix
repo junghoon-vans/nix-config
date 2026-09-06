@@ -8,6 +8,11 @@
     home-manager.url = "github:nix-community/home-manager/master";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     nix-homebrew.url = "github:zhaofengli/nix-homebrew";
+    protobuf36 = {
+      url = "github:protocolbuffers/protobuf/v36.0";
+      flake = false;
+    };
+
 
     oh-my-zsh = {
       url = "github:ohmyzsh/ohmyzsh";

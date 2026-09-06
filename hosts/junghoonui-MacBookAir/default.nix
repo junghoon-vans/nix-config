@@ -36,7 +36,7 @@
     enableRosetta = true;
     autoMigrate = true;
     user = "junghoon";
-    mutableTaps = true;
+    mutableTaps = false;
     taps = {
       "homebrew/homebrew-core" = inputs.homebrew-core;
       "homebrew/homebrew-cask" = inputs.homebrew-cask;
