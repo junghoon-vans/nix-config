@@ -64,6 +64,26 @@ bootstrap-omp .
 
 `bootstrap-gno` downloads checksum-verified Gno binaries and installs the pinned Gno language server. `bootstrap-omp` installs `@oh-my-pi/pi-coding-agent@18.1.11` through the Nix-managed Bun runtime, verifies `omp`, copies this repository’s APM manifest to `~/.apm/apm.yml`, and deploys the skill-only dependencies. Home Manager never owns APM output paths.
 
+## Homebrew maintenance
+
+`switch` installs declared formulae and casks when missing, but does not update Homebrew or upgrade installed packages. This keeps activation limited to the declared package inventory.
+
+Review available Homebrew upgrades before applying them:
+
+```sh
+brew update
+brew outdated
+```
+
+Upgrade all Homebrew packages only after review, or name one formula explicitly:
+
+```sh
+brew upgrade
+brew upgrade neovim
+```
+
+Homebrew versions are local mutable state. Move a version-sensitive runtime from `modules/darwin.nix` to a Nix language profile when every machine must use the same version.
+
 ## Languages
 
 `modules/languages/` provides opt-in Nix profiles for global runtimes and their
