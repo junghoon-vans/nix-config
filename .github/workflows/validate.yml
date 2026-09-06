@@ -5,8 +5,12 @@ on:
   push:
     branches: [main]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  evaluate:
+  checks:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -17,7 +21,17 @@ jobs:
         run: nix develop --command sh -c 'statix check . && deadnix .'
       - name: Verify locked inputs
         run: nix flake metadata --no-write-lock-file
+
+  evaluate:
+    needs: checks
+    runs-on: macos-15
+    strategy:
+      matrix:
+        host: [junghoonui-MacBookAir, junghoonui-MacBookPro]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25 # v22
       - name: Evaluate Darwin configuration
-        run: nix eval .#darwinConfigurations.junghoonui-MacBookAir.config.system.build.toplevel.drvPath
+        run: nix eval .#darwinConfigurations.${{ matrix.host }}.config.system.build.toplevel.drvPath
       - name: Build Darwin configuration
-        run: nix build .#darwinConfigurations.junghoonui-MacBookAir.system
+        run: nix build .#darwinConfigurations.${{ matrix.host }}.system

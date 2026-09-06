@@ -80,13 +80,24 @@
         ];
       };
 
-      darwinConfigurations."junghoonui-MacBookAir" = nix-darwin.lib.darwinSystem {
-        specialArgs = { inherit inputs; };
-        modules = [
-          nix-homebrew.darwinModules.nix-homebrew
-          home-manager.darwinModules.home-manager
-          ./hosts/junghoonui-MacBookAir
-        ];
+      darwinConfigurations = {
+        "junghoonui-MacBookAir" = nix-darwin.lib.darwinSystem {
+          specialArgs = { inherit inputs; };
+          modules = [
+            nix-homebrew.darwinModules.nix-homebrew
+            home-manager.darwinModules.home-manager
+            ./hosts/junghoonui-MacBookAir
+          ];
+        };
+
+        "junghoonui-MacBookPro" = nix-darwin.lib.darwinSystem {
+          specialArgs = { inherit inputs; };
+          modules = [
+            nix-homebrew.darwinModules.nix-homebrew
+            home-manager.darwinModules.home-manager
+            ./hosts/junghoonui-MacBookPro
+          ];
+        };
       };
     };
 }
