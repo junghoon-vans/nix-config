@@ -34,7 +34,7 @@ in
     ".zshrc".source = ../home/.zshrc;
     ".gitconfig".source = ../home/.gitconfig;
     ".gitignore_global".source = ../home/.gitignore_global;
-    ".paseo/private_config.json".source = ../home/.paseo/private_config.json;
+    ".paseo/config.json".source = ../home/.paseo/config.json;
     ".omp/agent/config.yml".source = ../home/.omp/agent/config.yml;
     ".config/gh/config.yml".source = ../home/.config/gh/config.yml;
     ".config/karabiner/karabiner.json".source = ../home/.config/karabiner/karabiner.json;
