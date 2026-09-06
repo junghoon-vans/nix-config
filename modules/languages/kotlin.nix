@@ -7,6 +7,6 @@ in
   options.workstation.languages.kotlin.enable = lib.mkEnableOption "the Kotlin compiler";
 
   config = lib.mkIf cfg.enable {
-    environment.systemPackages = [ pkgs.kotlin ];
+    environment.systemPackages = with pkgs; [ kotlin kotlin-language-server ];
   };
 }

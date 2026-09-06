@@ -7,6 +7,6 @@ in
   options.workstation.languages.python.enable = lib.mkEnableOption "the Python runtime";
 
   config = lib.mkIf cfg.enable {
-    environment.systemPackages = [ pkgs.python313 ];
+    environment.systemPackages = with pkgs; [ python313 uv pyright ruff ];
   };
 }

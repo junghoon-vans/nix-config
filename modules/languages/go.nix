@@ -7,6 +7,6 @@ in
   options.workstation.languages.go.enable = lib.mkEnableOption "the Go runtime";
 
   config = lib.mkIf cfg.enable {
-    environment.systemPackages = [ pkgs.go_1_25 ];
+    environment.systemPackages = with pkgs; [ go_1_25 gopls golangci-lint gofumpt ];
   };
 }
