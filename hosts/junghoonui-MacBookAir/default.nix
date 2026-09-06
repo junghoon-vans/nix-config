@@ -3,11 +3,22 @@
 {
   imports = [
     ../../modules/darwin.nix
+    ../../modules/languages
     ../../modules/maintenance.nix
   ];
 
   nixpkgs.hostPlatform = "aarch64-darwin";
   nix.settings.experimental-features = "nix-command flakes";
+
+  workstation.languages = {
+    go.enable = true;
+    node.enable = true;
+    python.enable = true;
+    rust.enable = true;
+    java.enable = true;
+    kotlin.enable = true;
+    bun.enable = true;
+  };
 
   users.users.junghoon = {
     name = "junghoon";

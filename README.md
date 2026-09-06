@@ -37,6 +37,12 @@ apm install --global --target agent-skills --only apm .
 
 Home Manager never owns APM output paths.
 
+## Languages
+
+`modules/languages/` provides opt-in Nix modules for global language runtimes.
+Each host selects only the runtimes it needs through `workstation.languages.*.enable`.
+mise remains installed solely to activate project-local `mise.toml` overrides.
+
 ## Safety
 
 Homebrew activation does not remove packages omitted from the declaration (`cleanup = "none"`). Move to a destructive cleanup mode only after auditing the current machine's package inventory.

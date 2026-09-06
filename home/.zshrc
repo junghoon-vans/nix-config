@@ -144,25 +144,10 @@ alias j='z'  # muscle memory compatibility with autojump
 export GNOPATH=$HOME/gno
 export GNOROOT=$HOME/gno
 # ========================================
-# mise Configuration
-# ========================================
-# Keep mise-managed runtimes ahead of legacy managers inherited from old shells.
-# Global defaults are tracked in ~/.config/mise/config.toml.
-path=(${path:#$HOME/.nvm/*})
-path=(${path:#$HOME/.sdkman/*})
-path=(${path:#$HOME/.bun/bin})
-path=(${path:#$HOME/.cargo/bin})
-path=(${path:#$HOME/go/bin})
-unset NVM_DIR SDKMAN_DIR BUN_INSTALL GOROOT
+# mise applies repository-local tool overrides when a project declares mise.toml.
 if command -v mise &>/dev/null && [ -z "${MISE_SHELL:-}" ]; then
   eval "$(mise activate zsh)"
-  unset GOROOT
 fi
-path=(${path:#$HOME/.nvm/*})
-path=(${path:#$HOME/.sdkman/*})
-path=(${path:#$HOME/.bun/bin})
-path=(${path:#*/opt/go@1.25/bin})
-path=(${path:#$HOME/go/bin})
 
 # ========================================
 # General Aliases
