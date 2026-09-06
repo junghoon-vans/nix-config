@@ -9,8 +9,7 @@
 let
   cfg = config.workstation.languages.go;
   protobuf36 = pkgs.stdenv.mkDerivation {
-    pname = "protobuf";
-    version = "36.0";
+    name = "protobuf";
     src = inputs.protobuf36;
     nativeBuildInputs = [
       pkgs.cmake
