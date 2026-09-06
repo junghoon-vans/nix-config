@@ -31,20 +31,19 @@
   "lsp": {
     "gopls": {
       "binary": {
-        "path": "/bin/bash",
-        "arguments": ["-lc", "exec mise exec go@1.25 -- gopls"]
+        "path": "/run/current-system/sw/bin/gopls"
       }
     },
     "gnopls": {
       "binary": {
-        "path": "/bin/bash",
-        "arguments": ["-lc", "exec mise exec go@1.25 -- gnopls -mode=stdio"]
+        "path": "/Users/junghoon/.local/bin/gnopls",
+        "arguments": ["-mode=stdio"]
       }
     },
     "typescript-language-server": {
       "binary": {
-        "path": "/bin/bash",
-        "arguments": ["-lc", "PATH=\"$(mise exec bun@latest -- bun pm bin -g):$PATH\" exec mise exec node@24 bun@latest -- typescript-language-server --stdio"]
+        "path": "/run/current-system/sw/bin/typescript-language-server",
+        "arguments": ["--stdio"]
       }
     }
   },
