@@ -22,7 +22,7 @@ A managed path has exactly one owner. APM-generated skill output is never declar
 - `modules/darwin.nix`: Homebrew inventory and macOS defaults.
 - `modules/home-manager.nix`: managed files in `$HOME` and the pinned Zsh framework.
 - `modules/maintenance.nix`: weekly disk-maintenance LaunchAgent.
-- `home/`: static dotfile payload formerly materialized by chezmoi.
+- `home/`: static Home Manager file payload.
 - `apm.yml`: APM-owned Oh My Pi skills.
 
 ## Bootstrap

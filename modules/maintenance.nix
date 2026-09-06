@@ -3,7 +3,7 @@
 {
   launchd.agents.weekly-disk-maintenance = {
     serviceConfig = {
-      Label = "com.dotfiles.weekly-disk-maintenance";
+      Label = "com.junghoon.nix-workstation.weekly-disk-maintenance";
       ProgramArguments = [ "/Users/junghoon/.local/bin/weekly-disk-maintenance" ];
       StartCalendarInterval = {
         Weekday = 1;

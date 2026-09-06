@@ -26,7 +26,7 @@ in
     username = "junghoon";
     homeDirectory = "/Users/junghoon";
     stateVersion = "26.05";
-    packages = [ pkgs.chezmoi pkgs.mise ];
+    packages = [ pkgs.mise ];
     sessionPath = [ "$HOME/.local/bin" ];
   };
 
