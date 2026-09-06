@@ -3,6 +3,7 @@
 {
   imports = [
     ./go.nix
+    ./gno.nix
     ./node.nix
     ./typescript.nix
     ./python.nix

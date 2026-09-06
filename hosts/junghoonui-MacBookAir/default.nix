@@ -12,6 +12,7 @@
   nix.settings.experimental-features = "nix-command flakes";
 
   workstation.languages = {
+    gno.enable = true;
     go.enable = true;
     node.enable = true;
     typescript.enable = true;
