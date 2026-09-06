@@ -9,7 +9,7 @@
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     nix-homebrew.url = "github:zhaofengli/nix-homebrew";
     protobuf36 = {
-      url = "github:protocolbuffers/protobuf/v36.0";
+      url = "github:protocolbuffers/protobuf/v36.1";
       flake = false;
     };
 
