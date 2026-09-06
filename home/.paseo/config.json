@@ -9,8 +9,29 @@
       "enabled": false
     },
     "autoArchiveAfterMerge": false,
-    "enableTerminalAgentHooks": false,
+    "enableTerminalAgentHooks": true,
     "appendSystemPrompt": "",
+    "terminalProfiles": [
+      {
+        "id": "pi",
+        "name": "OMP",
+        "command": "omp",
+        "args": [
+          "{{{prompt}}}"
+        ],
+        "icon": "pi"
+      }
+    ],
+    "agentProfiles": [
+      {
+        "id": "agent_profile_mtmtxlv9_37mq53frt34",
+        "name": "Main Agent",
+        "provider": "omp",
+        "model": "openai-codex/gpt-5.6-terra",
+        "modeId": "full",
+        "thinkingOptionId": "medium"
+      }
+    ],
     "cors": {
       "allowedOrigins": [
         "https://app.paseo.sh"
