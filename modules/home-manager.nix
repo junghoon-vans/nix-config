@@ -58,7 +58,7 @@
     $DRY_RUN_CMD mkdir -p "$HOME/Pictures/Screenshots"
   '';
 
-  home.activation.applyTerminalPreferences = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+  home.activation.applyTerminalPreferences = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
     $DRY_RUN_CMD /usr/bin/defaults import com.apple.Terminal "$HOME/.config/terminal/com.apple.Terminal.plist"
   '';
 }
