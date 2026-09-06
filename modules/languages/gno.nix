@@ -51,6 +51,9 @@ in
         message = "Gno requires the Go language profile.";
       }
     ];
-    environment.systemPackages = [ bootstrapGno gnoLsp ];
+    environment.systemPackages = [
+      bootstrapGno
+      gnoLsp
+    ];
   };
 }
