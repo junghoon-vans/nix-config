@@ -5,7 +5,7 @@
 This repository declares Junghoon's Apple Silicon macOS workstation. It is not a generic
 NixOS configuration.
 
-- `hosts/junghoonui-MacBookAir/` composes the single supported host.
+- `hosts/junghoonui-MacBookAir/` and `hosts/junghoonui-MacBookPro/` compose the supported hosts.
 - `modules/` contains reusable nix-darwin and Home Manager modules.
 - `home/` contains static payloads managed by Home Manager.
 - `apm.yml` declares external Oh My Pi skills.
@@ -67,8 +67,10 @@ Before committing a Nix configuration change:
 
    ```sh
    nix flake metadata --no-write-lock-file
-   nix eval .#darwinConfigurations.junghoonui-MacBookAir.config.system.build.toplevel.drvPath
-   nix build .#darwinConfigurations.junghoonui-MacBookAir.system
+   for host in junghoonui-MacBookAir junghoonui-MacBookPro; do
+     nix eval ".#darwinConfigurations.${host}.config.system.build.toplevel.drvPath"
+     nix build ".#darwinConfigurations.${host}.system"
+   done
    ```
 
 4. If the current environment cannot build Darwin (for example, a Linux worker), do not claim

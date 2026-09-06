@@ -18,7 +18,7 @@ A managed path has exactly one owner. APM-generated skill output is never declar
 ## Layout
 
 - `flake.nix`: pinned inputs and the host entrypoint.
-- `hosts/junghoonui-MacBookAir`: host-specific identity and module composition.
+- `hosts/junghoonui-MacBookAir` and `hosts/junghoonui-MacBookPro`: host-specific identity and module composition.
 - `modules/darwin.nix`: Homebrew inventory and macOS defaults.
 - `modules/home-manager.nix`: managed files in `$HOME` and the pinned Zsh framework.
 - `modules/maintenance.nix`: weekly disk-maintenance LaunchAgent.
@@ -52,7 +52,7 @@ On a new Apple Silicon Mac:
 Use flakes explicitly so the command also works when they are not enabled globally:
 
 ```sh
-sudo nix --extra-experimental-features "nix-command flakes" run --inputs-from . nix-darwin#darwin-rebuild -- switch --flake .#junghoonui-MacBookAir
+sudo nix --extra-experimental-features "nix-command flakes" run --inputs-from . nix-darwin#darwin-rebuild -- switch --flake .#junghoonui-MacBookPro
 ```
 
 `--inputs-from .` resolves `nix-darwin` from this repository's locked flake input rather than the moving `nix-darwin/master` ref.

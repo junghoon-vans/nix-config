@@ -2,11 +2,29 @@ name: validate
 
 on:
   pull_request:
-  push:
-    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
-  evaluate:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      configuration_changed: ${{ steps.detect.outputs.configuration_changed }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - id: detect
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: scripts/detect-nix-config-changes "$BASE_SHA" "$HEAD_SHA"
+
+  checks:
+    needs: changes
+    if: needs.changes.outputs.configuration_changed == 'true'
     runs-on: macos-15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -17,7 +35,32 @@ jobs:
         run: nix develop --command sh -c 'statix check . && deadnix .'
       - name: Verify locked inputs
         run: nix flake metadata --no-write-lock-file
+
+  evaluate:
+    needs: [changes, checks]
+    if: needs.changes.outputs.configuration_changed == 'true'
+    runs-on: macos-15
+    strategy:
+      matrix:
+        host: [junghoonui-MacBookAir, junghoonui-MacBookPro]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25 # v22
       - name: Evaluate Darwin configuration
-        run: nix eval .#darwinConfigurations.junghoonui-MacBookAir.config.system.build.toplevel.drvPath
+        run: nix eval .#darwinConfigurations.${{ matrix.host }}.config.system.build.toplevel.drvPath
       - name: Build Darwin configuration
-        run: nix build .#darwinConfigurations.junghoonui-MacBookAir.system
+        run: nix build .#darwinConfigurations.${{ matrix.host }}.system
+
+  validate:
+    if: always()
+    needs: [changes, checks, evaluate]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Require successful configuration validation
+        env:
+          CHANGES_RESULT: ${{ needs.changes.result }}
+          CONFIGURATION_CHANGED: ${{ needs.changes.outputs.configuration_changed }}
+          CHECKS_RESULT: ${{ needs.checks.result }}
+          EVALUATE_RESULT: ${{ needs.evaluate.result }}
+        run: scripts/require-nix-validation
