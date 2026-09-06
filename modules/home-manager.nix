@@ -2,6 +2,7 @@
   inputs,
   lib,
   pkgs,
+  workstationUser,
   ...
 }:
 
@@ -28,8 +29,8 @@ let
 in
 {
   home = {
-    username = "junghoon";
-    homeDirectory = "/Users/junghoon";
+    username = workstationUser.name;
+    homeDirectory = workstationUser.homeDirectory;
     stateVersion = "26.05";
     packages = [ pkgs.mise ];
     sessionPath = [ "$HOME/.local/bin" ];
