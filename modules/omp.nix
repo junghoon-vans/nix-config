@@ -4,7 +4,7 @@ let
   cfg = config.workstation.omp;
   bootstrapOmp = pkgs.writeShellApplication {
     name = "bootstrap-omp";
-    runtimeInputs = [ pkgs.bun pkgs.coreutils ];
+    runtimeInputs = [ config.workstation.languages.bun.package pkgs.coreutils ];
     text = ''
       repository_root="''${1:-$PWD}"
       manifest="$repository_root/apm.yml"
@@ -19,9 +19,8 @@ let
       }
 
       export BUN_INSTALL="$HOME/.bun"
-      export PATH="$BUN_INSTALL/bin:$PATH"
       bun install --global "@oh-my-pi/pi-coding-agent@${cfg.version}"
-      omp --version
+      "$BUN_INSTALL/bin/omp" --version
       (
         cd "$repository_root"
         apm install --global --target agent-skills --only apm .

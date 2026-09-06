@@ -18,9 +18,17 @@ let
   };
 in
 {
-  options.workstation.languages.bun.enable = lib.mkEnableOption "the Bun runtime";
+  options.workstation.languages.bun = {
+    enable = lib.mkEnableOption "the Bun runtime";
+    package = lib.mkOption {
+      type = lib.types.package;
+      internal = true;
+      readOnly = true;
+    };
+  };
 
-  config = lib.mkIf cfg.enable {
-    environment.systemPackages = [ bun ];
+  config = {
+    workstation.languages.bun.package = bun;
+    environment.systemPackages = lib.optional cfg.enable bun;
   };
 }
