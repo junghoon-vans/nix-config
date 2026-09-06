@@ -9,7 +9,7 @@
   ];
 
   nixpkgs.hostPlatform = "aarch64-darwin";
-  nix.settings.experimental-features = "nix-command flakes";
+  nix.enable = false;
 
   workstation.languages = {
     gno.enable = true;
