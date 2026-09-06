@@ -2,15 +2,40 @@ name: validate
 
 on:
   pull_request:
-  push:
-    branches: [main]
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      configuration_changed: ${{ steps.detect.outputs.configuration_changed }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - id: detect
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if git diff --quiet "$BASE_SHA" "$HEAD_SHA" -- \
+            .github/workflows/validate.yml \
+            flake.nix \
+            flake.lock \
+            hosts \
+            modules \
+            home; then
+            echo "configuration_changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "configuration_changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
   checks:
+    needs: changes
+    if: needs.changes.outputs.configuration_changed == 'true'
     runs-on: macos-15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -23,7 +48,8 @@ jobs:
         run: nix flake metadata --no-write-lock-file
 
   evaluate:
-    needs: checks
+    needs: [changes, checks]
+    if: needs.changes.outputs.configuration_changed == 'true'
     runs-on: macos-15
     strategy:
       matrix:
@@ -35,3 +61,31 @@ jobs:
         run: nix eval .#darwinConfigurations.${{ matrix.host }}.config.system.build.toplevel.drvPath
       - name: Build Darwin configuration
         run: nix build .#darwinConfigurations.${{ matrix.host }}.system
+
+  validate:
+    if: always()
+    needs: [changes, checks, evaluate]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require successful configuration validation
+        env:
+          CHANGES_RESULT: ${{ needs.changes.result }}
+          CONFIGURATION_CHANGED: ${{ needs.changes.outputs.configuration_changed }}
+          CHECKS_RESULT: ${{ needs.checks.result }}
+          EVALUATE_RESULT: ${{ needs.evaluate.result }}
+        run: |
+          if [ "$CHANGES_RESULT" != "success" ]; then
+            echo "Change detection failed: changes=$CHANGES_RESULT" >&2
+            exit 1
+          fi
+
+          if [ "$CONFIGURATION_CHANGED" = "true" ] && { [ "$CHECKS_RESULT" != "success" ] || [ "$EVALUATE_RESULT" != "success" ]; }; then
+            echo "Nix configuration validation failed: checks=$CHECKS_RESULT evaluate=$EVALUATE_RESULT" >&2
+            exit 1
+          fi
+
+          if [ "$CONFIGURATION_CHANGED" = "true" ]; then
+            echo "Nix configuration validation passed."
+          else
+            echo "No Nix configuration files changed; macOS/Nix validation skipped."
+          fi
