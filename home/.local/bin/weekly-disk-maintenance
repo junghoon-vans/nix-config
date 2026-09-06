@@ -1,0 +1,91 @@
+#!/bin/bash
+
+set -euo pipefail
+
+PATH="$HOME/.local/bin:$PATH"
+
+THRESHOLD_PERCENT="${WEEKLY_DISK_THRESHOLD_PERCENT:-85}"
+LOG_DIR="${WEEKLY_DISK_LOG_DIR:-$HOME/.local/state/dotfiles}"
+LOG_FILE="$LOG_DIR/weekly-disk-maintenance.log"
+DRY_RUN="${WEEKLY_DISK_DRY_RUN:-0}"
+
+mkdir -p "$LOG_DIR"
+
+log() {
+    printf '%s %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*" >>"$LOG_FILE"
+}
+
+run_or_log() {
+    if [ "$DRY_RUN" = "1" ]; then
+        log "DRY RUN: $*"
+        return 0
+    fi
+
+    log "RUN: $*"
+    "$@" >>"$LOG_FILE" 2>&1
+}
+
+disk_usage_percent() {
+    df -P "$HOME" | awk 'NR == 2 { gsub(/%/, "", $5); print $5 }'
+}
+
+log_cleanup_candidates() {
+    local candidate=""
+    local openstack_paths=()
+
+    log "Cleanup candidates:"
+    for candidate in \
+        "$HOME/Library/Caches" \
+        "$HOME/Library/Developer/Xcode/DerivedData" \
+        "$HOME/.cache" \
+        "$HOME/.local/share" \
+        "$HOME/Library/Containers/com.docker.docker"; do
+        [ -e "$candidate" ] && log "  $candidate"
+    done
+
+    openstack_paths+=("$HOME/.openstack" "$HOME/.cache/openstack")
+    if [ -n "${WEEKLY_DISK_OPENSTACK_PATHS:-}" ]; then
+        IFS=':' read -r -a extra_openstack_paths <<<"$WEEKLY_DISK_OPENSTACK_PATHS"
+        openstack_paths+=("${extra_openstack_paths[@]}")
+    fi
+
+    log "OpenStack cleanup candidates:"
+    for candidate in "${openstack_paths[@]}"; do
+        [ -n "$candidate" ] && [ -e "$candidate" ] && log "  $candidate"
+    done
+}
+
+main() {
+    local usage_percent=""
+
+    usage_percent="$(disk_usage_percent)"
+    log "Weekly disk maintenance started; $HOME filesystem usage is ${usage_percent}%"
+
+    if [ "$usage_percent" -lt "$THRESHOLD_PERCENT" ]; then
+        log "Usage below ${THRESHOLD_PERCENT}%; no cleanup needed"
+        return 0
+    fi
+
+    log "Usage is at least ${THRESHOLD_PERCENT}%; running maintenance"
+
+    if command -v mole >/dev/null 2>&1; then
+        run_or_log mole clean
+    else
+        log "mole not found; skipping mole clean"
+    fi
+
+    if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
+        run_or_log docker builder prune --force
+        run_or_log docker image prune --all --force
+        run_or_log docker container prune --force
+        docker system df >>"$LOG_FILE" 2>&1 || true
+        log "Docker volumes are reported only; scheduled maintenance does not prune volumes."
+    else
+        log "Docker not available; skipping Docker cleanup"
+    fi
+
+    log_cleanup_candidates
+    log "Weekly disk maintenance complete"
+}
+
+main "$@"

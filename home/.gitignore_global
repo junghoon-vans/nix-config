@@ -1,0 +1,154 @@
+# ========================================
+# Operating System
+# ========================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# ========================================
+# IDEs and Editors
+# ========================================
+
+# VSCode
+.vscode/
+*.code-workspace
+.history/
+
+# JetBrains IDEs (GoLand, IntelliJ, etc.)
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Vim
+*.swp
+*.swo
+*~
+.*.sw?
+Session.vim
+.netrwhist
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# ========================================
+# Go
+# ========================================
+
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary
+*.test
+
+# Output of the go coverage tool
+*.out
+
+# Go workspace file
+go.work
+go.work.sum
+
+# Dependency directories
+vendor/
+
+# debug
+*__debug_bin*
+
+# ========================================
+# Node.js
+# ========================================
+
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.eslintcache
+.yarn/
+.pnp.*
+
+# ========================================
+# Environment & Secrets
+# ========================================
+
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+credentials.json
+secrets.yaml
+
+# ========================================
+# Build & Dist
+# ========================================
+
+dist/
+build/
+*.log
+*.pid
+*.seed
+*.pid.lock
+
+# ========================================
+# Temporary Files
+# ========================================
+
+tmp/
+temp/
+*.tmp
+*.bak
+*.cache
+
+# ========================================
+# Agents
+# ========================================
+
+.sisyphus/
+
+# Project-specific personal settings (not for source control)
+**/.claude/*
+!**/.claude/skills/
+!**/.claude/skills/**
+
+# OMC runtime state
+**/.omc/
+**/.omo/
+.codegraph
+.codegraph/
+**/.codegraph/
+
+# Playwright MCP runtime state
+.playwright-mcp/
+
+# ========================================
+# Tool Auth / Secrets
+# ========================================
+
+# gh CLI auth tokens
+**/.config/gh/hosts.yml
+
+# GitHub Copilot auth tokens
+**/.config/github-copilot/apps.json

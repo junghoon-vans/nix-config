@@ -1,0 +1,17 @@
+name: validate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  evaluate:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: DeterminateSystems/nix-installer-action@v20
+      - name: Verify locked inputs
+        run: nix flake metadata --no-write-lock-file
+      - name: Evaluate Darwin configuration
+        run: nix eval .#darwinConfigurations.junghoonui-MacBookAir.config.system.build.toplevel.drvPath

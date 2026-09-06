@@ -1,0 +1,99 @@
+[core]
+	editor = nvim
+	excludesfile = ~/.gitignore_global
+	autocrlf = input
+	pager = delta
+
+[init]
+	defaultBranch = main
+
+[alias]
+	# Basic shortcuts
+	co = checkout
+	br = branch
+	ci = commit
+	st = status
+	amend = commit --amend --no-edit
+	reamend = commit --amend
+
+	# More complex commands
+	unstage = reset HEAD --
+	last = log -1 HEAD
+	visual = log --graph --oneline --decorate --all
+	lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+
+	# Show modified files in last commit
+	dl = "!git ll -1"
+
+	# Show a diff last commit
+	dlc = diff --cached HEAD^
+
+	# Find a file path in codebase
+	f = "!git ls-files | grep -i"
+
+	# Search/grep your entire codebase for a string
+	grep = grep -Ii
+
+	# List all aliases
+	la = "!git config -l | grep alias | cut -c 7-"
+
+[color]
+	ui = auto
+	branch = auto
+	diff = auto
+	status = auto
+
+[color "branch"]
+	current = yellow reverse
+	local = yellow
+	remote = green
+
+[color "diff"]
+	meta = yellow bold
+	frag = magenta bold
+	old = red bold
+	new = green bold
+
+[color "status"]
+	added = yellow
+	changed = green
+	untracked = cyan
+
+[pull]
+	rebase = true
+
+[push]
+	default = simple
+	followTags = true
+	autoSetupRemote = true
+
+[branch]
+    autoSetupMerge = simple
+
+[fetch]
+	prune = true
+
+[diff]
+	tool = vimdiff
+
+[merge]
+	tool = vimdiff
+	conflictstyle = diff3
+
+[interactive]
+	singleKey = true
+
+[delta]
+	navigate = true
+	line-numbers = true
+	side-by-side = true
+
+[help]
+	autocorrect = 1
+
+[url "git@github.com:"]
+	insteadOf = https://github.com/
+
+# Include overrides (not tracked in git)
+[include]
+	path = ~/.gitconfig.override

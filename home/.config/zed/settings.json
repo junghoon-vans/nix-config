@@ -1,0 +1,111 @@
+{
+  "cli_default_open_behavior": "new_window",
+  "project_panel": {
+    "dock": "left"
+  },
+  "outline_panel": {
+    "dock": "left"
+  },
+  "collaboration_panel": {
+    "dock": "left"
+  },
+  "git_panel": {
+    "dock": "left",
+    "tree_view": true
+  },
+  "context_servers": {
+    "mcp-server-brave-search": {
+      "enabled": true,
+      "remote": false,
+      "settings": {}
+    },
+    "mcp-server-github": {
+      "enabled": true,
+      "remote": false,
+      "settings": {}
+    }
+  },
+  "edit_predictions": {
+    "provider": "copilot"
+  },
+  "lsp": {
+    "gopls": {
+      "binary": {
+        "path": "/bin/bash",
+        "arguments": ["-lc", "exec mise exec go@1.25 -- gopls"]
+      }
+    },
+    "gnopls": {
+      "binary": {
+        "path": "/bin/bash",
+        "arguments": ["-lc", "exec mise exec go@1.25 -- gnopls -mode=stdio"]
+      }
+    },
+    "typescript-language-server": {
+      "binary": {
+        "path": "/bin/bash",
+        "arguments": ["-lc", "PATH=\"$(mise exec bun@latest -- bun pm bin -g):$PATH\" exec mise exec node@24 bun@latest -- typescript-language-server --stdio"]
+      }
+    }
+  },
+  "languages": {
+    "Go": {
+      "language_servers": ["gopls"]
+    },
+    "Gno": {
+      "language_servers": ["gnopls"],
+      "format_on_save": "on",
+      "tab_size": 4
+    },
+    "TypeScript": {
+      "language_servers": ["typescript-language-server", "!vtsls", "..."]
+    },
+    "TSX": {
+      "language_servers": ["typescript-language-server", "!vtsls", "..."]
+    },
+    "JavaScript": {
+      "language_servers": ["typescript-language-server", "!vtsls", "..."]
+    },
+    "JSX": {
+      "language_servers": ["typescript-language-server", "!vtsls", "..."]
+    },
+    "SQL": {
+      "format_on_save": "off",
+      "prettier": {
+        "allowed": false
+      }
+    },
+    "YAML": {
+      "format_on_save": "off",
+      "prettier": {
+        "allowed": false
+      }
+    }
+  },
+  "on_last_window_closed": "quit_app",
+  "when_closing_with_no_tabs": "keep_window_open",
+  "agent": {
+    "sidebar_side": "right",
+    "dock": "right",
+    "model_parameters": []
+  },
+  "disable_ai": false,
+  "confirm_quit": true,
+  "telemetry": {
+    "diagnostics": true,
+    "metrics": true
+  },
+  "minimap": {
+    "show": "auto"
+  },
+  "autosave": "on_focus_change",
+  "base_keymap": "JetBrains",
+  "icon_theme": "Catppuccin Macchiato",
+  "ui_font_size": 16,
+  "buffer_font_size": 15,
+  "theme": {
+    "mode": "dark",
+    "light": "One Light",
+    "dark": "Catppuccin Macchiato"
+  }
+}
