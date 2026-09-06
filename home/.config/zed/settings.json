@@ -36,8 +36,8 @@
     },
     "gnopls": {
       "binary": {
-        "path": "/Users/junghoon/.local/bin/gnopls",
-        "arguments": ["-mode=stdio"]
+        "path": "/bin/bash",
+        "arguments": ["-lc", "exec mise exec go@1.25 -- gnopls -mode=stdio"]
       }
     },
     "typescript-language-server": {
