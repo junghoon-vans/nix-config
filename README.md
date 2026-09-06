@@ -8,7 +8,7 @@ Declarative configuration for Junghoon's macOS workstation.
 | --- | --- |
 | macOS defaults, Homebrew formulae/casks, LaunchAgents | nix-darwin |
 | Home-directory configuration and shell framework | Home Manager |
-| Language runtime versions | mise |
+| Global language runtime and tooling versions | Nixpkgs pinned by `flake.lock` |
 | Oh My Pi skills | APM |
 | GUI application installation | Homebrew through nix-darwin |
 | Ecosystem installers not packaged by Nix | Explicit compatibility commands during migration |
@@ -28,20 +28,23 @@ A managed path has exactly one owner. APM-generated skill output is never declar
 ## Bootstrap
 
 The Nix configuration installs the APM CLI through the declared Homebrew formula.
-After the switch, deploy Oh My Pi skills explicitly:
+After the switch, bootstrap the pinned Oh My Pi release and deploy its skills:
 
 ```sh
 sudo nix run nix-darwin/master#darwin-rebuild -- switch --flake .#junghoonui-MacBookAir
-apm install --global --target agent-skills --only apm .
+bootstrap-omp .
 ```
 
-Home Manager never owns APM output paths.
+`bootstrap-omp` installs `@oh-my-pi/pi-coding-agent@18.1.11` through Bun, verifies
+`omp`, and deploys the skill-only APM manifest. Home Manager never owns APM output paths.
 
 ## Languages
 
-`modules/languages/` provides opt-in Nix modules for global language runtimes.
-Each host selects only the runtimes it needs through `workstation.languages.*.enable`.
-mise remains installed solely to activate project-local `mise.toml` overrides.
+`modules/languages/` provides opt-in Nix profiles for global runtimes and their
+language-specific tooling. Each host selects only the profiles it needs through
+`workstation.languages.*.enable`. Nixpkgs revisions pinned by `flake.lock` are
+the global version authority; mise is retained only for repository-local
+`mise.toml` overrides.
 
 ## Safety
 

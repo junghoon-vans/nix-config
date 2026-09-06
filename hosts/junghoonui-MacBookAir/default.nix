@@ -4,6 +4,7 @@
   imports = [
     ../../modules/darwin.nix
     ../../modules/languages
+    ../../modules/omp.nix
     ../../modules/maintenance.nix
   ];
 
@@ -21,6 +22,8 @@
     bun.enable = true;
     xml.enable = true;
   };
+
+  workstation.omp.enable = true;
 
   users.users.junghoon = {
     name = "junghoon";
