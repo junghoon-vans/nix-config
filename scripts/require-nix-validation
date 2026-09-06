@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+: "${CHANGES_RESULT:?CHANGES_RESULT must be set}"
+: "${CONFIGURATION_CHANGED:?CONFIGURATION_CHANGED must be set}"
+: "${CHECKS_RESULT:?CHECKS_RESULT must be set}"
+: "${EVALUATE_RESULT:?EVALUATE_RESULT must be set}"
+
+if [ "$CHANGES_RESULT" != "success" ]; then
+  printf 'Change detection failed: changes=%s\n' "$CHANGES_RESULT" >&2
+  exit 1
+fi
+
+if [ "$CONFIGURATION_CHANGED" = "true" ] && { [ "$CHECKS_RESULT" != "success" ] || [ "$EVALUATE_RESULT" != "success" ]; }; then
+  printf 'Nix configuration validation failed: checks=%s evaluate=%s\n' "$CHECKS_RESULT" "$EVALUATE_RESULT" >&2
+  exit 1
+fi
+
+if [ "$CONFIGURATION_CHANGED" = "true" ]; then
+  printf 'Nix configuration validation passed.\n'
+else
+  printf 'No Nix configuration files changed; macOS/Nix validation skipped.\n'
+fi

@@ -20,18 +20,7 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: |
-          if git diff --quiet "$BASE_SHA" "$HEAD_SHA" -- \
-            .github/workflows/validate.yml \
-            flake.nix \
-            flake.lock \
-            hosts \
-            modules \
-            home; then
-            echo "configuration_changed=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "configuration_changed=true" >> "$GITHUB_OUTPUT"
-          fi
+        run: scripts/detect-nix-config-changes "$BASE_SHA" "$HEAD_SHA"
 
   checks:
     needs: changes
@@ -73,19 +62,4 @@ jobs:
           CONFIGURATION_CHANGED: ${{ needs.changes.outputs.configuration_changed }}
           CHECKS_RESULT: ${{ needs.checks.result }}
           EVALUATE_RESULT: ${{ needs.evaluate.result }}
-        run: |
-          if [ "$CHANGES_RESULT" != "success" ]; then
-            echo "Change detection failed: changes=$CHANGES_RESULT" >&2
-            exit 1
-          fi
-
-          if [ "$CONFIGURATION_CHANGED" = "true" ] && { [ "$CHECKS_RESULT" != "success" ] || [ "$EVALUATE_RESULT" != "success" ]; }; then
-            echo "Nix configuration validation failed: checks=$CHECKS_RESULT evaluate=$EVALUATE_RESULT" >&2
-            exit 1
-          fi
-
-          if [ "$CONFIGURATION_CHANGED" = "true" ]; then
-            echo "Nix configuration validation passed."
-          else
-            echo "No Nix configuration files changed; macOS/Nix validation skipped."
-          fi
+        run: scripts/require-nix-validation
