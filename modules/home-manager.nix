@@ -1,5 +1,26 @@
 { inputs, lib, pkgs, ... }:
 
+let
+  ohMyZsh = pkgs.runCommand "oh-my-zsh" {} ''
+    cp -a ${inputs.oh-my-zsh}/. "$out"
+    chmod -R u+w "$out/custom"
+
+    rm -rf \
+      "$out/custom/plugins/zsh-autosuggestions" \
+      "$out/custom/plugins/zsh-completions" \
+      "$out/custom/plugins/zsh-hangul" \
+      "$out/custom/plugins/zsh-syntax-highlighting" \
+      "$out/custom/themes/spaceship-prompt" \
+      "$out/custom/themes/spaceship.zsh-theme"
+
+    ln -s ${inputs.zsh-autosuggestions} "$out/custom/plugins/zsh-autosuggestions"
+    ln -s ${inputs.zsh-completions} "$out/custom/plugins/zsh-completions"
+    ln -s ${inputs.zsh-hangul} "$out/custom/plugins/zsh-hangul"
+    ln -s ${inputs.zsh-syntax-highlighting} "$out/custom/plugins/zsh-syntax-highlighting"
+    ln -s ${inputs.spaceship-prompt} "$out/custom/themes/spaceship-prompt"
+    ln -s ${inputs.spaceship-prompt}/spaceship.zsh-theme "$out/custom/themes/spaceship.zsh-theme"
+  '';
+in
 {
   home = {
     username = "junghoon";
@@ -28,30 +49,9 @@
     };
 
     ".oh-my-zsh" = {
-      source = inputs.oh-my-zsh;
+      source = ohMyZsh;
       recursive = true;
     };
-    ".oh-my-zsh/custom/plugins/zsh-autosuggestions" = {
-      source = inputs.zsh-autosuggestions;
-      recursive = true;
-    };
-    ".oh-my-zsh/custom/plugins/zsh-completions" = {
-      source = inputs.zsh-completions;
-      recursive = true;
-    };
-    ".oh-my-zsh/custom/plugins/zsh-hangul" = {
-      source = inputs.zsh-hangul;
-      recursive = true;
-    };
-    ".oh-my-zsh/custom/plugins/zsh-syntax-highlighting" = {
-      source = inputs.zsh-syntax-highlighting;
-      recursive = true;
-    };
-    ".oh-my-zsh/custom/themes/spaceship-prompt" = {
-      source = inputs.spaceship-prompt;
-      recursive = true;
-    };
-    ".oh-my-zsh/custom/themes/spaceship.zsh-theme".source = "${inputs.spaceship-prompt}/spaceship.zsh-theme";
   };
 
   home.activation.createScreenshotsDirectory = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
