@@ -39,7 +39,6 @@
       "helm"
       "terraform"
       "grpcurl"
-      "protobuf"
       "mysql-client"
       "libpq"
       "bat"
