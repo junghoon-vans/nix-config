@@ -53,8 +53,9 @@
     users.junghoon = import ../../modules/home-manager.nix;
   };
 
-  system.primaryUser = "junghoon";
-
-  system.configurationRevision = inputs.self.rev or inputs.self.dirtyRev or null;
-  system.stateVersion = 6;
+  system = {
+    primaryUser = "junghoon";
+    configurationRevision = inputs.self.rev or inputs.self.dirtyRev or null;
+    stateVersion = 6;
+  };
 }

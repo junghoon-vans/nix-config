@@ -1,10 +1,18 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   cfg = config.workstation.omp;
   bootstrapOmp = pkgs.writeShellApplication {
     name = "bootstrap-omp";
-    runtimeInputs = [ config.workstation.languages.bun.package pkgs.coreutils ];
+    runtimeInputs = [
+      config.workstation.languages.bun.package
+      pkgs.coreutils
+    ];
     text = ''
       repository_root="''${1:-$PWD}"
       manifest="$repository_root/apm.yml"

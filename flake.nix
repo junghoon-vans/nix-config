@@ -13,7 +13,6 @@
       flake = false;
     };
 
-
     oh-my-zsh = {
       url = "github:ohmyzsh/ohmyzsh";
       flake = false;
@@ -58,8 +57,29 @@
     };
   };
 
-  outputs = inputs@{ self, nix-darwin, home-manager, nix-homebrew, ... }:
+  outputs =
+    inputs@{
+      self,
+      nixpkgs,
+      nix-darwin,
+      home-manager,
+      nix-homebrew,
+      ...
+    }:
+    let
+      system = "aarch64-darwin";
+      pkgs = nixpkgs.legacyPackages.${system};
+    in
     {
+      formatter.${system} = pkgs.nixfmt;
+      devShells.${system}.default = pkgs.mkShell {
+        packages = with pkgs; [
+          deadnix
+          nixfmt
+          statix
+        ];
+      };
+
       darwinConfigurations."junghoonui-MacBookAir" = nix-darwin.lib.darwinSystem {
         specialArgs = { inherit inputs; };
         modules = [

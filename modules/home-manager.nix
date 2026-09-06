@@ -1,7 +1,12 @@
-{ inputs, lib, pkgs, ... }:
+{
+  inputs,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
-  ohMyZsh = pkgs.runCommand "oh-my-zsh" {} ''
+  ohMyZsh = pkgs.runCommand "oh-my-zsh" { } ''
     cp -a ${inputs.oh-my-zsh}/. "$out"
     chmod -R u+w "$out/custom"
 

@@ -1,4 +1,10 @@
-{ config, inputs, lib, pkgs, ... }:
+{
+  config,
+  inputs,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   cfg = config.workstation.languages.go;
@@ -6,7 +12,10 @@ let
     pname = "protobuf";
     version = "36.0";
     src = inputs.protobuf36;
-    nativeBuildInputs = [ pkgs.cmake pkgs.pkg-config ];
+    nativeBuildInputs = [
+      pkgs.cmake
+      pkgs.pkg-config
+    ];
     buildInputs = [ pkgs.abseil-cpp ];
     cmakeFlags = [
       "-Dprotobuf_ABSL_PROVIDER=package"
@@ -23,6 +32,12 @@ in
   options.workstation.languages.go.enable = lib.mkEnableOption "the Go runtime";
 
   config = lib.mkIf cfg.enable {
-    environment.systemPackages = with pkgs; [ go_1_25 gopls golangci-lint gofumpt protobuf36 ];
+    environment.systemPackages = with pkgs; [
+      go_1_25
+      gopls
+      golangci-lint
+      gofumpt
+      protobuf36
+    ];
   };
 }

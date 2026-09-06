@@ -1,10 +1,20 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   cfg = config.workstation.languages.gno;
   bootstrapGno = pkgs.writeShellApplication {
     name = "bootstrap-gno";
-    runtimeInputs = [ pkgs.curl pkgs.git pkgs.go_1_25 pkgs.gnugrep ];
+    runtimeInputs = [
+      pkgs.curl
+      pkgs.git
+      pkgs.go_1_25
+      pkgs.gnugrep
+    ];
     text = ''
       release="chain/pearl"
       revision="c4c72fdd288c757e8da0d93aae867fa479b1b15c"
@@ -28,7 +38,12 @@ in
 {
   options.workstation.languages.gno.enable = lib.mkEnableOption "the Gno toolchain";
   config = lib.mkIf cfg.enable {
-    assertions = [{ assertion = config.workstation.languages.go.enable; message = "Gno requires the Go language profile."; }];
+    assertions = [
+      {
+        assertion = config.workstation.languages.go.enable;
+        message = "Gno requires the Go language profile.";
+      }
+    ];
     environment.systemPackages = [ bootstrapGno ];
   };
 }
