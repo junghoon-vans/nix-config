@@ -1,5 +1,11 @@
 { inputs, pkgs, ... }:
 
+let
+  user = {
+    username = "junghoon";
+    homeDirectory = "/Users/junghoon";
+  };
+in
 {
   imports = [
     ../../modules/darwin.nix
@@ -24,16 +30,13 @@
 
   workstation.omp.enable = true;
 
-  users.users.junghoon = {
-    name = "junghoon";
-    home = "/Users/junghoon";
-  };
+  users.users.${user.username}.home = user.homeDirectory;
 
   nix-homebrew = {
     enable = true;
     enableRosetta = true;
     autoMigrate = true;
-    user = "junghoon";
+    user = user.username;
     mutableTaps = true;
     taps = {
       "homebrew/homebrew-core" = inputs.homebrew-core;
@@ -47,12 +50,15 @@
     backupFileExtension = "pre-nix";
     useGlobalPkgs = true;
     useUserPackages = true;
-    extraSpecialArgs = { inherit inputs; };
-    users.junghoon = import ../../modules/home-manager.nix;
+    extraSpecialArgs = {
+      inherit inputs;
+      workstationUser = user;
+    };
+    users.${user.username} = import ../../modules/home-manager.nix;
   };
 
   system = {
-    primaryUser = "junghoon";
+    primaryUser = user.username;
     configurationRevision = inputs.self.rev or inputs.self.dirtyRev or null;
     stateVersion = 6;
   };

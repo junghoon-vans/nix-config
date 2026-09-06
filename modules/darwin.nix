@@ -1,5 +1,8 @@
 { config, ... }:
 
+let
+  userHome = config.users.users.${config.system.primaryUser}.home;
+in
 {
   homebrew = {
     enable = true;
@@ -99,7 +102,7 @@
     };
     screencapture = {
       disable-shadow = true;
-      location = "/Users/junghoon/Pictures/Screenshots";
+      location = "${userHome}/Pictures/Screenshots";
     };
   };
 }

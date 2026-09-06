@@ -2,10 +2,12 @@
   inputs,
   lib,
   pkgs,
+  workstationUser,
   ...
 }:
 
 let
+  inherit (workstationUser) username homeDirectory;
   ohMyZsh = pkgs.runCommand "oh-my-zsh" { } ''
     cp -a ${inputs.oh-my-zsh}/. "$out"
     chmod -R u+w "$out/custom"
@@ -28,8 +30,7 @@ let
 in
 {
   home = {
-    username = "junghoon";
-    homeDirectory = "/Users/junghoon";
+    inherit username homeDirectory;
     stateVersion = "26.05";
     packages = [ pkgs.mise ];
     sessionPath = [ "$HOME/.local/bin" ];
