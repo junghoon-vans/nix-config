@@ -52,8 +52,10 @@ On a new Apple Silicon Mac:
 Use flakes explicitly so the command also works when they are not enabled globally:
 
 ```sh
-sudo nix --extra-experimental-features "nix-command flakes" run nix-darwin/master#darwin-rebuild -- switch --flake .#junghoonui-MacBookAir
+sudo nix --extra-experimental-features "nix-command flakes" run --inputs-from . nix-darwin#darwin-rebuild -- switch --flake .#junghoonui-MacBookAir
 ```
+
+`--inputs-from .` resolves `nix-darwin` from this repository's locked flake input rather than the moving `nix-darwin/master` ref.
 
 The switch installs declared Homebrew packages, system language runtimes, Home Manager files, and the bootstrap commands. Then install the pinned toolchains that are intentionally kept outside the Nix store:
 
