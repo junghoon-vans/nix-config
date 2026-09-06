@@ -15,3 +15,5 @@ jobs:
         run: nix flake metadata --no-write-lock-file
       - name: Evaluate Darwin configuration
         run: nix eval .#darwinConfigurations.junghoonui-MacBookAir.config.system.build.toplevel.drvPath
+      - name: Build Darwin configuration
+        run: nix build .#darwinConfigurations.junghoonui-MacBookAir.system
