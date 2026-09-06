@@ -21,10 +21,9 @@ let
       export BUN_INSTALL="$HOME/.bun"
       bun install --global "@oh-my-pi/pi-coding-agent@${cfg.version}"
       "$BUN_INSTALL/bin/omp" --version
-      (
-        cd "$repository_root"
-        apm install --global --target agent-skills --only apm .
-      )
+      mkdir -p "$HOME/.apm"
+      cp "$manifest" "$HOME/.apm/apm.yml"
+      apm install --global --target agent-skills --only apm
     '';
   };
 in

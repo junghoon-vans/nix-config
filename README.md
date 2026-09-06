@@ -36,7 +36,8 @@ bootstrap-omp .
 ```
 
 `bootstrap-omp` installs `@oh-my-pi/pi-coding-agent@18.1.11` through Bun, verifies
-`omp`, and deploys the skill-only APM manifest. Home Manager never owns APM output paths.
+`omp`, copies this repository’s APM manifest to `~/.apm/apm.yml`, and deploys the
+skill-only dependencies. Home Manager never owns APM output paths.
 
 ## Languages
 
