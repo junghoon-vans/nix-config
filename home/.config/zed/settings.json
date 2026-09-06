@@ -20,9 +20,6 @@
       "args": ["acp"]
     }
   },
-  "edit_predictions": {
-    "provider": "copilot"
-  },
   "lsp": {
     "gopls": {
       "binary": {
@@ -84,8 +81,8 @@
   },
   "confirm_quit": true,
   "telemetry": {
-    "diagnostics": true,
-    "metrics": true
+    "diagnostics": false,
+    "metrics": false
   },
   "minimap": {
     "show": "auto"
