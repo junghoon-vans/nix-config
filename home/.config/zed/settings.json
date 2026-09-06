@@ -13,16 +13,11 @@
     "dock": "left",
     "tree_view": true
   },
-  "context_servers": {
-    "mcp-server-brave-search": {
-      "enabled": true,
-      "remote": false,
-      "settings": {}
-    },
-    "mcp-server-github": {
-      "enabled": true,
-      "remote": false,
-      "settings": {}
+  "agent_servers": {
+    "OMP": {
+      "type": "custom",
+      "command": "/run/current-system/sw/bin/omp",
+      "args": ["acp"]
     }
   },
   "edit_predictions": {
@@ -85,10 +80,8 @@
   "when_closing_with_no_tabs": "keep_window_open",
   "agent": {
     "sidebar_side": "right",
-    "dock": "right",
-    "model_parameters": []
+    "dock": "right"
   },
-  "disable_ai": false,
   "confirm_quit": true,
   "telemetry": {
     "diagnostics": true,

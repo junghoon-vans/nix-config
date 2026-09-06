@@ -6,54 +6,55 @@
 }:
 
 let
-  cfg = config.workstation.languages.gno;
-  userHome = config.users.users.${config.system.primaryUser}.home;
-  bootstrapGno = pkgs.writeShellApplication {
-    name = "bootstrap-gno";
-    runtimeInputs = [
-      pkgs.curl
-      pkgs.git
-      pkgs.go_1_25
-      pkgs.gnugrep
-    ];
-    text = ''
-      release="chain/pearl"
-      revision="c4c72fdd288c757e8da0d93aae867fa479b1b15c"
-      root="$HOME/.local/share/gno/$release"
-      bin="$HOME/.local/bin"
-      mkdir -p "$bin" "$(dirname "$root")"
-      if [[ ! -d "$root/.git" ]]; then git clone https://github.com/gnolang/gno "$root"; fi
-      git -C "$root" fetch --tags --prune origin
-      git -C "$root" checkout --detach "$revision"
-      curl -fsSL -o "$bin/gno" "https://github.com/gnolang/gno/releases/download/$release/gno_darwin_arm64"
-      curl -fsSL -o "$bin/gnokey" "https://github.com/gnolang/gno/releases/download/$release/gnokey_darwin_arm64"
-      echo "adb32ebe714a34d9415808b1f2eda3dbca01e1fa9893f13f1c46b853e0dcbb3c  $bin/gno" | shasum -a 256 -c -
-      echo "53efa14c840ebc8f6324148a83e584947cb6af19263c8be09df1a87415bd11a4  $bin/gnokey" | shasum -a 256 -c -
-      chmod 755 "$bin/gno" "$bin/gnokey"
-      GNOROOT="$root" GOBIN="$bin" go install github.com/gnoverse/gnopls@543a5cb1face8aeb9d947dc557995a8e4d4c311d
-      GNOROOT="$root" "$bin/gno" version
-      "$bin/gnopls" version
+  gnoSource = pkgs.fetchFromGitHub {
+    owner = "gnolang";
+    repo = "gno";
+    rev = "c4c72fdd288c757e8da0d93aae867fa479b1b15c";
+    hash = "sha256-nKEp6P1zeYMhmA9GeXsnhiyHsmPOlRZej3FjaROIFFM=";
+  };
+  gnoBinary = pkgs.fetchurl {
+    url = "https://github.com/gnolang/gno/releases/download/chain/pearl/gno_darwin_arm64";
+    hash = "sha256-rbMuvnFKNNlBWAix8u2j28oB4fqYk/E/HEa4U+Dcuzw=";
+  };
+  gnokeyBinary = pkgs.fetchurl {
+    url = "https://github.com/gnolang/gno/releases/download/chain/pearl/gnokey_darwin_arm64";
+    hash = "sha256-U++hTIQOvI9jJBSKg+WElHy2rxkmPIvgnfGodBW9EaQ=";
+  };
+  gnoToolchain = pkgs.stdenvNoCC.mkDerivation {
+    pname = "gno-toolchain";
+    version = "chain-pearl";
+    dontUnpack = true;
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+    installPhase = ''
+      install -Dm755 ${gnoBinary} "$out/libexec/gno"
+      install -Dm755 ${gnokeyBinary} "$out/libexec/gnokey"
+      makeWrapper "$out/libexec/gno" "$out/bin/gno" --set GNOROOT ${gnoSource}
+      makeWrapper "$out/libexec/gnokey" "$out/bin/gnokey"
     '';
   };
-  gnoLsp = pkgs.writeShellApplication {
-    name = "gnopls";
-    text = ''
-      exec "${userHome}/.local/bin/gnopls" "$@"
+  gnopls = pkgs.buildGoModule {
+    pname = "gnopls";
+    version = "0-unstable-2026-07-01";
+    src = pkgs.fetchFromGitHub {
+      owner = "gnoverse";
+      repo = "gnopls";
+      rev = "543a5cb1face8aeb9d947dc557995a8e4d4c311d";
+      hash = "sha256-wFGv+UDI20XDwqjjYPLzvyZPSqziqXggpKRDYfpkM0M=";
+    };
+    vendorHash = "sha256-BD5lx+iTrj4GInH1gIyjj6B+DLPv3VGs5OpnvM0jFok=";
+    subPackages = [ "." ];
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+    postFixup = ''
+      wrapProgram "$out/bin/gnopls" --set GNOROOT ${gnoSource}
     '';
   };
 in
 {
   options.workstation.languages.gno.enable = lib.mkEnableOption "the Gno toolchain";
-  config = lib.mkIf cfg.enable {
-    assertions = [
-      {
-        assertion = config.workstation.languages.go.enable;
-        message = "Gno requires the Go language profile.";
-      }
-    ];
+  config = lib.mkIf config.workstation.languages.gno.enable {
     environment.systemPackages = [
-      bootstrapGno
-      gnoLsp
+      gnoToolchain
+      gnopls
     ];
   };
 }
