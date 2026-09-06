@@ -7,6 +7,7 @@
 
 let
   cfg = config.workstation.languages.gno;
+  userHome = config.users.users.${config.system.primaryUser}.home;
   bootstrapGno = pkgs.writeShellApplication {
     name = "bootstrap-gno";
     runtimeInputs = [
@@ -34,6 +35,12 @@ let
       "$bin/gnopls" version
     '';
   };
+  gnoLsp = pkgs.writeShellApplication {
+    name = "gnopls";
+    text = ''
+      exec "${userHome}/.local/bin/gnopls" "$@"
+    '';
+  };
 in
 {
   options.workstation.languages.gno.enable = lib.mkEnableOption "the Gno toolchain";
@@ -44,6 +51,6 @@ in
         message = "Gno requires the Go language profile.";
       }
     ];
-    environment.systemPackages = [ bootstrapGno ];
+    environment.systemPackages = [ bootstrapGno gnoLsp ];
   };
 }
