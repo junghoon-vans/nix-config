@@ -27,6 +27,20 @@ let
     ln -s ${inputs.spaceship-prompt} "$out/custom/themes/spaceship-prompt"
     ln -s ${inputs.spaceship-prompt}/spaceship.zsh-theme "$out/custom/themes/spaceship.zsh-theme"
   '';
+  # Zed settings configure Nix-provided gnopls; Gno uses Zed's built-in Go grammar.
+  zedGno = pkgs.runCommand "zed-gno-extension" { } ''
+    mkdir -p "$out"
+    cp -R ${inputs.zed-gno}/languages "$out/languages"
+    cat > "$out/extension.toml" <<'EOF'
+    id = "gno"
+    name = "Gno"
+    version = "0.1.0"
+    schema_version = 1
+    authors = ["julienrbrt <https://github.com/julienrbrt>"]
+    description = "Gno language support with gnopls LSP (diagnostics, completions, go-to-definition, hover)"
+    repository = "https://github.com/julienrbrt/zed-gno"
+    EOF
+  '';
 in
 {
   home = {
@@ -50,6 +64,10 @@ in
     ".config/nvim/lua/config/lazy.lua".source = ../home/.config/nvim/lua/config/lazy.lua;
     ".config/nvim/lua/config/options.lua".source = ../home/.config/nvim/lua/config/options.lua;
     ".config/zed/settings.json".source = ../home/.config/zed/settings.json;
+    "Library/Application Support/Zed/extensions/installed/gno" = {
+      source = zedGno;
+      recursive = true;
+    };
     ".local/bin/weekly-disk-maintenance" = {
       source = ../home/.local/bin/weekly-disk-maintenance;
       executable = true;

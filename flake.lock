@@ -203,6 +203,7 @@
         "oh-my-zsh": "oh-my-zsh",
         "protobuf36": "protobuf36",
         "spaceship-prompt": "spaceship-prompt",
+        "zed-gno": "zed-gno",
         "zsh-autosuggestions": "zsh-autosuggestions",
         "zsh-completions": "zsh-completions",
         "zsh-hangul": "zsh-hangul",
@@ -222,6 +223,22 @@
       "original": {
         "owner": "spaceship-prompt",
         "repo": "spaceship-prompt",
+        "type": "github"
+      }
+    },
+    "zed-gno": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1771414971,
+        "narHash": "sha256-Z9ovrJ0imXAMHnaBC/SWiigkodtBJawVZG6mau3t4IM=",
+        "owner": "julienrbrt",
+        "repo": "zed-gno",
+        "rev": "e01d9e4a2f4ff4c660b9adcd1114daf899da753c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "julienrbrt",
+        "repo": "zed-gno",
         "type": "github"
       }
     },
