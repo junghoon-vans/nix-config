@@ -12,7 +12,7 @@ let
     inherit (cfg) version;
     src = pkgs.fetchurl {
       url = "https://github.com/can1357/oh-my-pi/releases/download/v${cfg.version}/omp-darwin-arm64";
-      hash = "sha256-qBsqmNmdWzRJHSUjICDVPLDlUmCV7yHEy51Cg+ZRGAc=";
+      hash = "sha256-pMXJzFuCIhhNDXQpsLtqwqkrvkXdEb9o5LE2AFB5GQk=";
     };
     dontUnpack = true;
     installPhase = ''
@@ -25,7 +25,7 @@ in
     enable = lib.mkEnableOption "Oh My Pi";
     version = lib.mkOption {
       type = lib.types.str;
-      default = "18.1.11";
+      default = "18.1.13";
       description = "Pinned Oh My Pi release version.";
     };
   };
