@@ -1,0 +1,36 @@
+lockfile_version: '1'
+generated_at: '2026-09-07T08:42:56.296598+00:00'
+apm_version: 0.29.0
+dependencies:
+- repo_url: jeffallan/claude-skills
+  materialization_repo_url: Jeffallan/claude-skills
+  name: golang-pro
+  host: github.com
+  resolved_commit: 882ef55e377dbf9a4dbe496bb41ac6ccd0e555cf
+  resolved_ref: 882ef55e377dbf9a4dbe496bb41ac6ccd0e555cf
+  version: unknown
+  virtual_path: skills/golang-pro
+  is_virtual: true
+  package_type: claude_skill
+  content_hash: sha256:cbb7c3a0686bd1afde0dc405fa59de2c55d568d0e4256e84f492d1ebf78efcda
+- repo_url: vercel-labs/agent-skills
+  name: vercel-react-best-practices
+  host: github.com
+  resolved_commit: 063bee94c3f4df8453406c830b0a7df0f2860278
+  resolved_ref: 063bee94c3f4df8453406c830b0a7df0f2860278
+  version: unknown
+  virtual_path: skills/react-best-practices
+  is_virtual: true
+  package_type: claude_skill
+  content_hash: sha256:74f142d28d360d78e8bac4f239a84c87f0ced9015729bc72b5458d82ff45b015
+- repo_url: vercel-labs/skills
+  name: find-skills
+  host: github.com
+  resolved_commit: 435076e78988e1e6ec40d00b0b1d76bdbbc5419a
+  resolved_ref: 435076e78988e1e6ec40d00b0b1d76bdbbc5419a
+  version: unknown
+  virtual_path: skills/find-skills
+  is_virtual: true
+  package_type: claude_skill
+  content_hash: sha256:913b9d37d0d54047dd65222bb8c67b2bf04e3cb87dcad1729068d7a8b2c8c396
+deployments: []

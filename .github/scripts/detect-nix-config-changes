@@ -6,11 +6,15 @@ base_sha=${1:?usage: detect-nix-config-changes <base-sha> <head-sha>}
 head_sha=${2:?usage: detect-nix-config-changes <base-sha> <head-sha>}
 
 if git diff --quiet "$base_sha" "$head_sha" -- \
-  .github/workflows/validate.yml \
+  .github/scripts \
+  .github/workflows \
+  apm.yml \
+  apm.lock.yaml \
   flake.nix \
   flake.lock \
   hosts \
   modules \
+  scripts \
   home; then
   printf 'configuration_changed=false\n' >> "$GITHUB_OUTPUT"
 else
