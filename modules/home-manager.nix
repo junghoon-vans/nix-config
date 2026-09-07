@@ -42,6 +42,7 @@ in
     ".gitignore_global".source = ../home/.gitignore_global;
     ".paseo/config.json".source = ../home/.paseo/config.json;
     ".omp/agent/config.yml".source = ../home/.omp/agent/config.yml;
+    ".omp/agent/mcp.json".source = ../home/.omp/agent/mcp.json;
     ".config/gh/config.yml".source = ../home/.config/gh/config.yml;
     ".config/karabiner/karabiner.json".source = ../home/.config/karabiner/karabiner.json;
     ".config/terminal/com.apple.Terminal.plist".source = ../home/terminal/com.apple.Terminal.plist;

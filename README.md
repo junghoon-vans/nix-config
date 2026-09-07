@@ -59,14 +59,17 @@ sudo nix --extra-experimental-features "nix-command flakes" run --inputs-from . 
 
 The switch installs declared Homebrew packages, system language runtimes, Home Manager files,
 and the pinned OMP and Gno toolchains from the Nix store. Deploy the separately managed APM
-skill and MCP dependencies with:
+skill dependencies with:
 
 ```sh
 setup-apm .
 ```
 
 `setup-apm` copies this repository’s APM manifest to `~/.apm/apm.yml` and deploys
-the declared skills and MCP servers. Home Manager never owns APM output paths.
+the declared skills. Home Manager never owns APM output paths.
+
+OMP MCP server definitions are managed natively at `~/.omp/agent/mcp.json`. OAuth credentials
+and API keys remain user-local and are never declared in this repository.
 
 ## Homebrew maintenance
 

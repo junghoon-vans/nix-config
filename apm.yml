@@ -3,7 +3,6 @@ version: 1.0.0
 description: Shared skills for Oh My Pi.
 targets:
   - agent-skills
-  - codex
 
 includes: []
 
@@ -19,49 +18,3 @@ dependencies:
     - git: https://github.com/Jeffallan/claude-skills.git
       path: skills/golang-pro
       ref: 882ef55e377dbf9a4dbe496bb41ac6ccd0e555cf
-
-  mcp:
-    - name: atlassian
-      registry: false
-      transport: http
-      url: https://mcp.atlassian.com/v1/mcp/authv2
-    - name: github
-      registry: false
-      transport: http
-      url: https://api.githubcopilot.com/mcp/
-      headers:
-        Authorization: Bearer ${GITHUB_PERSONAL_ACCESS_TOKEN}
-    - name: context7
-      registry: false
-      transport: http
-      url: https://mcp.context7.com/mcp
-    - name: notion
-      registry: false
-      transport: http
-      url: https://mcp.notion.com/mcp
-    - name: gnomcp
-      registry: false
-      transport: stdio
-      command: /run/current-system/sw/bin/gnomcp
-    - name: firecrawl
-      registry: false
-      transport: stdio
-      command: /bin/zsh
-      args:
-        - -lc
-        - source "$HOME/.zshrc.local" 2>/dev/null || true; exec npx -y firecrawl-mcp@3.24.0
-    - name: playwright
-      registry: false
-      transport: stdio
-      command: npx
-      args:
-        - -y
-        - '@playwright/mcp@0.0.79'
-      env:
-        PLAYWRIGHT_MCP_EXECUTABLE_PATH: /Applications/Aside.app/Contents/MacOS/Aside
-    - name: aside
-      registry: false
-      transport: stdio
-      command: aside
-      args:
-        - mcp
