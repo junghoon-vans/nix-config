@@ -88,6 +88,12 @@ brew upgrade neovim
 
 Homebrew versions are local mutable state. Move a version-sensitive runtime from `modules/darwin.nix` to a Nix language profile when every machine must use the same version.
 
+`cleanup = "none"` means removing a formula from `homebrew.brews` never uninstalls
+an already-installed formula. When migrating a language runtime or tool to
+`modules/languages/`, explicitly uninstall its Homebrew formula after reviewing
+the target machine; do not use a global Homebrew cleanup. Confirm the Nix
+binary wins with `type -a <tool>`.
+
 ## Languages
 
 `modules/languages/` provides opt-in Nix profiles for global runtimes and their
