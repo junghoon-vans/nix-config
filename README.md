@@ -15,6 +15,9 @@ Declarative configuration for Junghoon's macOS workstation.
 
 A managed path has exactly one owner. APM-generated skill output is never declared as a Home Manager file.
 
+See [Tooling Inventory](docs/tooling.md) for each managed tool's owner, version source, and
+update procedure.
+
 ## Layout
 
 - `flake.nix`: pinned inputs and the host entrypoint.
@@ -23,7 +26,8 @@ A managed path has exactly one owner. APM-generated skill output is never declar
 - `modules/home-manager.nix`: managed files in `$HOME` and the pinned Zsh framework.
 - `modules/maintenance.nix`: weekly disk-maintenance LaunchAgent.
 - `home/`: static Home Manager file payload.
-- `apm.yml`: APM-owned Oh My Pi skills and MCP servers.
+- `apm.yml` and `apm.lock.yaml`: APM-owned Oh My Pi skill declarations and locked content.
+- `docs/tooling.md`: tooling ownership, version sources, and update procedures.
 
 ## Bootstrap
 
