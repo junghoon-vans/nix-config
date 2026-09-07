@@ -7,12 +7,14 @@
 
 let
   cfg = config.workstation.languages.bun;
+  bunVersion = "1.4.2";
+
   bun = pkgs.stdenvNoCC.mkDerivation {
     pname = "bun";
-    version = "1.4.2";
+    version = bunVersion;
 
     src = pkgs.fetchzip {
-      url = "https://github.com/oven-sh/bun/releases/download/bun-v1.4.2/bun-darwin-aarch64.zip";
+      url = "https://github.com/oven-sh/bun/releases/download/bun-v${bunVersion}/bun-darwin-aarch64.zip";
       hash = "sha256-Izz/X4ccPjHW7sXmYK7wPMOZLXxCMxyPcruhpjiK+k0=";
       stripRoot = false;
     };
