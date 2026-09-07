@@ -18,6 +18,8 @@ in
   nixpkgs.hostPlatform = "aarch64-darwin";
   nix.enable = false;
 
+  security.pam.services.sudo_local.touchIdAuth = true;
+
   workstation = {
     languages = {
       gno.enable = true;
