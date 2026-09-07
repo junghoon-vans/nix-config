@@ -18,6 +18,7 @@ in
       rustfmt
       clippy
       rust-analyzer
+      cargo-nextest
     ];
   };
 }
