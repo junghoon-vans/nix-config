@@ -38,6 +38,11 @@
       flake = false;
     };
 
+    zed-gno = {
+      url = "github:julienrbrt/zed-gno";
+      flake = false;
+    };
+
     homebrew-core = {
       url = "github:homebrew/homebrew-core";
       flake = false;
