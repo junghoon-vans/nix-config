@@ -15,6 +15,6 @@ dependencies:
       path: skills/react-best-practices
       ref: 063bee94c3f4df8453406c830b0a7df0f2860278
       alias: vercel-react-best-practices
-    - git: https://github.com/Jeffallan/claude-skills.git
-      path: skills/golang-pro
-      ref: 882ef55e377dbf9a4dbe496bb41ac6ccd0e555cf
+    - git: https://github.com/JetBrains/go-modern-guidelines.git
+      path: plugin/skills/use-modern-go
+      ref: 91a30b36f05bb6424bd77e9817811c0e9c003aa2
