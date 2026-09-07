@@ -16,6 +16,7 @@ in
     environment.systemPackages = with pkgs; [
       typescript
       typescript-language-server
+      biome
     ];
   };
 }
