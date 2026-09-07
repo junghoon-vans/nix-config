@@ -58,15 +58,15 @@ sudo nix --extra-experimental-features "nix-command flakes" run --inputs-from . 
 `--inputs-from .` resolves `nix-darwin` from this repository's locked flake input rather than the moving `nix-darwin/master` ref.
 
 The switch installs declared Homebrew packages, system language runtimes, Home Manager files,
-and the pinned OMP and Gno toolchains from the Nix store. To deploy the separately managed APM
-skill dependencies:
+and the pinned OMP and Gno toolchains from the Nix store. Deploy the separately managed APM
+skill and MCP dependencies with:
 
 ```sh
 bootstrap-agent-skills .
 ```
 
 `bootstrap-agent-skills` copies this repository’s APM manifest to `~/.apm/apm.yml` and deploys
-the skill-only dependencies. Home Manager never owns APM output paths.
+the declared skills and MCP servers. Home Manager never owns APM output paths.
 
 ## Homebrew maintenance
 

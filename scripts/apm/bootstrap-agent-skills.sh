@@ -16,4 +16,4 @@ command -v apm >/dev/null || {
 
 mkdir -p "$HOME/.apm"
 cp "$manifest" "$HOME/.apm/apm.yml"
-apm install --global --target agent-skills --only apm
+apm install --global --target agent-skills,codex

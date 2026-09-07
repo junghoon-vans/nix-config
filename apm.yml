@@ -3,6 +3,7 @@ version: 1.0.0
 description: Shared skills for Oh My Pi.
 targets:
   - agent-skills
+  - codex
 
 includes: []
 

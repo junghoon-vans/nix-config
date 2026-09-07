@@ -13,7 +13,7 @@ let
   };
 in
 {
-  options.workstation.apm.enable = lib.mkEnableOption "APM skill deployment";
+  options.workstation.apm.enable = lib.mkEnableOption "APM dependency deployment";
   config = lib.mkIf config.workstation.apm.enable {
     environment.systemPackages = [ bootstrapAgentSkills ];
   };
