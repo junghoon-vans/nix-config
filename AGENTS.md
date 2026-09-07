@@ -51,7 +51,7 @@ local override such as `~/.zshrc.local` when machine-specific configuration is r
 Do not run commands that mutate the workstation or external state without explicit approval:
 
 - `darwin-rebuild switch`, `nix-darwin ... switch`, or an equivalent activation
-- `bootstrap-agent-skills`
+- `setup-apm`
 - `brew update`, `brew upgrade`, package removal, or Homebrew cleanup
 - Docker prune/cleanup commands or the disk-maintenance script outside dry-run mode
 - Credential, token, permission, or remote repository-setting changes

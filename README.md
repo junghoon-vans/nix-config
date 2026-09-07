@@ -62,10 +62,10 @@ and the pinned OMP and Gno toolchains from the Nix store. Deploy the separately 
 skill and MCP dependencies with:
 
 ```sh
-bootstrap-agent-skills .
+setup-apm .
 ```
 
-`bootstrap-agent-skills` copies this repository’s APM manifest to `~/.apm/apm.yml` and deploys
+`setup-apm` copies this repository’s APM manifest to `~/.apm/apm.yml` and deploys
 the declared skills and MCP servers. Home Manager never owns APM output paths.
 
 ## Homebrew maintenance
