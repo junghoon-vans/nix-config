@@ -76,7 +76,19 @@
       pkgs = nixpkgs.legacyPackages.${system};
     in
     {
-      formatter.${system} = pkgs.nixfmt;
+      formatter.${system} = pkgs.writeShellApplication {
+        name = "nixfmt-all";
+        runtimeInputs = [
+          pkgs.git
+          pkgs.nixfmt
+        ];
+        text = ''
+          git ls-files -z -- '*.nix' |
+            while IFS= read -r -d "" file; do
+              nixfmt "$file"
+            done
+        '';
+      };
       devShells.${system}.default = pkgs.mkShell {
         packages = with pkgs; [
           deadnix
