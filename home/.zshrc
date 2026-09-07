@@ -202,7 +202,6 @@ if [[ -d "$HOME/.bun/bin" ]]; then
 fi
 
 
-export ANTHROPIC_MODEL="sonnet"
 
 # ========================================
 # Local Overrides (machine-specific)
