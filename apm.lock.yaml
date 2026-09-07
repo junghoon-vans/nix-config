@@ -1,18 +1,18 @@
 lockfile_version: '1'
-generated_at: '2026-09-07T08:42:56.296598+00:00'
+generated_at: '2026-09-07T09:40:49.569597+00:00'
 apm_version: 0.29.0
 dependencies:
-- repo_url: jeffallan/claude-skills
-  materialization_repo_url: Jeffallan/claude-skills
-  name: golang-pro
+- repo_url: jetbrains/go-modern-guidelines
+  materialization_repo_url: JetBrains/go-modern-guidelines
+  name: use-modern-go
   host: github.com
-  resolved_commit: 882ef55e377dbf9a4dbe496bb41ac6ccd0e555cf
-  resolved_ref: 882ef55e377dbf9a4dbe496bb41ac6ccd0e555cf
+  resolved_commit: 91a30b36f05bb6424bd77e9817811c0e9c003aa2
+  resolved_ref: 91a30b36f05bb6424bd77e9817811c0e9c003aa2
   version: unknown
-  virtual_path: skills/golang-pro
+  virtual_path: plugin/skills/use-modern-go
   is_virtual: true
   package_type: claude_skill
-  content_hash: sha256:cbb7c3a0686bd1afde0dc405fa59de2c55d568d0e4256e84f492d1ebf78efcda
+  content_hash: sha256:9e514c17fc029a02870ff7d3a8157368d617bd2d43eb869e4b70d487ceab43cd
 - repo_url: vercel-labs/agent-skills
   name: vercel-react-best-practices
   host: github.com
