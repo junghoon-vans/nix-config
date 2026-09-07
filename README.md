@@ -23,7 +23,7 @@ A managed path has exactly one owner. APM-generated skill output is never declar
 - `modules/home-manager.nix`: managed files in `$HOME` and the pinned Zsh framework.
 - `modules/maintenance.nix`: weekly disk-maintenance LaunchAgent.
 - `home/`: static Home Manager file payload.
-- `apm.yml`: APM-owned Oh My Pi skills.
+- `apm.yml`: APM-owned Oh My Pi skills and MCP servers.
 
 ## Bootstrap
 
@@ -58,15 +58,18 @@ sudo nix --extra-experimental-features "nix-command flakes" run --inputs-from . 
 `--inputs-from .` resolves `nix-darwin` from this repository's locked flake input rather than the moving `nix-darwin/master` ref.
 
 The switch installs declared Homebrew packages, system language runtimes, Home Manager files,
-and the pinned OMP and Gno toolchains from the Nix store. To deploy the separately managed APM
-skill dependencies:
+and the pinned OMP and Gno toolchains from the Nix store. Deploy the separately managed APM
+skill dependencies with:
 
 ```sh
-bootstrap-agent-skills .
+setup-apm .
 ```
 
-`bootstrap-agent-skills` copies this repository’s APM manifest to `~/.apm/apm.yml` and deploys
-the skill-only dependencies. Home Manager never owns APM output paths.
+`setup-apm` copies this repository’s APM manifest to `~/.apm/apm.yml` and deploys
+the declared skills. Home Manager never owns APM output paths.
+
+OMP MCP server definitions are managed natively at `~/.omp/agent/mcp.json`. OAuth credentials
+and API keys remain user-local and are never declared in this repository.
 
 ## Homebrew maintenance
 

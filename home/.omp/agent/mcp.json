@@ -1,0 +1,50 @@
+{
+  "$schema": "https://raw.githubusercontent.com/can1357/oh-my-pi/main/packages/coding-agent/src/config/mcp-schema.json",
+  "mcpServers": {
+    "atlassian": {
+      "type": "http",
+      "url": "https://mcp.atlassian.com/v1/mcp/authv2"
+    },
+    "github": {
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp/",
+      "headers": {
+        "Authorization": "!test -n \"$GITHUB_PERSONAL_ACCESS_TOKEN\" && printf 'Bearer %s' \"$GITHUB_PERSONAL_ACCESS_TOKEN\""
+      }
+    },
+    "context7": {
+      "type": "http",
+      "url": "https://mcp.context7.com/mcp"
+    },
+    "notion": {
+      "type": "http",
+      "url": "https://mcp.notion.com/mcp"
+    },
+    "gnomcp": {
+      "command": "/run/current-system/sw/bin/gnomcp"
+    },
+    "firecrawl": {
+      "command": "/bin/zsh",
+      "args": [
+        "-lc",
+        "source \"$HOME/.zshrc.local\" 2>/dev/null || true; exec npx -y firecrawl-mcp@3.24.0"
+      ]
+    },
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@playwright/mcp@0.0.79"
+      ],
+      "env": {
+        "PLAYWRIGHT_MCP_EXECUTABLE_PATH": "/Applications/Aside.app/Contents/MacOS/Aside"
+      }
+    },
+    "aside": {
+      "command": "aside",
+      "args": [
+        "mcp"
+      ]
+    }
+  }
+}

@@ -8,7 +8,7 @@ NixOS configuration.
 - `hosts/junghoonui-MacBookAir/` and `hosts/junghoonui-MacBookPro/` compose the supported hosts.
 - `modules/` contains reusable nix-darwin and Home Manager modules.
 - `home/` contains static payloads managed by Home Manager.
-- `apm.yml` declares external Oh My Pi skills.
+- `apm.yml` declares external Oh My Pi skills and MCP servers.
 - `flake.lock` is the authoritative dependency pin set.
 
 Keep host-specific settings in the host module. Extract a module only when the setting is
@@ -51,7 +51,7 @@ local override such as `~/.zshrc.local` when machine-specific configuration is r
 Do not run commands that mutate the workstation or external state without explicit approval:
 
 - `darwin-rebuild switch`, `nix-darwin ... switch`, or an equivalent activation
-- `bootstrap-agent-skills`
+- `setup-apm`
 - `brew update`, `brew upgrade`, package removal, or Homebrew cleanup
 - Docker prune/cleanup commands or the disk-maintenance script outside dry-run mode
 - Credential, token, permission, or remote repository-setting changes
