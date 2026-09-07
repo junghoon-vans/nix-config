@@ -18,4 +18,3 @@ dependencies:
     - git: https://github.com/JetBrains/go-modern-guidelines.git
       path: plugin/skills/use-modern-go
       ref: 91a30b36f05bb6424bd77e9817811c0e9c003aa2
-      alias: golang-pro
