@@ -78,6 +78,15 @@ in
       recursive = true;
     };
   };
+  # Replace only the old dev-extension link; leave its source directory intact.
+  home.activation.migrateZedGnoExtension = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
+    target="$HOME/Library/Application Support/Zed/extensions/installed/gno"
+    legacy="$HOME/.local/share/zed/dev-extensions/zed-gno"
+
+    if [ -L "$target" ] && [ "$(readlink "$target")" = "$legacy" ]; then
+      $DRY_RUN_CMD rm "$target"
+    fi
+  '';
 
   home.activation.createScreenshotsDirectory = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     $DRY_RUN_CMD mkdir -p "$HOME/Pictures/Screenshots"
