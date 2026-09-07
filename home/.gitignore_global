@@ -126,16 +126,6 @@ temp/
 # Agents
 # ========================================
 
-.sisyphus/
-
-# Project-specific personal settings (not for source control)
-**/.claude/*
-!**/.claude/skills/
-!**/.claude/skills/**
-
-# OMC runtime state
-**/.omc/
-**/.omo/
 .codegraph
 .codegraph/
 **/.codegraph/
