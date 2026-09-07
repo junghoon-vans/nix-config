@@ -30,16 +30,6 @@
         "source \"$HOME/.zshrc.local\" 2>/dev/null || true; exec npx -y firecrawl-mcp@3.24.0"
       ]
     },
-    "playwright": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@playwright/mcp@0.0.79"
-      ],
-      "env": {
-        "PLAYWRIGHT_MCP_EXECUTABLE_PATH": "/Applications/Aside.app/Contents/MacOS/Aside"
-      }
-    },
     "aside": {
       "command": "aside",
       "args": [
