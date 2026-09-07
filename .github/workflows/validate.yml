@@ -20,7 +20,7 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: scripts/detect-nix-config-changes "$BASE_SHA" "$HEAD_SHA"
+        run: .github/scripts/detect-nix-config-changes "$BASE_SHA" "$HEAD_SHA"
 
   checks:
     needs: changes
@@ -63,4 +63,4 @@ jobs:
           CONFIGURATION_CHANGED: ${{ needs.changes.outputs.configuration_changed }}
           CHECKS_RESULT: ${{ needs.checks.result }}
           EVALUATE_RESULT: ${{ needs.evaluate.result }}
-        run: scripts/require-nix-validation
+        run: .github/scripts/require-nix-validation
