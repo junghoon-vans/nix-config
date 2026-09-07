@@ -1,7 +1,27 @@
 lockfile_version: '1'
-generated_at: '2026-09-07T09:40:49.569597+00:00'
+generated_at: '2026-09-07T10:23:33.047771+00:00'
 apm_version: 0.29.0
 dependencies:
+- repo_url: cursor/plugins
+  name: principle-type-system-discipline
+  host: github.com
+  resolved_commit: 93b00b89ef425a9c1bac0d0b317dfc49c930ac99
+  resolved_ref: 93b00b89ef425a9c1bac0d0b317dfc49c930ac99
+  version: unknown
+  virtual_path: pstack/skills/principle-type-system-discipline
+  is_virtual: true
+  package_type: claude_skill
+  content_hash: sha256:092d40b72a904d0a111acde944639e24c8fe1f912455d9c4b94295b9d07709ec
+- repo_url: cursor/plugins
+  name: typescript-best-practices
+  host: github.com
+  resolved_commit: 93b00b89ef425a9c1bac0d0b317dfc49c930ac99
+  resolved_ref: 93b00b89ef425a9c1bac0d0b317dfc49c930ac99
+  version: unknown
+  virtual_path: pstack/skills/typescript-best-practices
+  is_virtual: true
+  package_type: claude_skill
+  content_hash: sha256:0db432842e1653fa2efbfdc47dfe51929d3cfc0079279930605c9e061791fae8
 - repo_url: jetbrains/go-modern-guidelines
   materialization_repo_url: JetBrains/go-modern-guidelines
   name: use-modern-go
