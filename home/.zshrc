@@ -144,9 +144,6 @@ source $ZSH/oh-my-zsh.sh
 command -v zoxide &>/dev/null && eval "$(zoxide init zsh)"
 alias j='z'  # muscle memory compatibility with autojump
 
-# Gno Configuration
-export GNOROOT="$HOME/.local/share/gno/chain/pearl"
-export GNOPATH="$GNOROOT"
 # ========================================
 # mise applies repository-local tool overrides when a project declares mise.toml.
 if command -v mise &>/dev/null && [ -z "${MISE_SHELL:-}" ]; then
