@@ -42,6 +42,9 @@ local override such as `~/.zshrc.local` when machine-specific configuration is r
 - Keep fetched release artifacts version-pinned and integrity-hashed.
 - LaunchAgent maintenance must default to the least destructive behavior. Changes that delete
   Docker images, containers, caches, or user data need explicit human approval.
+- Extract multi-step shell scripts into focused executable files under `scripts/<area>/`; Nix
+  modules should only load or invoke them. Keep trivial one- or two-command derivation phases
+  inline.
 
 ## Approval Required
 
