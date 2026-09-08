@@ -126,6 +126,15 @@ artifact hashes or Go vendor hashes.
 Change the formula/cask declaration in `modules/darwin.nix`. Actual Homebrew update, upgrade,
 cleanup, or package removal requires explicit approval and is not part of normal activation.
 
+### Weekly disk maintenance
+
+Each host config controls `workstation.maintenance.enable`, which installs the weekly reporting
+LaunchAgent. `workstation.maintenance.mole.enable` and
+`workstation.maintenance.dockerPrune.enable` independently opt into destructive cleanup after
+the configured disk-usage threshold is reached. Both cleanup options default to disabled; enable
+them only after approving cleanup on that specific host. Both current hosts explicitly enable the
+Mole and Docker prune options.
+
 ### APM skills
 
 Change `apm.yml`, refresh and commit `apm.lock.yaml`, then deploy deliberately:
