@@ -40,8 +40,10 @@ Run `python3 scripts/nix/test-bootstrap.py` for isolated bootstrap regression
 checks. These use temporary configuration files and substitute Nix and sudo;
 they do not activate or modify the workstation.
 
-`make setup-apm` copies the locked APM manifest and lockfile to `~/.apm/` and
-deploys agent skills. Its generated output remains APM-owned.
+After successful activation, both commands copy the locked APM manifest and
+lockfile to `~/.apm/` and install agent skills as the current user, outside `sudo`.
+Installation uses `--frozen`, so it does not update dependency versions.
+Generated output remains APM-owned. Run `make` without `sudo`.
 
 ## Nix inputs
 
@@ -144,7 +146,7 @@ a Nix language profile when every supported host must use the same version.
 | Tool or integration | Owner | Configuration | Versioning / runtime boundary |
 | --- | --- | --- | --- |
 | OMP ACP agent | Nix | `modules/omp.nix`, `home/.config/zed/settings.json` | Fixed OMP release; Zed invokes `/run/current-system/sw/bin/omp acp` |
-| OMP skills | APM | `apm.yml`, `apm.lock.yaml`, `scripts/apm/setup-apm.sh` | Locked commits and content hashes; deploy with `make setup-apm` |
+| OMP skills | APM | `apm.yml`, `apm.lock.yaml`, `scripts/apm/setup-apm.sh` | Locked commits and content hashes; installed automatically by `make bootstrap` and `make switch` |
 | gnomcp | Nix | `modules/mcp/gnomcp.nix`, `home/.omp/agent/mcp.json` | Fixed release; OMP spawns a local stdio subprocess |
 | Hosted MCP servers | OMP config | `home/.omp/agent/mcp.json` | Atlassian, GitHub, Context7, and Notion endpoints; credentials stay user-local |
 | Firecrawl MCP | External npm runtime | `home/.omp/agent/mcp.json` | Invoked as `firecrawl-mcp@3.24.0`; npm dependency resolution is outside Nix |
@@ -188,10 +190,10 @@ Mole and Docker prune options.
 
 ### APM skills
 
-Change `apm.yml`, refresh and commit `apm.lock.yaml`, then deploy deliberately:
+Change `apm.yml`, refresh and commit `apm.lock.yaml`, then activate and deploy:
 
 ```sh
-make setup-apm
+make switch HOST=junghoonui-MacBookAir
 ```
 
 This writes generated state under `~/.apm/`; do not manage that output through Home Manager.

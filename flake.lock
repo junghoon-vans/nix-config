@@ -73,11 +73,11 @@
     "homebrew-microsoft-apm": {
       "flake": false,
       "locked": {
-        "lastModified": 1788165379,
-        "narHash": "sha256-zHcUF8p6qKwAYW/6SvhV1ff6aluZ6SiEwmtHbockq8c=",
+        "lastModified": 1788856395,
+        "narHash": "sha256-62Q7LEkas1DQjnJv49IOuodRg5iO5is4IVIPGGCUEYQ=",
         "owner": "microsoft",
         "repo": "homebrew-apm",
-        "rev": "421e62fae382774648ac7bf0103d98c686b117af",
+        "rev": "affa5686a7842e159f1fba88f0416d9095d87a34",
         "type": "github"
       },
       "original": {
