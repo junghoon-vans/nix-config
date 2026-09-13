@@ -21,6 +21,7 @@ update procedure.
 ## Layout
 
 - `flake.nix`: pinned inputs and the host entrypoint.
+- `Makefile`: host-specific bootstrap and activation commands.
 - `hosts/junghoonui-MacBookAir` and `hosts/junghoonui-MacBookPro`: host-specific identity and module composition.
 - `modules/darwin.nix`: Homebrew inventory and macOS defaults.
 - `modules/home-manager.nix`: managed files in `$HOME` and the pinned Zsh framework.
@@ -68,20 +69,22 @@ experimental-features = nix-command flakes
 
 ### First activation
 
-Use the repository's locked `nix-darwin` input to bootstrap `darwin-rebuild`:
+The `Makefile` wraps the activation commands. Supply the selected flake host as
+the `HOST` argument; for example, bootstrap `darwin-rebuild` for the MacBook Air:
 
 ```sh
-sudo -H nix run --inputs-from . nix-darwin#darwin-rebuild -- \
-  switch --flake .#junghoonui-MacBookAir
+make bootstrap HOST=junghoonui-MacBookAir
 ```
 
-`--inputs-from .` resolves `nix-darwin` from this repository's locked flake input rather than the moving `nix-darwin/master` ref. The arguments after `--` are passed to `darwin-rebuild`: `switch` activates the selected system configuration, and `--flake .#junghoonui-MacBookAir` selects the MacBook Air host from this repository.
+`bootstrap` runs `nix run --inputs-from . nix-darwin#darwin-rebuild -- switch --flake .#<HOST>`. `switch` activates the selected system configuration, and `--flake .#<HOST>` selects its host from this repository.
 
-After the first activation, use the installed command directly:
+After the first activation, use the installed command:
 
 ```sh
-sudo -H darwin-rebuild switch --flake .#junghoonui-MacBookAir
+make switch HOST=junghoonui-MacBookAir
 ```
+
+The supported host values are `junghoonui-MacBookAir` and `junghoonui-MacBookPro`.
 
 The switch installs declared Homebrew packages, system language runtimes, Home Manager files,
 and the pinned OMP and Gno toolchains from the Nix store. Deploy the separately managed APM
