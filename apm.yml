@@ -38,5 +38,8 @@ dependencies:
       path: skills/skill-creator
       ref: 34040c9c568585f6929bedeaad110ad08f079624
     - git: https://github.com/openai/skills.git
+      path: skills/.curated/security-best-practices
+      ref: 49f948faa9258a0c61caceaf225e179651397431
+    - git: https://github.com/openai/skills.git
       path: skills/.curated/notion-research-documentation
       ref: 49f948faa9258a0c61caceaf225e179651397431
