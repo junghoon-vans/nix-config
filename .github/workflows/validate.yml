@@ -30,14 +30,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25 # v22
       - uses: DeterminateSystems/magic-nix-cache-action@84c0677f58dcedf3b91f8223ce36a9ea5b3c84b7 # v15
-      - name: Check APM setup script syntax
-        run: bash -n scripts/apm/setup-apm.sh
-      - name: Check Nix formatting
-        run: nix develop --command sh -c 'nixfmt --check $(git ls-files "*.nix")'
-      - name: Lint Nix
-        run: nix develop --command sh -c 'statix check . && deadnix .'
-      - name: Verify locked inputs
-        run: nix flake metadata --no-write-lock-file
+      - name: Run repository checks
+        run: make check
 
   evaluate:
     needs: [changes, checks]
