@@ -24,15 +24,12 @@ Declarative configuration for Junghoon's Apple Silicon macOS workstations.
    make bootstrap HOST=junghoonui-MacBookAir
    ```
 
-5. Deploy the locked Oh My Pi agent skills after activation:
-
-   ```sh
-   make setup-apm
-   ```
+   After activation succeeds, the same command automatically installs the locked
+   Oh My Pi agent skills as the current user.
 
 ## Everyday use
 
-Re-activate an installed host after changing this repository:
+Re-activate an installed host and install the locked agent skills after changing this repository:
 
 ```sh
 make switch HOST=junghoonui-MacBookAir

@@ -2,6 +2,9 @@
 
 set -euo pipefail
 
+# The first activation does not refresh the invoking shell's Homebrew PATH.
+export PATH="$PATH:/opt/homebrew/bin"
+
 repository_root="${1:-$PWD}"
 manifest="$repository_root/apm.yml"
 lockfile="$repository_root/apm.lock.yaml"

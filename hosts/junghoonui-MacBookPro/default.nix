@@ -11,7 +11,6 @@ in
     ../../modules/darwin.nix
     ../../modules/languages
     ../../modules/omp.nix
-    ../../modules/apm.nix
     ../../modules/mcp/gnomcp.nix
     ../../modules/maintenance.nix
   ];
@@ -33,7 +32,6 @@ in
       xml.enable = true;
     };
     omp.enable = true;
-    apm.enable = true;
     mcp.gnomcp.enable = true;
     maintenance = {
       enable = true;
