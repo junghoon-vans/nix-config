@@ -17,6 +17,16 @@ update procedure.
 Never make two owners manage the same path. In particular, Home Manager must not declare
 APM-generated output or credential state.
 
+## Activation commands
+
+Run commands from the repository root. `make bootstrap HOST=<host>` enables the
+Nix features required by the flake and activates a host. Use it only for the
+first activation; later configuration changes use `make switch HOST=<host>`.
+Supported values are `junghoonui-MacBookAir` and `junghoonui-MacBookPro`.
+
+`make setup-apm` copies the locked APM manifest and lockfile to `~/.apm/` and
+deploys agent skills. Its generated output remains APM-owned.
+
 ## Nix inputs
 
 All flake inputs are locked in `flake.lock`. Dependabot updates the Nix input graph; review
@@ -65,6 +75,11 @@ These versions follow the locked Nixpkgs revision rather than a per-tool release
 Host enablement is declared in `hosts/junghoonui-MacBookAir/default.nix` and
 `hosts/junghoonui-MacBookPro/default.nix`.
 
+Language profiles under `modules/languages/` are opt-in. Each host enables only
+the profiles it needs through `workstation.languages.*.enable`; the locked
+Nixpkgs revision is their version authority. `mise` remains for repository-local
+`mise.toml` overrides.
+
 ## Homebrew-managed tooling
 
 Homebrew activation does not update, upgrade, or clean packages automatically. Version changes
@@ -88,12 +103,32 @@ require explicit review and an approved Homebrew operation.
 `jordanbaird-ice`, `hop`, `headlamp`, `paseo`, `font-fira-code-nerd-font`, and
 `font-d2coding` are declared in `modules/darwin.nix`.
 
+### Maintenance
+
+Activation installs missing declared formulae and casks, but never updates,
+upgrades, or cleans Homebrew packages. Review available upgrades first:
+
+```sh
+brew update
+brew outdated
+```
+
+Apply upgrades only after review:
+
+```sh
+brew upgrade
+brew upgrade neovim
+```
+
+Homebrew versions are mutable local state. Move a version-sensitive runtime to
+a Nix language profile when every supported host must use the same version.
+
 ## Agent, MCP, and editor tooling
 
 | Tool or integration | Owner | Configuration | Versioning / runtime boundary |
 | --- | --- | --- | --- |
 | OMP ACP agent | Nix | `modules/omp.nix`, `home/.config/zed/settings.json` | Fixed OMP release; Zed invokes `/run/current-system/sw/bin/omp acp` |
-| OMP skills | APM | `apm.yml`, `apm.lock.yaml`, `scripts/apm/setup-apm.sh` | Locked commits and content hashes; deploy with `setup-apm .` |
+| OMP skills | APM | `apm.yml`, `apm.lock.yaml`, `scripts/apm/setup-apm.sh` | Locked commits and content hashes; deploy with `make setup-apm` |
 | gnomcp | Nix | `modules/mcp/gnomcp.nix`, `home/.omp/agent/mcp.json` | Fixed release; OMP spawns a local stdio subprocess |
 | Hosted MCP servers | OMP config | `home/.omp/agent/mcp.json` | Atlassian, GitHub, Context7, and Notion endpoints; credentials stay user-local |
 | Firecrawl MCP | External npm runtime | `home/.omp/agent/mcp.json` | Invoked as `firecrawl-mcp@3.24.0`; npm dependency resolution is outside Nix |
@@ -140,7 +175,7 @@ Mole and Docker prune options.
 Change `apm.yml`, refresh and commit `apm.lock.yaml`, then deploy deliberately:
 
 ```sh
-setup-apm .
+make setup-apm
 ```
 
 This writes generated state under `~/.apm/`; do not manage that output through Home Manager.
@@ -151,7 +186,7 @@ After a toolchain migration, activate explicitly and verify command provenance b
 legacy user-local installations:
 
 ```sh
-sudo darwin-rebuild switch --flake .#junghoonui-MacBookAir
+make switch HOST=junghoonui-MacBookAir
 type -a omp gno gnokey gnopls gnomcp
 omp --version
 gno version
