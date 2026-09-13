@@ -49,3 +49,9 @@ dependencies:
     - git: https://github.com/openai/skills.git
       path: skills/.curated/notion-research-documentation
       ref: 49f948faa9258a0c61caceaf225e179651397431
+    - git: https://github.com/github/awesome-copilot.git
+      path: skills/git-commit
+      ref: 7568a482ce2df38f8965ab5336a3220db796a4ba
+    - git: https://github.com/obra/superpowers.git
+      path: skills/using-git-worktrees
+      ref: b36e0829c6d0140e93cfef2ca599b1b07d4a7797
