@@ -63,6 +63,16 @@ dependencies:
   is_virtual: true
   package_type: claude_skill
   content_hash: sha256:02b4d97e4bd91e342e3ec3efa06b7871097d6a64e8398f4ed5b69c64d8d902fb
+- repo_url: openai/skills
+  name: notion-research-documentation
+  host: github.com
+  resolved_commit: 49f948faa9258a0c61caceaf225e179651397431
+  resolved_ref: 49f948faa9258a0c61caceaf225e179651397431
+  version: unknown
+  virtual_path: skills/.curated/notion-research-documentation
+  is_virtual: true
+  package_type: claude_skill
+  content_hash: sha256:b462225ca15173b614f2f747cb5a623c7ce1acdc6053812ce7968020106ab372
 - repo_url: vercel-labs/agent-skills
   name: vercel-react-best-practices
   host: github.com
