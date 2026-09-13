@@ -68,7 +68,7 @@ hash must change together. The Nix declaration is the canonical pin location.
 
 | Tool | Canonical pin | Source / package definition | Notes |
 | --- | --- | --- | --- |
-| OMP | `ompRelease` (`18.1.13`, `sha256-pMXJzFuCIhhNDXQpsLtqwqkrvkXdEb9o5LE2AFB5GQk=`) | `modules/omp.nix` | Standalone `darwin-arm64` release binary; update version and integrity hash together |
+| OMP | `ompRelease` (`18.1.19`, `sha256-3vwdOY1qkPNJmNUSD7W1PPeuCMEN/5G4NMq1o7BGERk=`) | `modules/omp.nix` | Standalone `darwin-arm64` release binary; update version and integrity hash together |
 | Bun | `bunVersion` (`1.4.2`) | `modules/languages/bun.nix` | Standalone `darwin-aarch64` release binary |
 | Protobuf | `protobuf36` flake input (`v36.1`) | `flake.nix`, `modules/languages/go.nix` | Source build; the flake input is the only version pin |
 | Gno / gnokey | `gnoRelease` (`chain/pearl`) and source revision | `modules/languages/gno.nix` | Release binaries wrapped with the pinned `GNOROOT` source |

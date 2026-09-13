@@ -33,3 +33,6 @@ dependencies:
     - git: https://github.com/openai/skills.git
       path: skills/.curated/security-best-practices
       ref: 49f948faa9258a0c61caceaf225e179651397431
+    - git: https://github.com/openai/skills.git
+      path: skills/.curated/notion-research-documentation
+      ref: 49f948faa9258a0c61caceaf225e179651397431

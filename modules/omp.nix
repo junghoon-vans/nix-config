@@ -8,8 +8,8 @@
 let
   cfg = config.workstation.omp;
   ompRelease = {
-    version = "18.1.13";
-    hash = "sha256-pMXJzFuCIhhNDXQpsLtqwqkrvkXdEb9o5LE2AFB5GQk=";
+    version = "18.1.19";
+    hash = "sha256-3vwdOY1qkPNJmNUSD7W1PPeuCMEN/5G4NMq1o7BGERk=";
   };
   omp = pkgs.stdenvNoCC.mkDerivation {
     pname = "omp";
