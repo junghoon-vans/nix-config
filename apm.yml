@@ -19,6 +19,9 @@ dependencies:
       path: skills/composition-patterns
       ref: 063bee94c3f4df8453406c830b0a7df0f2860278
       alias: vercel-composition-patterns
+    - git: https://github.com/vercel-labs/agent-skills.git
+      path: skills/web-design-guidelines
+      ref: 063bee94c3f4df8453406c830b0a7df0f2860278
     - git: https://github.com/JetBrains/go-modern-guidelines.git
       path: plugin/skills/use-modern-go
       ref: 91a30b36f05bb6424bd77e9817811c0e9c003aa2
@@ -28,3 +31,6 @@ dependencies:
     - git: https://github.com/cursor/plugins.git
       path: pstack/skills/typescript-best-practices
       ref: 93b00b89ef425a9c1bac0d0b317dfc49c930ac99
+    - git: https://github.com/anthropics/skills.git
+      path: skills/skill-creator
+      ref: 34040c9c568585f6929bedeaad110ad08f079624
