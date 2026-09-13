@@ -52,33 +52,19 @@ On a new Apple Silicon Mac:
    cd ~/workspace/nix-workstation
    ```
 
-### Enable flakes
-
-The first activation uses the flake-aware Nix CLI. Enable its required experimental
-features once in the system Nix configuration:
-
-```sh
-sudoedit /etc/nix/nix.conf
-```
-
-Add this line, or add the missing names to an existing `experimental-features` line:
-
-```nix
-experimental-features = nix-command flakes
-```
-
-### First activation
+### Activation commands
 
 The `Makefile` wraps the activation commands. Supply the selected flake host as
-the `HOST` argument; for example, bootstrap `darwin-rebuild` for the MacBook Air:
+the `HOST` argument.
+
+For the first activation, `bootstrap` enables the required Nix features and
+installs the host configuration:
 
 ```sh
 make bootstrap HOST=junghoonui-MacBookAir
 ```
 
-`bootstrap` runs `nix run --inputs-from . nix-darwin#darwin-rebuild -- switch --flake .#<HOST>`. `switch` activates the selected system configuration, and `--flake .#<HOST>` selects its host from this repository.
-
-After the first activation, use the installed command:
+For later activations, use the installed `darwin-rebuild` command:
 
 ```sh
 make switch HOST=junghoonui-MacBookAir

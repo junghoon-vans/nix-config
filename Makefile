@@ -9,7 +9,7 @@ help:
 
 bootstrap:
 	@test -n "$(HOST)" || { printf '%s\n' 'Set HOST, for example: make bootstrap HOST=junghoonui-MacBookAir' >&2; exit 2; }
-	sudo -H nix run --inputs-from . nix-darwin#darwin-rebuild -- switch --flake .#$(HOST)
+	./scripts/nix/bootstrap.sh "$(HOST)" "$(CURDIR)"
 
 switch:
 	@test -n "$(HOST)" || { printf '%s\n' 'Set HOST, for example: make switch HOST=junghoonui-MacBookAir' >&2; exit 2; }
