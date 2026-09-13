@@ -8,10 +8,10 @@ update procedure.
 
 | Owner | What it manages | Version source | Mutable user state |
 | --- | --- | --- | --- |
-| Nix / nix-darwin | System packages, language runtimes, fixed release artifacts, macOS defaults | `flake.lock`, Nixpkgs, or an artifact pin and SRI hash in `modules/` | None |
+| Nix / nix-darwin | System packages, language runtimes, fixed release artifacts (including the APM CLI), macOS defaults | `flake.lock`, Nixpkgs, or an artifact pin and SRI hash in `modules/` or `packages/` | None |
 | Home Manager | Static home-directory configuration | Repository revision | None |
 | Homebrew | Formulae and casks deliberately outside Nixpkgs | Upstream Homebrew formula/cask revision | Homebrew cellar and application state |
-| APM | Agent skill deployment | `apm.yml` and `apm.lock.yaml` | `~/.apm/` |
+| APM | Agent skill deployment and generated skill output | `apm.yml` and `apm.lock.yaml` | `~/.apm/` |
 | User-local configuration | Credentials, OAuth sessions, API keys, machine overrides | User-owned | `~/.zshrc.local`, service-specific state directories |
 
 Never make two owners manage the same path. In particular, Home Manager must not declare
@@ -41,9 +41,12 @@ checks. These use temporary configuration files and substitute Nix and sudo;
 they do not activate or modify the workstation.
 
 After successful activation, both commands copy the locked APM manifest and
-lockfile to `~/.apm/` and install agent skills as the current user, outside `sudo`.
+lockfile to `~/.apm/` and install agent skills as the current user, outside
+`sudo`. The setup script invokes `/run/current-system/sw/bin/apm` explicitly,
+so a pre-existing Homebrew or user-local `apm` cannot shadow the Nix-managed CLI.
 Installation uses `--frozen`, so it does not update dependency versions.
-Generated output remains APM-owned. Run `make` without `sudo`.
+Generated output remains APM-owned. Do not manage it through Home Manager or Nix.
+Run `make` without `sudo`.
 
 ## Nix inputs
 
@@ -59,7 +62,7 @@ lockfile changes as dependency updates.
 | `protobuf36` | Protobuf source pinned to `v36.1` |
 | `oh-my-zsh`, `spaceship-prompt`, `zsh-*` | Shell framework, theme, and plugins |
 | `zed-gno` | Zed Gno extension source |
-| `homebrew-core`, `homebrew-cask`, `homebrew-microsoft-apm`, `homebrew-tw93` | Homebrew repositories and taps |
+| `homebrew-core`, `homebrew-cask`, `homebrew-tw93` | Homebrew repositories and taps |
 
 ## Nix-managed fixed releases
 
@@ -69,6 +72,7 @@ hash must change together. The Nix declaration is the canonical pin location.
 | Tool | Canonical pin | Source / package definition | Notes |
 | --- | --- | --- | --- |
 | OMP | `ompRelease` (`18.1.19`, `sha256-3vwdOY1qkPNJmNUSD7W1PPeuCMEN/5G4NMq1o7BGERk=`) | `modules/omp.nix` | Standalone `darwin-arm64` release binary; update version and integrity hash together |
+| APM CLI | Release `0.30.0` | `packages/apm.nix` | Pinned Apple Silicon artifact; the system executable is `/run/current-system/sw/bin/apm` |
 | Bun | `bunVersion` (`1.4.2`) | `modules/languages/bun.nix` | Standalone `darwin-aarch64` release binary |
 | Protobuf | `protobuf36` flake input (`v36.1`) | `flake.nix`, `modules/languages/go.nix` | Source build; the flake input is the only version pin |
 | Gno / gnokey | `gnoRelease` (`chain/pearl`) and source revision | `modules/languages/gno.nix` | Release binaries wrapped with the pinned `GNOROOT` source |
@@ -113,7 +117,6 @@ require explicit review and an approved Homebrew operation.
 | Cloud and infrastructure | `awscli`, `kubernetes-cli`, `helm`, `terraform`, `grpcurl` |
 | Database clients | `mysql-client`, `libpq` |
 | CLI utilities | `mole`, `bat`, `eza`, `ripgrep`, `ast-grep`, `fd`, `htop`, `jq`, `tldr`, `fzf`, `zoxide` |
-| Agent dependency installer | `microsoft/apm/apm` |
 
 ### Casks
 
@@ -124,7 +127,8 @@ require explicit review and an approved Homebrew operation.
 ### Maintenance
 
 Activation installs missing declared formulae and casks, but never updates,
-upgrades, or cleans Homebrew packages. Review available upgrades first:
+upgrades, or cleans Homebrew packages. There are no automatic Homebrew upgrades.
+Review available upgrades first:
 
 ```sh
 brew update
@@ -138,6 +142,12 @@ brew upgrade
 brew upgrade neovim
 ```
 
+Removing APM from the Homebrew inventory does not automatically delete an
+existing Homebrew installation or a `~/.local/bin/apm` installation. Any later
+cleanup or removal requires explicit approval. Until then, use
+`/run/current-system/sw/bin/apm` for manual APM lock operations and other
+version-sensitive commands rather than bare `apm`.
+
 Homebrew versions are mutable local state. Move a version-sensitive runtime to
 a Nix language profile when every supported host must use the same version.
 
@@ -145,8 +155,9 @@ a Nix language profile when every supported host must use the same version.
 
 | Tool or integration | Owner | Configuration | Versioning / runtime boundary |
 | --- | --- | --- | --- |
+| APM CLI | Nix | `packages/apm.nix` | Pinned `0.30.0` Apple Silicon artifact; invoke `/run/current-system/sw/bin/apm` |
 | OMP ACP agent | Nix | `modules/omp.nix`, `home/.config/zed/settings.json` | Fixed OMP release; Zed invokes `/run/current-system/sw/bin/omp acp` |
-| OMP skills | APM | `apm.yml`, `apm.lock.yaml`, `scripts/apm/setup-apm.sh` | Locked commits and content hashes; installed automatically by `make bootstrap` and `make switch` |
+| OMP skills | APM | `apm.yml`, `apm.lock.yaml`, `scripts/apm/setup-apm.sh` | Locked commits and content hashes; installed automatically by `make bootstrap` and `make switch`; generated output remains APM-owned |
 | gnomcp | Nix | `modules/mcp/gnomcp.nix`, `home/.omp/agent/mcp.json` | Fixed release; OMP spawns a local stdio subprocess |
 | Hosted MCP servers | OMP config | `home/.omp/agent/mcp.json` | Atlassian, GitHub, Context7, and Notion endpoints; credentials stay user-local |
 | Firecrawl MCP | External npm runtime | `home/.omp/agent/mcp.json` | Invoked as `firecrawl-mcp@3.24.0`; npm dependency resolution is outside Nix |
@@ -239,13 +250,16 @@ aborts before the log directory is created or cleanup is attempted.
 
 ### APM skills
 
-Change `apm.yml`, refresh and commit `apm.lock.yaml`, then activate and deploy:
+Change `apm.yml`, refresh and commit `apm.lock.yaml` using the Nix-managed CLI
+at `/run/current-system/sw/bin/apm`, then activate and deploy:
 
 ```sh
 make switch HOST=junghoonui-MacBookAir
 ```
 
-This writes generated state under `~/.apm/`; do not manage that output through Home Manager.
+This writes generated state under `~/.apm/`; APM owns that output. Do not manage
+it through Home Manager, and use the absolute Nix path for any later manual
+lockfile operation.
 
 ## Activation verification
 
@@ -254,13 +268,16 @@ legacy user-local installations:
 
 ```sh
 make switch HOST=junghoonui-MacBookAir
-type -a omp gno gnokey gnopls gnomcp
+type -a omp gno gnokey gnopls gnomcp apm
 omp --version
 gno version
 gnokey version
 gnopls version
 gnomcp version
+/run/current-system/sw/bin/apm --version
 ```
 
-The Nix-managed commands should resolve from `/run/current-system/sw/bin`. User credentials,
-OAuth sessions, and API keys remain outside this repository.
+The Nix-managed commands should resolve from `/run/current-system/sw/bin`. For APM,
+use that absolute path even when `type -a apm` reports an older Homebrew or
+`~/.local/bin` installation. User credentials, OAuth sessions, and API keys remain
+outside this repository.

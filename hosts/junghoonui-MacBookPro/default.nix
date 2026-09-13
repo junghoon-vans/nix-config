@@ -51,7 +51,6 @@ in
     taps = {
       "homebrew/homebrew-core" = inputs.homebrew-core;
       "homebrew/homebrew-cask" = inputs.homebrew-cask;
-      "microsoft/homebrew-apm" = inputs.homebrew-microsoft-apm;
       "tw93/homebrew-tap" = inputs.homebrew-tw93;
     };
   };

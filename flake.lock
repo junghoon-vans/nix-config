@@ -70,22 +70,6 @@
         "type": "github"
       }
     },
-    "homebrew-microsoft-apm": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1788856395,
-        "narHash": "sha256-62Q7LEkas1DQjnJv49IOuodRg5iO5is4IVIPGGCUEYQ=",
-        "owner": "microsoft",
-        "repo": "homebrew-apm",
-        "rev": "affa5686a7842e159f1fba88f0416d9095d87a34",
-        "type": "github"
-      },
-      "original": {
-        "owner": "microsoft",
-        "repo": "homebrew-apm",
-        "type": "github"
-      }
-    },
     "homebrew-tw93": {
       "flake": false,
       "locked": {
@@ -195,7 +179,6 @@
         "home-manager": "home-manager",
         "homebrew-cask": "homebrew-cask",
         "homebrew-core": "homebrew-core",
-        "homebrew-microsoft-apm": "homebrew-microsoft-apm",
         "homebrew-tw93": "homebrew-tw93",
         "nix-darwin": "nix-darwin",
         "nix-homebrew": "nix-homebrew",
