@@ -198,13 +198,6 @@ if [[ -d "$HOME/.bun/bin" ]]; then
   path+=("$HOME/.bun/bin")
 fi
 
-
-
-# ========================================
-# Local Overrides (machine-specific)
-# ========================================
-[ -f "$HOME/.zshrc.local" ] && source "$HOME/.zshrc.local"
-
 # ========================================
 # Modern CLI Tools Aliases
 # ========================================
@@ -217,3 +210,8 @@ alias lt='eza --tree --icons'
 alias grep='rg'
 alias pre-commit='prek'
 alias lg='lazygit'
+
+# ========================================
+# Local Overrides (machine-specific)
+# ========================================
+[ -f "$HOME/.zshrc.local" ] && source "$HOME/.zshrc.local"
