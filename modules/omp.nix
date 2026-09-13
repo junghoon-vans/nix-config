@@ -7,12 +7,16 @@
 
 let
   cfg = config.workstation.omp;
+  ompRelease = {
+    version = "18.1.19";
+    hash = "sha256-3vwdOY1qkPNJmNUSD7W1PPeuCMEN/5G4NMq1o7BGERk=";
+  };
   omp = pkgs.stdenvNoCC.mkDerivation {
     pname = "omp";
-    inherit (cfg) version;
+    inherit (ompRelease) version;
     src = pkgs.fetchurl {
-      url = "https://github.com/can1357/oh-my-pi/releases/download/v${cfg.version}/omp-darwin-arm64";
-      hash = "sha256-pMXJzFuCIhhNDXQpsLtqwqkrvkXdEb9o5LE2AFB5GQk=";
+      url = "https://github.com/can1357/oh-my-pi/releases/download/v${ompRelease.version}/omp-darwin-arm64";
+      inherit (ompRelease) hash;
     };
     dontUnpack = true;
     installPhase = ''
@@ -23,11 +27,6 @@ in
 {
   options.workstation.omp = {
     enable = lib.mkEnableOption "Oh My Pi";
-    version = lib.mkOption {
-      type = lib.types.str;
-      default = "18.1.13";
-      description = "Pinned Oh My Pi release version.";
-    };
   };
 
   config = lib.mkIf cfg.enable {

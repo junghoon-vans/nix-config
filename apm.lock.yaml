@@ -2,6 +2,26 @@ lockfile_version: '1'
 generated_at: '2026-09-13T10:16:45.475522+00:00'
 apm_version: 0.30.0
 dependencies:
+- repo_url: anthropics/skills
+  name: mcp-builder
+  host: github.com
+  resolved_commit: 34040c9c568585f6929bedeaad110ad08f079624
+  resolved_ref: 34040c9c568585f6929bedeaad110ad08f079624
+  version: unknown
+  virtual_path: skills/mcp-builder
+  is_virtual: true
+  package_type: claude_skill
+  content_hash: sha256:09dbc5304106f99933581f90b5181657a3f1981c7adddf1880fb8eaf2e357378
+- repo_url: anthropics/skills
+  name: skill-creator
+  host: github.com
+  resolved_commit: 34040c9c568585f6929bedeaad110ad08f079624
+  resolved_ref: 34040c9c568585f6929bedeaad110ad08f079624
+  version: unknown
+  virtual_path: skills/skill-creator
+  is_virtual: true
+  package_type: claude_skill
+  content_hash: sha256:b2bfe91d69ca99994c0566baede889e7d2b9bb8791c6b6106c5d387392f717f6
 - repo_url: cursor/plugins
   name: principle-type-system-discipline
   host: github.com
@@ -43,6 +63,36 @@ dependencies:
   is_virtual: true
   package_type: claude_skill
   content_hash: sha256:95408ae91b5eff7bb6c9322cdb76645848dda85212afab6512fd73f7e053b2ee
+- repo_url: openai/skills
+  name: security-best-practices
+  host: github.com
+  resolved_commit: 49f948faa9258a0c61caceaf225e179651397431
+  resolved_ref: 49f948faa9258a0c61caceaf225e179651397431
+  version: unknown
+  virtual_path: skills/.curated/security-best-practices
+  is_virtual: true
+  package_type: claude_skill
+  content_hash: sha256:7bd6c2cc8083d90f5d5489c80887ed5399e167d3e7323c7f294035e1e586b689
+- repo_url: openai/skills
+  name: notion-research-documentation
+  host: github.com
+  resolved_commit: 49f948faa9258a0c61caceaf225e179651397431
+  resolved_ref: 49f948faa9258a0c61caceaf225e179651397431
+  version: unknown
+  virtual_path: skills/.curated/notion-research-documentation
+  is_virtual: true
+  package_type: claude_skill
+  content_hash: sha256:b462225ca15173b614f2f747cb5a623c7ce1acdc6053812ce7968020106ab372
+- repo_url: vercel-labs/agent-skills
+  name: vercel-composition-patterns
+  host: github.com
+  resolved_commit: 063bee94c3f4df8453406c830b0a7df0f2860278
+  resolved_ref: 063bee94c3f4df8453406c830b0a7df0f2860278
+  version: unknown
+  virtual_path: skills/composition-patterns
+  is_virtual: true
+  package_type: claude_skill
+  content_hash: sha256:5b3564ca435f4714d5e65023351e1999e4744818603a9cfb6a6f6a61b7d84918
 - repo_url: vercel-labs/agent-skills
   name: vercel-react-best-practices
   host: github.com
@@ -53,6 +103,16 @@ dependencies:
   is_virtual: true
   package_type: claude_skill
   content_hash: sha256:74f142d28d360d78e8bac4f239a84c87f0ced9015729bc72b5458d82ff45b015
+- repo_url: vercel-labs/agent-skills
+  name: web-design-guidelines
+  host: github.com
+  resolved_commit: 063bee94c3f4df8453406c830b0a7df0f2860278
+  resolved_ref: 063bee94c3f4df8453406c830b0a7df0f2860278
+  version: unknown
+  virtual_path: skills/web-design-guidelines
+  is_virtual: true
+  package_type: claude_skill
+  content_hash: sha256:a6a44d5498f7e8f68289902f3dedfc6f38ae0cee1e96527c80724cf27f727c2a
 - repo_url: vercel-labs/skills
   name: find-skills
   host: github.com
