@@ -34,6 +34,16 @@ dependencies:
   package_type: claude_skill
   content_hash: sha256:9e514c17fc029a02870ff7d3a8157368d617bd2d43eb869e4b70d487ceab43cd
 - repo_url: vercel-labs/agent-skills
+  name: vercel-composition-patterns
+  host: github.com
+  resolved_commit: 063bee94c3f4df8453406c830b0a7df0f2860278
+  resolved_ref: 063bee94c3f4df8453406c830b0a7df0f2860278
+  version: unknown
+  virtual_path: skills/composition-patterns
+  is_virtual: true
+  package_type: claude_skill
+  content_hash: sha256:5b3564ca435f4714d5e65023351e1999e4744818603a9cfb6a6f6a61b7d84918
+- repo_url: vercel-labs/agent-skills
   name: vercel-react-best-practices
   host: github.com
   resolved_commit: 063bee94c3f4df8453406c830b0a7df0f2860278
