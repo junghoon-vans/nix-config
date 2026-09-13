@@ -93,6 +93,7 @@
         packages = with pkgs; [
           deadnix
           nixfmt
+          python3
           shellcheck
           statix
         ];

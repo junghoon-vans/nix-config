@@ -11,7 +11,6 @@ bash_scripts=(
   home/.local/bin/weekly-disk-maintenance
   scripts/apm/setup-apm.sh
   scripts/nix/bootstrap.sh
-  scripts/nix/bootstrap-test.sh
   scripts/validation/check.sh
 )
 
@@ -21,7 +20,7 @@ done
 shellcheck --shell=bash "${bash_scripts[@]}"
 zsh -n home/.zshrc
 
-bash scripts/nix/bootstrap-test.sh
+python3 scripts/nix/test-bootstrap.py
 
 nix_files=()
 while IFS= read -r file; do
