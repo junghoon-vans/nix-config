@@ -233,6 +233,9 @@ LaunchAgent. `workstation.maintenance.mole.enable` and
 the configured disk-usage threshold is reached. Both cleanup options default to disabled; enable
 them only after approving cleanup on that specific host. Both current hosts explicitly enable the
 Mole and Docker prune options.
+`WEEKLY_DISK_DRY_RUN` may be unset (defaulting to `0`) or set exactly to `0` or `1`; `1` logs
+cleanup commands without executing them. Any other value, including an explicit empty value,
+aborts before the log directory is created or cleanup is attempted.
 
 ### APM skills
 
