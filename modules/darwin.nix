@@ -1,9 +1,11 @@
-{ config, ... }:
+{ config, pkgs, ... }:
 
 let
   userHome = config.users.users.${config.system.primaryUser}.home;
 in
 {
+  environment.systemPackages = [ (pkgs.callPackage ../packages/apm.nix { }) ];
+
   homebrew = {
     enable = true;
     taps = builtins.attrNames config.nix-homebrew.taps;
@@ -54,7 +56,6 @@ in
       "tldr"
       "fzf"
       "zoxide"
-      "microsoft/apm/apm"
     ];
 
     casks = [
