@@ -15,6 +15,9 @@ dependencies:
       path: skills/react-best-practices
       ref: 063bee94c3f4df8453406c830b0a7df0f2860278
       alias: vercel-react-best-practices
+    - git: https://github.com/vercel-labs/agent-skills.git
+      path: skills/web-design-guidelines
+      ref: 063bee94c3f4df8453406c830b0a7df0f2860278
     - git: https://github.com/JetBrains/go-modern-guidelines.git
       path: plugin/skills/use-modern-go
       ref: 91a30b36f05bb6424bd77e9817811c0e9c003aa2
@@ -30,3 +33,6 @@ dependencies:
     - git: https://github.com/openai/skills.git
       path: skills/.curated/gh-address-comments
       ref: 49f948faa9258a0c61caceaf225e179651397431
+    - git: https://github.com/anthropics/skills.git
+      path: skills/skill-creator
+      ref: 34040c9c568585f6929bedeaad110ad08f079624
