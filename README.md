@@ -48,8 +48,8 @@ On a new Apple Silicon Mac:
 3. Clone this repository:
 
    ```sh
-   git clone https://github.com/junghoon-vans/nix-config.git ~/workspace/nix-workstation
-   cd ~/workspace/nix-workstation
+   git clone https://github.com/junghoon-vans/nix-config.git ~/workspace/nix-config
+   cd ~/workspace/nix-config
    ```
 
 ### Activation commands
