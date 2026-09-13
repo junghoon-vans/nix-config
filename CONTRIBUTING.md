@@ -25,13 +25,15 @@ Review the complete diff and run:
 
 ```sh
 git diff --check
-nix fmt
-nix flake metadata --no-write-lock-file
+make check
 for host in junghoonui-MacBookAir junghoonui-MacBookPro; do
   nix eval ".#darwinConfigurations.${host}.config.system.build.toplevel.drvPath"
   nix build ".#darwinConfigurations.${host}.system"
 done
 ```
+
+`make check` enters the flake development shell and runs the same syntax, ShellCheck,
+Nix formatting, Nix lint, locked-input, and bootstrap failure-path checks used by CI.
 
 Run the relevant command or scenario for behavior changes. Do not claim Darwin build success when the current environment cannot build it.
 

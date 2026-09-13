@@ -39,6 +39,12 @@ class BootstrapTest(unittest.TestCase):
     def run_bootstrap(self, host="junghoonui-MacBookAir", repo=None, **env):
         return subprocess.run(["/bin/bash", str(BOOTSTRAP), host, str(repo or self.repo)], env=self.env | env, capture_output=True, text=True)
 
+    def test_missing_host_does_not_invoke_commands_or_change_config(self):
+        result = subprocess.run(["/bin/bash", str(BOOTSTRAP)], env=self.env, capture_output=True, text=True)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertFalse(self.log.exists())
+        self.assertEqual(self.conf.read_text(), self.original)
+
     def test_preflight_failure_never_invokes_sudo_or_changes_config(self):
         for kwargs in ({"host": "unknown"}, {"repo": self.root / "missing"}, {"EVAL_STATUS": "1"}):
             with self.subTest(kwargs=kwargs):
