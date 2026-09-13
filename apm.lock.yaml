@@ -41,6 +41,16 @@ dependencies:
   is_virtual: true
   package_type: claude_skill
   content_hash: sha256:0db432842e1653fa2efbfdc47dfe51929d3cfc0079279930605c9e061791fae8
+- repo_url: github/awesome-copilot
+  name: git-commit
+  host: github.com
+  resolved_commit: 7568a482ce2df38f8965ab5336a3220db796a4ba
+  resolved_ref: 7568a482ce2df38f8965ab5336a3220db796a4ba
+  version: unknown
+  virtual_path: skills/git-commit
+  is_virtual: true
+  package_type: claude_skill
+  content_hash: sha256:2607fc60629b82b257136dd2a7a373f0a4466c0b49df7746d845d59313c99b21
 - repo_url: jetbrains/go-modern-guidelines
   materialization_repo_url: JetBrains/go-modern-guidelines
   name: use-modern-go
@@ -52,6 +62,16 @@ dependencies:
   is_virtual: true
   package_type: claude_skill
   content_hash: sha256:9e514c17fc029a02870ff7d3a8157368d617bd2d43eb869e4b70d487ceab43cd
+- repo_url: obra/superpowers
+  name: using-git-worktrees
+  host: github.com
+  resolved_commit: b36e0829c6d0140e93cfef2ca599b1b07d4a7797
+  resolved_ref: b36e0829c6d0140e93cfef2ca599b1b07d4a7797
+  version: unknown
+  virtual_path: skills/using-git-worktrees
+  is_virtual: true
+  package_type: claude_skill
+  content_hash: sha256:48c8a1040e378e0cb7208107294e3afa9067b9370c3f33b49a443eb6b7528b0d
 - repo_url: openai/skills
   name: gh-address-comments
   host: github.com
@@ -73,16 +93,6 @@ dependencies:
   package_type: claude_skill
   content_hash: sha256:02b4d97e4bd91e342e3ec3efa06b7871097d6a64e8398f4ed5b69c64d8d902fb
 - repo_url: openai/skills
-  name: security-best-practices
-  host: github.com
-  resolved_commit: 49f948faa9258a0c61caceaf225e179651397431
-  resolved_ref: 49f948faa9258a0c61caceaf225e179651397431
-  version: unknown
-  virtual_path: skills/.curated/security-best-practices
-  is_virtual: true
-  package_type: claude_skill
-  content_hash: sha256:7bd6c2cc8083d90f5d5489c80887ed5399e167d3e7323c7f294035e1e586b689
-- repo_url: openai/skills
   name: notion-research-documentation
   host: github.com
   resolved_commit: 49f948faa9258a0c61caceaf225e179651397431
@@ -92,6 +102,16 @@ dependencies:
   is_virtual: true
   package_type: claude_skill
   content_hash: sha256:b462225ca15173b614f2f747cb5a623c7ce1acdc6053812ce7968020106ab372
+- repo_url: openai/skills
+  name: security-best-practices
+  host: github.com
+  resolved_commit: 49f948faa9258a0c61caceaf225e179651397431
+  resolved_ref: 49f948faa9258a0c61caceaf225e179651397431
+  version: unknown
+  virtual_path: skills/.curated/security-best-practices
+  is_virtual: true
+  package_type: claude_skill
+  content_hash: sha256:7bd6c2cc8083d90f5d5489c80887ed5399e167d3e7323c7f294035e1e586b689
 - repo_url: vercel-labs/agent-skills
   name: vercel-composition-patterns
   host: github.com
