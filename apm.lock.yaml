@@ -1,6 +1,5 @@
 lockfile_version: '1'
-generated_at: '2026-09-07T10:23:33.047771+00:00'
-apm_version: 0.29.0
+apm_version: 0.30.0
 dependencies:
 - repo_url: anthropics/skills
   name: skill-creator
