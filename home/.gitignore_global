@@ -130,6 +130,9 @@ temp/
 .codegraph/
 **/.codegraph/
 
+# Oh My Pi runtime state
+.omp/
+
 # Playwright MCP runtime state
 .playwright-mcp/
 
