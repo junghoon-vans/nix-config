@@ -3,6 +3,16 @@ generated_at: '2026-09-07T10:23:33.047771+00:00'
 apm_version: 0.29.0
 dependencies:
 - repo_url: anthropics/skills
+  name: mcp-builder
+  host: github.com
+  resolved_commit: 34040c9c568585f6929bedeaad110ad08f079624
+  resolved_ref: 34040c9c568585f6929bedeaad110ad08f079624
+  version: unknown
+  virtual_path: skills/mcp-builder
+  is_virtual: true
+  package_type: claude_skill
+  content_hash: sha256:09dbc5304106f99933581f90b5181657a3f1981c7adddf1880fb8eaf2e357378
+- repo_url: anthropics/skills
   name: skill-creator
   host: github.com
   resolved_commit: 34040c9c568585f6929bedeaad110ad08f079624
