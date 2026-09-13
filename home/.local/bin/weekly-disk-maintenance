@@ -7,7 +7,17 @@ PATH="$HOME/.local/bin:$PATH"
 THRESHOLD_PERCENT="${WEEKLY_DISK_THRESHOLD_PERCENT:-85}"
 LOG_DIR="${WEEKLY_DISK_LOG_DIR:-$HOME/.local/state/nix-workstation}"
 LOG_FILE="$LOG_DIR/weekly-disk-maintenance.log"
-DRY_RUN="${WEEKLY_DISK_DRY_RUN:-0}"
+DRY_RUN="${WEEKLY_DISK_DRY_RUN-0}"
+
+case "$DRY_RUN" in
+    0|1)
+        ;;
+    *)
+        printf 'WEEKLY_DISK_DRY_RUN must be exactly 0 or 1\n' >&2
+        exit 2
+        ;;
+esac
+
 MOLE_CLEAN=0
 DOCKER_PRUNE=0
 

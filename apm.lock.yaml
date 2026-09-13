@@ -12,6 +12,16 @@ dependencies:
   is_virtual: true
   package_type: claude_skill
   content_hash: sha256:09dbc5304106f99933581f90b5181657a3f1981c7adddf1880fb8eaf2e357378
+- repo_url: anthropics/skills
+  name: skill-creator
+  host: github.com
+  resolved_commit: 34040c9c568585f6929bedeaad110ad08f079624
+  resolved_ref: 34040c9c568585f6929bedeaad110ad08f079624
+  version: unknown
+  virtual_path: skills/skill-creator
+  is_virtual: true
+  package_type: claude_skill
+  content_hash: sha256:b2bfe91d69ca99994c0566baede889e7d2b9bb8791c6b6106c5d387392f717f6
 - repo_url: cursor/plugins
   name: principle-type-system-discipline
   host: github.com
@@ -53,6 +63,16 @@ dependencies:
   is_virtual: true
   package_type: claude_skill
   content_hash: sha256:74f142d28d360d78e8bac4f239a84c87f0ced9015729bc72b5458d82ff45b015
+- repo_url: vercel-labs/agent-skills
+  name: web-design-guidelines
+  host: github.com
+  resolved_commit: 063bee94c3f4df8453406c830b0a7df0f2860278
+  resolved_ref: 063bee94c3f4df8453406c830b0a7df0f2860278
+  version: unknown
+  virtual_path: skills/web-design-guidelines
+  is_virtual: true
+  package_type: claude_skill
+  content_hash: sha256:a6a44d5498f7e8f68289902f3dedfc6f38ae0cee1e96527c80724cf27f727c2a
 - repo_url: vercel-labs/skills
   name: find-skills
   host: github.com
