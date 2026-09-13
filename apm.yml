@@ -8,6 +8,10 @@ includes: []
 
 dependencies:
   apm:
+    # Publish edits to skills/git-pr-workflow, then advance this commit pin.
+    - git: https://github.com/junghoon-vans/nix-config.git
+      path: skills/git-pr-workflow
+      ref: b0a44e50e94efd1f80b6f6bc78f63c18bf09065e
     - git: https://github.com/vercel-labs/skills.git
       path: skills/find-skills
       ref: 435076e78988e1e6ec40d00b0b1d76bdbbc5419a
