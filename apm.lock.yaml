@@ -1,6 +1,6 @@
 lockfile_version: '1'
-generated_at: '2026-09-07T10:23:33.047771+00:00'
-apm_version: 0.29.0
+generated_at: '2026-09-13T10:16:45.475522+00:00'
+apm_version: 0.30.0
 dependencies:
 - repo_url: cursor/plugins
   name: principle-type-system-discipline
@@ -33,6 +33,16 @@ dependencies:
   is_virtual: true
   package_type: claude_skill
   content_hash: sha256:9e514c17fc029a02870ff7d3a8157368d617bd2d43eb869e4b70d487ceab43cd
+- repo_url: junghoon-vans/nix-config
+  name: git-pr-workflow
+  host: github.com
+  resolved_commit: b0a44e50e94efd1f80b6f6bc78f63c18bf09065e
+  resolved_ref: b0a44e50e94efd1f80b6f6bc78f63c18bf09065e
+  version: unknown
+  virtual_path: skills/git-pr-workflow
+  is_virtual: true
+  package_type: claude_skill
+  content_hash: sha256:95408ae91b5eff7bb6c9322cdb76645848dda85212afab6512fd73f7e053b2ee
 - repo_url: vercel-labs/agent-skills
   name: vercel-react-best-practices
   host: github.com

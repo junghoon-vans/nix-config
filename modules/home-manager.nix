@@ -59,8 +59,6 @@ in
     ".paseo/config.json".source = ../home/.paseo/config.json;
     ".omp/agent/config.yml".source = ../home/.omp/agent/config.yml;
     ".omp/agent/agents/frontend.md".source = ../home/.omp/agent/agents/frontend.md;
-    # Repository-owned skill; APM owns only external skill deployments.
-    ".omp/agent/skills/git-pr-workflow".source = ../skills/git-pr-workflow;
     ".omp/agent/mcp.json".source = ../home/.omp/agent/mcp.json;
     ".config/gh/config.yml".source = ../home/.config/gh/config.yml;
     ".config/karabiner/karabiner.json".source = ../home/.config/karabiner/karabiner.json;
