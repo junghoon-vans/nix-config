@@ -5,8 +5,39 @@ set -euo pipefail
 host="${1:?host is required}"
 repository_root="${2:-$PWD}"
 nix_conf="${NIX_CONF:-/etc/nix/nix.conf}"
+
+case "$host" in
+  junghoonui-MacBookAir|junghoonui-MacBookPro) ;;
+  *) printf 'Unsupported host: %s\n' "$host" >&2; exit 2 ;;
+esac
+
+if [[ ! -d "$repository_root" || ! -f "$repository_root/flake.nix" || ! -f "$repository_root/flake.lock" ]]; then
+  printf 'Expected a repository with flake.nix and flake.lock: %s\n' "$repository_root" >&2
+  exit 2
+fi
+
+# Resolve a relative override before changing directories.
+if [[ "$nix_conf" != /* ]]; then
+  nix_conf="$PWD/$nix_conf"
+fi
+cd "$repository_root"
+nix --extra-experimental-features "nix-command flakes" eval --no-write-lock-file \
+  ".#darwinConfigurations.${host}.config.system.build.toplevel.drvPath" >/dev/null
+
+if [[ -L "$nix_conf" || ( -e "$nix_conf" && ! -f "$nix_conf" ) ]]; then
+  printf 'Refusing to replace a symlink or non-regular config: %s\n' "$nix_conf" >&2
+  exit 2
+fi
+
 temporary_conf="$(mktemp)"
-trap 'rm -f "$temporary_conf"' EXIT
+staged_conf=""
+cleanup() {
+  rm -f "$temporary_conf"
+  if [[ -n "$staged_conf" ]]; then
+    sudo /bin/rm -f "$staged_conf"
+  fi
+}
+trap cleanup EXIT
 
 trim_whitespace() {
   local value="$1"
@@ -61,9 +92,20 @@ if (( ! found_features )); then
 fi
 
 if (( changed_features )); then
-  sudo /bin/cp "$temporary_conf" "$nix_conf"
+  # Stage beside the destination so rename is atomic; preserve existing metadata.
+  staged_conf="$(sudo mktemp "${nix_conf}.tmp.XXXXXX")"
+  if [[ -f "$nix_conf" ]]; then
+    backup_conf="$(sudo mktemp "${nix_conf}.backup.XXXXXX")"
+    sudo /bin/cp -p "$nix_conf" "$backup_conf"
+    printf 'Nix configuration backup: %s\n' "$backup_conf"
+    sudo /bin/cp -p "$nix_conf" "$staged_conf"
+    sudo /bin/cp "$temporary_conf" "$staged_conf"
+  else
+    sudo /usr/bin/install -m 0644 "$temporary_conf" "$staged_conf"
+  fi
+  sudo /bin/mv -f "$staged_conf" "$nix_conf"
+  staged_conf=""
 fi
 
-cd "$repository_root"
-exec sudo -H nix --extra-experimental-features "nix-command flakes" run \
-  --inputs-from . nix-darwin#darwin-rebuild -- switch --flake ".#$host"
+sudo -H nix --extra-experimental-features "nix-command flakes" run \
+  --no-write-lock-file --inputs-from . nix-darwin#darwin-rebuild -- switch --flake ".#$host"
