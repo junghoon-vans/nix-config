@@ -151,8 +151,54 @@ a Nix language profile when every supported host must use the same version.
 | Hosted MCP servers | OMP config | `home/.omp/agent/mcp.json` | Atlassian, GitHub, Context7, and Notion endpoints; credentials stay user-local |
 | Firecrawl MCP | External npm runtime | `home/.omp/agent/mcp.json` | Invoked as `firecrawl-mcp@3.24.0`; npm dependency resolution is outside Nix |
 | Aside MCP | Homebrew cask | `home/.omp/agent/mcp.json` | App installation is Homebrew-managed; executable discovery is environment-dependent |
+| Aside preferences | Home Manager | `modules/aside.nix`, `scripts/aside/apply-settings.py` | Partial activation-time merge; OAuth, account catalogs, and runtime state stay local |
 | Zed Gno support | Home Manager / Nix | `modules/home-manager.nix`, `home/.config/zed/settings.json` | Gno extension is flake-locked; `gnopls` is Nix-managed |
 | Paseo OMP provider | Home Manager | `home/.paseo/config.json` | Invokes OMP from the shell environment |
+
+### Aside subscription preferences
+
+`modules/aside.nix` declares ChatGPT subscription (`openai-codex`) model choices:
+Luna/high for the default, Luna/medium for standard tasks, Sol/medium for deep
+tasks, and Terra/high for visual tasks. Fast mode is off and no image-generation
+model is selected. Each machine still requires its own ChatGPT OAuth connection
+in Aside; Nix neither copies credentials nor guarantees subscription quota or
+credit-free use of every Aside feature.
+
+The same policy asks before tools run by default, keeps the sandbox and
+outside-folder prompts enabled, disables context awareness (including typed-text
+capture and screen OCR), analytics, routine suggestions, payments, and message
+sending, and retains episodic memory for 30 days. Existing explicit tool rules,
+other memory settings, MCP configuration, and all other undeclared fields survive.
+Task-specific permissions can still override agent defaults. Shorter retention
+allows Aside to expire older episodic memories; the merge itself deletes no memory
+files.
+
+Home Manager invokes `apply-aside-settings` after its write boundary. This is a
+one-way merge at activation, not live or bidirectional sync, and `settings.json`
+remains a writable regular file rather than a `home.file` symlink. The first
+changed settings file is retained locally as `settings.json.pre-nix` (matching the
+repository's backup suffix); later applications never overwrite that snapshot.
+Settings, the backup, and an existing `models.json` are restricted to `0600`.
+The merger never reads `credentials.json`, `accounts.json`, or `models.json`
+contents and never copies them into the Nix store or repository.
+
+The merger discovers an existing numeric profile under `~/.aside/u/` instead of
+assuming account `0`. It does not create profiles before Aside initializes them.
+If more than one profile exists, choose the intended local account explicitly:
+
+```sh
+apply-aside-settings --account 7 --dry-run
+apply-aside-settings --account 7
+```
+
+These commands become available after an approved host activation. With exactly
+one profile, omit `--account`. Quit Aside and disconnect CLI/MCP clients first:
+an active browser or daemon defers the merge without killing processes or
+overwriting live settings. Activation reports the deferral and continues; the
+manual command returns a nonzero status until it can apply. Run it again after
+closing Aside. Malformed settings or symlinked/shared files fail rather than being
+replaced. Review the retained backup before any manual restore; the next
+activation reapplies the declared fields.
 
 ## Update procedures
 

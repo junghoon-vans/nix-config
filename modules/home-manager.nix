@@ -43,6 +43,8 @@ let
   '';
 in
 {
+  imports = [ ./aside.nix ];
+
   home = {
     inherit username homeDirectory;
     stateVersion = "26.05";

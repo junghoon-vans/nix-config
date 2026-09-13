@@ -32,6 +32,8 @@ jobs:
       - uses: DeterminateSystems/magic-nix-cache-action@84c0677f58dcedf3b91f8223ce36a9ea5b3c84b7 # v15
       - name: Check APM setup script syntax
         run: bash -n scripts/apm/setup-apm.sh
+      - name: Check Aside settings safety
+        run: python3 -B -m unittest discover -s scripts/aside -p 'test_*.py'
       - name: Check Nix formatting
         run: nix develop --command sh -c 'nixfmt --check $(git ls-files "*.nix")'
       - name: Lint Nix
