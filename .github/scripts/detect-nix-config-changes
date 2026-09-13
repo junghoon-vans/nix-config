@@ -10,6 +10,7 @@ if git diff --quiet "$base_sha" "$head_sha" -- \
   .github/workflows \
   apm.yml \
   apm.lock.yaml \
+  Makefile \
   flake.nix \
   flake.lock \
   hosts \
