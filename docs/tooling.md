@@ -24,6 +24,22 @@ Nix features required by the flake and activates a host. Use it only for the
 first activation; later configuration changes use `make switch HOST=<host>`.
 Supported values are `junghoonui-MacBookAir` and `junghoonui-MacBookPro`.
 
+Bootstrap validates the repository path and supported host, then evaluates the
+selected host with command-local Nix feature flags and `--no-write-lock-file`
+before invoking `sudo` or changing `/etc/nix/nix.conf`. Invalid inputs or an
+evaluation failure leave that configuration untouched.
+
+When feature settings need changing, bootstrap saves the existing configuration
+to a unique `nix.conf.backup.*` file (printing its path), preserves its ownership
+and permissions, and atomically replaces it using a temporary file in the same
+directory. Symlinks and non-regular configuration files are rejected rather than
+replaced. A failed activation does not restore the old feature settings; the
+backup remains available for manual recovery.
+
+Run `python3 scripts/nix/test-bootstrap.py` for isolated bootstrap regression
+checks. These use temporary configuration files and substitute Nix and sudo;
+they do not activate or modify the workstation.
+
 After successful activation, both commands copy the locked APM manifest and
 lockfile to `~/.apm/` and install agent skills as the current user, outside `sudo`.
 Installation uses `--frozen`, so it does not update dependency versions.
