@@ -1,1 +1,4 @@
 local/macos-shortcuts/*.sh
+
+# Oh My Pi runtime state
+.omp/
