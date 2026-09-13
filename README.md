@@ -51,15 +51,37 @@ On a new Apple Silicon Mac:
    cd ~/workspace/nix-workstation
    ```
 
-### First activation
+### Enable flakes
 
-Use flakes explicitly so the command also works when they are not enabled globally:
+The first activation uses the flake-aware Nix CLI. Enable its required experimental
+features once in the system Nix configuration:
 
 ```sh
-sudo nix --extra-experimental-features "nix-command flakes" run --inputs-from . nix-darwin#darwin-rebuild -- switch --flake .#junghoonui-MacBookPro
+sudoedit /etc/nix/nix.conf
 ```
 
-`--inputs-from .` resolves `nix-darwin` from this repository's locked flake input rather than the moving `nix-darwin/master` ref.
+Add this line, or add the missing names to an existing `experimental-features` line:
+
+```nix
+experimental-features = nix-command flakes
+```
+
+### First activation
+
+Use the repository's locked `nix-darwin` input to bootstrap `darwin-rebuild`:
+
+```sh
+sudo -H nix run --inputs-from . nix-darwin#darwin-rebuild -- \
+  switch --flake .#junghoonui-MacBookAir
+```
+
+`--inputs-from .` resolves `nix-darwin` from this repository's locked flake input rather than the moving `nix-darwin/master` ref. The arguments after `--` are passed to `darwin-rebuild`: `switch` activates the selected system configuration, and `--flake .#junghoonui-MacBookAir` selects the MacBook Air host from this repository.
+
+After the first activation, use the installed command directly:
+
+```sh
+sudo -H darwin-rebuild switch --flake .#junghoonui-MacBookAir
+```
 
 The switch installs declared Homebrew packages, system language runtimes, Home Manager files,
 and the pinned OMP and Gno toolchains from the Nix store. Deploy the separately managed APM
