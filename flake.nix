@@ -52,10 +52,6 @@
       flake = false;
     };
 
-    homebrew-microsoft-apm = {
-      url = "github:microsoft/homebrew-apm";
-      flake = false;
-    };
     homebrew-tw93 = {
       url = "github:tw93/homebrew-tap";
       flake = false;

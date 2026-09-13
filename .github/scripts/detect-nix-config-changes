@@ -15,6 +15,7 @@ if git diff --quiet "$base_sha" "$head_sha" -- \
   flake.lock \
   hosts \
   modules \
+  packages \
   scripts \
   home; then
   printf 'configuration_changed=false\n' >> "$GITHUB_OUTPUT"
