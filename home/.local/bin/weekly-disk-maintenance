@@ -8,6 +8,38 @@ THRESHOLD_PERCENT="${WEEKLY_DISK_THRESHOLD_PERCENT:-85}"
 LOG_DIR="${WEEKLY_DISK_LOG_DIR:-$HOME/.local/state/nix-workstation}"
 LOG_FILE="$LOG_DIR/weekly-disk-maintenance.log"
 DRY_RUN="${WEEKLY_DISK_DRY_RUN:-0}"
+MOLE_CLEAN=0
+DOCKER_PRUNE=0
+
+usage() {
+    cat <<'EOF'
+Usage: weekly-disk-maintenance [--mole-clean] [--docker-prune]
+
+Reports disk-cleanup candidates when the configured threshold is reached. Cleanup
+commands run only when their corresponding option is passed.
+EOF
+}
+
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        --mole-clean)
+            MOLE_CLEAN=1
+            ;;
+        --docker-prune)
+            DOCKER_PRUNE=1
+            ;;
+        --help|-h)
+            usage
+            exit 0
+            ;;
+        *)
+            printf 'Unknown option: %s\n' "$1" >&2
+            usage >&2
+            exit 2
+            ;;
+    esac
+    shift
+done
 
 mkdir -p "$LOG_DIR"
 
@@ -53,6 +85,8 @@ log_cleanup_candidates() {
     for candidate in "${openstack_paths[@]}"; do
         [ -n "$candidate" ] && [ -e "$candidate" ] && log "  $candidate"
     done
+
+    return 0
 }
 
 main() {
@@ -68,18 +102,22 @@ main() {
 
     log "Usage is at least ${THRESHOLD_PERCENT}%; running maintenance"
 
-    if command -v mole >/dev/null 2>&1; then
+    if [ "$MOLE_CLEAN" = "1" ] && command -v mole >/dev/null 2>&1; then
         run_or_log mole clean
+    elif [ "$MOLE_CLEAN" != "1" ]; then
+        log "Mole cleanup disabled; skipping mole clean"
     else
         log "mole not found; skipping mole clean"
     fi
 
-    if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
+    if [ "$DOCKER_PRUNE" = "1" ] && command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
         run_or_log docker builder prune --force
         run_or_log docker image prune --all --force
         run_or_log docker container prune --force
         docker system df >>"$LOG_FILE" 2>&1 || true
         log "Docker volumes are reported only; scheduled maintenance does not prune volumes."
+    elif [ "$DOCKER_PRUNE" != "1" ]; then
+        log "Docker prune disabled; skipping Docker cleanup"
     else
         log "Docker not available; skipping Docker cleanup"
     fi

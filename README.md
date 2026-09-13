@@ -106,3 +106,8 @@ the global version authority; mise is retained only for repository-local
 ## Safety
 
 Homebrew activation does not remove packages omitted from the declaration (`cleanup = "none"`). Move to a destructive cleanup mode only after auditing the current machine's package inventory.
+
+Weekly disk maintenance is configured per host through `workstation.maintenance`. Its
+LaunchAgent can remain enabled for reporting while `mole clean` and Docker prune are configured
+independently. Both current hosts enable the two cleanup options; disable either option on a host
+where that destructive cleanup is not approved.

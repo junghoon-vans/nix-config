@@ -35,6 +35,11 @@ in
     omp.enable = true;
     apm.enable = true;
     mcp.gnomcp.enable = true;
+    maintenance = {
+      enable = true;
+      mole.enable = true;
+      dockerPrune.enable = true;
+    };
   };
 
   users.users.${user.username}.home = user.homeDirectory;
