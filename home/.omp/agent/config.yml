@@ -12,6 +12,8 @@ browser:
 mcp:
   enableProjectConfig: false
   notifications: false
+github:
+  enabled: true
 secrets:
   enabled: true
 composer:
