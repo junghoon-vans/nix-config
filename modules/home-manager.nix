@@ -27,20 +27,37 @@ let
     ln -s ${inputs.spaceship-prompt} "$out/custom/themes/spaceship-prompt"
     ln -s ${inputs.spaceship-prompt}/spaceship.zsh-theme "$out/custom/themes/spaceship.zsh-theme"
   '';
-  # Zed settings configure Nix-provided gnopls; Gno uses Zed's built-in Go grammar.
-  zedGno = pkgs.runCommand "zed-gno-extension" { } ''
-    mkdir -p "$out"
-    cp -R ${inputs.zed-gno}/languages "$out/languages"
-    cat > "$out/extension.toml" <<'EOF'
-    id = "gno"
-    name = "Gno"
-    version = "0.1.0"
-    schema_version = 1
-    authors = ["julienrbrt <https://github.com/julienrbrt>"]
-    description = "Gno language support with gnopls LSP (diagnostics, completions, go-to-definition, hover)"
-    repository = "https://github.com/julienrbrt/zed-gno"
-    EOF
-  '';
+  # Keep upstream's LSP registration; reuse Zed's built-in Go grammar.
+  zedGnoManifest = (pkgs.formats.toml { }).generate "extension.toml" (
+    removeAttrs (builtins.fromTOML (builtins.readFile "${inputs.zed-gno}/extension.toml")) [
+      "grammars"
+    ]
+    // {
+      lib = {
+        kind = "Rust";
+        version = "0.7.0";
+      };
+    }
+  );
+  zedGno = pkgs.pkgsCross.wasm32-wasip1.rustPlatform.buildRustPackage {
+    pname = "zed-gno-extension";
+    version = "0.1.0";
+    src = inputs.zed-gno;
+    cargoLock.lockFile = "${inputs.zed-gno}/Cargo.lock";
+    nativeBuildInputs = [
+      pkgs.pkgsCross.wasm32-wasip1.lld
+      pkgs.wasm-tools
+    ];
+    env.RUSTFLAGS = "-C linker=wasm-ld";
+    # Zed loads a WASI component, not the core module produced by wasip1.
+    wasiAdapter = pkgs.fetchurl {
+      url = "https://github.com/bytecodealliance/wasmtime/releases/download/v30.0.2/wasi_snapshot_preview1.reactor.wasm";
+      hash = "sha256-BYocDKOrsq4B8f4wNbkACMksPvJCFP1HkGRjx5/GpYs=";
+    };
+    extensionManifest = zedGnoManifest;
+    installPhase = builtins.readFile ../scripts/zed/install-gno-extension.sh;
+    doCheck = false; # The cross-compiled library cannot run on the build host.
+  };
 in
 {
   imports = [ ./aside.nix ];
