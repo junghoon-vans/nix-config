@@ -75,9 +75,15 @@ hash must change together. The Nix declaration is the canonical pin location.
 | APM CLI | Release `0.30.0` | `packages/apm.nix` | Pinned Apple Silicon artifact; the system executable is `/run/current-system/sw/bin/apm` |
 | Bun | `bunVersion` (`1.4.2`) | `modules/languages/bun.nix` | Standalone `darwin-aarch64` release binary |
 | Protobuf | `protobuf36` flake input (`v36.1`) | `flake.nix`, `modules/languages/go.nix` | Source build; the flake input is the only version pin |
-| Gno / gnokey | `gnoRelease` (`chain/mainnet`) and source revision | `modules/languages/gno.nix` | Release binaries wrapped with the pinned `GNOROOT` source |
+| Gno / gnokey | `gnoRev` and Go dependency hash | `modules/languages/gno.nix` | Both binaries are built from the same pinned source used by `GNOROOT` |
 | gnopls | `gnoplsRev` | `modules/languages/gno.nix` | Source build with a pinned Go vendor hash |
+| Zed Gno WASI adapter | Wasmtime `v30.0.2` reactor adapter | `modules/home-manager.nix` | Integrity-hashed, architecture-independent WebAssembly; used only while packaging the extension |
 | gnomcp | `gnomcpVersion` (`0.11.0`) | `modules/mcp/gnomcp.nix` | Local stdio MCP server |
+
+Gno tools are built from the pinned commit, not the mutable `chain/mainnet` release
+assets. Updating Gno requires reviewing `gnoRev`, the source hash, and the Go dependency
+hash together. The dependency cache uses `proxyVendor` to retain the C sources needed
+for gnokey's Ledger support. Installed binaries report the source commit as their version.
 
 ## Nixpkgs language tooling
 
@@ -163,8 +169,25 @@ a Nix language profile when every supported host must use the same version.
 | Firecrawl MCP | External npm runtime | `home/.omp/agent/mcp.json` | Invoked as `firecrawl-mcp@3.24.0`; npm dependency resolution is outside Nix |
 | Aside MCP | Homebrew cask | `home/.omp/agent/mcp.json` | App installation is Homebrew-managed; executable discovery is environment-dependent |
 | Aside preferences | Home Manager | `modules/aside.nix`, `scripts/aside/apply-settings.py` | Partial activation-time merge; OAuth, account catalogs, and runtime state stay local |
-| Zed Gno support | Home Manager / Nix | `modules/home-manager.nix`, `home/.config/zed/settings.json` | Gno extension is flake-locked; `gnopls` is Nix-managed |
+| Zed Gno support | Home Manager / Nix | `modules/home-manager.nix`, `scripts/zed/install-gno-extension.sh`, `home/.config/zed/settings.json` | Flake-locked Rust extension built as a WASI component; `gnopls` is Nix-managed |
 | Paseo OMP provider | Home Manager | `home/.paseo/config.json` | Invokes OMP from the shell environment |
+
+### Zed Gno language server
+
+Home Manager installs both the Gno language files and `extension.wasm`. The extension
+manifest must retain upstream's `language_servers.gnopls` registration: a binary path in
+Zed settings alone does not register a language server. The grammar remains Zed's built-in
+Go grammar; no separate grammar download is required.
+
+Nix cross-compiles the pinned extension to `wasm32-wasip1`, then packages it as a WASI
+component using the pinned reactor adapter. Cargo dependencies come from the upstream
+`Cargo.lock`. The manifest's `lib.version` identifies the Zed extension API version,
+not the extension's own release version.
+
+After an approved system activation, run `zed: reload extensions` or restart Zed to
+refresh its extension index. Open a `.gno` file in a trusted worktree and check that
+`gnopls` starts. Existing Home Manager backup behavior and the managed extension path
+are unchanged; no manual extension installation or `rustup` setup is needed.
 
 ### Aside subscription preferences
 

@@ -13,6 +13,7 @@ bash_scripts=(
   scripts/apm/setup-apm.sh
   scripts/nix/bootstrap.sh
   scripts/validation/check.sh
+  scripts/zed/install-gno-extension.sh
 )
 
 for script in "${bash_scripts[@]}"; do
