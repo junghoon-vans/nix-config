@@ -75,10 +75,15 @@ hash must change together. The Nix declaration is the canonical pin location.
 | APM CLI | Release `0.30.0` | `packages/apm.nix` | Pinned Apple Silicon artifact; the system executable is `/run/current-system/sw/bin/apm` |
 | Bun | `bunVersion` (`1.4.2`) | `modules/languages/bun.nix` | Standalone `darwin-aarch64` release binary |
 | Protobuf | `protobuf36` flake input (`v36.1`) | `flake.nix`, `modules/languages/go.nix` | Source build; the flake input is the only version pin |
-| Gno / gnokey | `gnoRelease` (`chain/mainnet`) and source revision | `modules/languages/gno.nix` | Release binaries wrapped with the pinned `GNOROOT` source |
+| Gno / gnokey | `gnoRev` and Go dependency hash | `modules/languages/gno.nix` | Both binaries are built from the same pinned source used by `GNOROOT` |
 | gnopls | `gnoplsRev` | `modules/languages/gno.nix` | Source build with a pinned Go vendor hash |
 | Zed Gno WASI adapter | Wasmtime `v30.0.2` reactor adapter | `modules/home-manager.nix` | Integrity-hashed, architecture-independent WebAssembly; used only while packaging the extension |
 | gnomcp | `gnomcpVersion` (`0.11.0`) | `modules/mcp/gnomcp.nix` | Local stdio MCP server |
+
+Gno tools are built from the pinned commit, not the mutable `chain/mainnet` release
+assets. Updating Gno requires reviewing `gnoRev`, the source hash, and the Go dependency
+hash together. The dependency cache uses `proxyVendor` to retain the C sources needed
+for gnokey's Ledger support. Installed binaries report the source commit as their version.
 
 ## Nixpkgs language tooling
 
