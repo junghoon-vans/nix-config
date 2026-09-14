@@ -8,9 +8,20 @@ task:
     security-reviewer: openai-codex/gpt-5.6-sol:xhigh
   isolation:
     enabled: true
+  enableLsp: true
 symbolPreset: nerd
 browser:
   relay: true
+bashInterceptor:
+  enabled: true
+astGrep:
+  enabled: true
+checkpoint:
+  enabled: true
+edit:
+  enforceSeenLines: true
+lsp:
+  diagnosticsOnEdit: true
 mcp:
   enableProjectConfig: false
   notifications: false
