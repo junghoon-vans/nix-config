@@ -56,7 +56,6 @@ in
   };
 
   home-manager = {
-    backupFileExtension = "pre-nix";
     useGlobalPkgs = true;
     useUserPackages = true;
     extraSpecialArgs = {
