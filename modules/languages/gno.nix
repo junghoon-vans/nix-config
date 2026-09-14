@@ -6,22 +6,22 @@
 }:
 
 let
-  gnoRelease = "chain/pearl";
+  gnoRelease = "chain/mainnet";
   gnoplsRev = "543a5cb1face8aeb9d947dc557995a8e4d4c311d";
 
   gnoSource = pkgs.fetchFromGitHub {
     owner = "gnolang";
     repo = "gno";
-    rev = "c4c72fdd288c757e8da0d93aae867fa479b1b15c";
-    hash = "sha256-nKEp6P1zeYMhmA9GeXsnhiyHsmPOlRZej3FjaROIFFM=";
+    rev = "9c8eb132e483d6fd324d92c193e629ad65a98a37";
+    hash = "sha256-tJtZ44lilWSqW00Pzlar9xPQwjHF4t+gkrF4h8YW10I=";
   };
   gnoBinary = pkgs.fetchurl {
     url = "https://github.com/gnolang/gno/releases/download/${gnoRelease}/gno_darwin_arm64";
-    hash = "sha256-rbMuvnFKNNlBWAix8u2j28oB4fqYk/E/HEa4U+Dcuzw=";
+    hash = "sha256-0z4TcFrY7xaVXXJeHxGl2ml+LUCZQyaSE9bD3LefzGU=";
   };
   gnokeyBinary = pkgs.fetchurl {
     url = "https://github.com/gnolang/gno/releases/download/${gnoRelease}/gnokey_darwin_arm64";
-    hash = "sha256-U++hTIQOvI9jJBSKg+WElHy2rxkmPIvgnfGodBW9EaQ=";
+    hash = "sha256-CqspEQDYJiEr4DljHyST88Kjy6afNyQtxTAN6S+uR5s=";
   };
   gnoToolchain = pkgs.stdenvNoCC.mkDerivation {
     pname = "gno-toolchain";
