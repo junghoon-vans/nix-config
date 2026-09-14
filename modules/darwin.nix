@@ -2,9 +2,16 @@
 
 let
   userHome = config.users.users.${config.system.primaryUser}.home;
+  homeManagerBackup = pkgs.writeShellScript "home-manager-backup" ''
+    target="$1"
+    backup="''${target}.pre-nix.$(${pkgs.coreutils}/bin/date -u +%Y%m%dT%H%M%S.%NZ)"
+    ${pkgs.coreutils}/bin/mv -- "$target" "$backup"
+  '';
 in
+
 {
   environment.systemPackages = [ (pkgs.callPackage ../packages/apm.nix { }) ];
+  home-manager.backupCommand = homeManagerBackup;
 
   homebrew = {
     enable = true;
