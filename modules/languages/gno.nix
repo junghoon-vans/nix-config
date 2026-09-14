@@ -6,14 +6,14 @@
 }:
 
 let
-  gnoRev = "9c8eb132e483d6fd324d92c193e629ad65a98a37";
+  gnoRev = "1bf7282dd85ec089a2e9079132b1505a6d80a159";
   gnoplsRev = "543a5cb1face8aeb9d947dc557995a8e4d4c311d";
 
   gnoSource = pkgs.fetchFromGitHub {
     owner = "gnolang";
     repo = "gno";
     rev = gnoRev;
-    hash = "sha256-tJtZ44lilWSqW00Pzlar9xPQwjHF4t+gkrF4h8YW10I=";
+    hash = "sha256-u3TTvVKN1cgupHxgMu8/n8vM1rJVG29OcNpqJGHvv+s=";
   };
   gnoToolchain = pkgs.buildGoModule {
     pname = "gno-toolchain";
