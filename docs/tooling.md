@@ -127,8 +127,8 @@ require explicit review and an approved Homebrew operation.
 ### Casks
 
 `aside`, `session-manager-plugin`, `orbstack`, `tailscale-app`, `karabiner-elements`,
-`jordanbaird-ice`, `hop`, `headlamp`, `paseo`, `font-fira-code-nerd-font`, and
-`font-d2coding` are declared in `modules/darwin.nix`.
+`jordanbaird-ice`, `hop`, `headlamp`, `paseo`, `zed`, `font-fira-code-nerd-font`,
+and `font-d2coding` are declared in `modules/darwin.nix`.
 
 ### Maintenance
 
