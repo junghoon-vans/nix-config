@@ -75,6 +75,7 @@ in
       "hop"
       "headlamp"
       "paseo"
+      "zed"
       "font-fira-code-nerd-font"
       "font-d2coding"
     ];
