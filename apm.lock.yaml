@@ -1,5 +1,5 @@
 lockfile_version: '1'
-apm_version: 0.30.0
+apm_version: 0.31.0
 dependencies:
 - repo_url: anthropics/skills
   name: mcp-builder
@@ -24,13 +24,13 @@ dependencies:
 - repo_url: cursor/plugins
   name: principle-type-system-discipline
   host: github.com
-  resolved_commit: 93b00b89ef425a9c1bac0d0b317dfc49c930ac99
-  resolved_ref: 93b00b89ef425a9c1bac0d0b317dfc49c930ac99
+  resolved_commit: c1c0a32802223f4be824112dd83d33ad29a8b26c
+  resolved_ref: c1c0a32802223f4be824112dd83d33ad29a8b26c
   version: unknown
   virtual_path: pstack/skills/principle-type-system-discipline
   is_virtual: true
   package_type: claude_skill
-  content_hash: sha256:092d40b72a904d0a111acde944639e24c8fe1f912455d9c4b94295b9d07709ec
+  content_hash: sha256:dbd4efbb3e6da61329f23b43301b8aa73fde79d6fca75be3d518f51abfd30e32
 - repo_url: cursor/plugins
   name: typescript-best-practices
   host: github.com
@@ -145,8 +145,8 @@ dependencies:
 - repo_url: vercel-labs/skills
   name: find-skills
   host: github.com
-  resolved_commit: 435076e78988e1e6ec40d00b0b1d76bdbbc5419a
-  resolved_ref: 435076e78988e1e6ec40d00b0b1d76bdbbc5419a
+  resolved_commit: d6b37f62ae23c3825b0ed16c73e123eee0a41fdc
+  resolved_ref: d6b37f62ae23c3825b0ed16c73e123eee0a41fdc
   version: unknown
   virtual_path: skills/find-skills
   is_virtual: true
