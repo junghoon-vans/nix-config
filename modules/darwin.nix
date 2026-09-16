@@ -10,8 +10,17 @@ let
 in
 
 {
-  environment.systemPackages = [ (pkgs.callPackage ../packages/apm.nix { }) ];
+  environment.systemPackages = [
+    (pkgs.callPackage ../packages/apm.nix { })
+    (pkgs.callPackage ../packages/paseo.nix { })
+  ];
   home-manager.backupCommand = homeManagerBackup;
+
+  system.activationScripts.removePaseoCask.text = ''
+    if ${config.homebrew.prefix}/bin/brew list --cask paseo >/dev/null 2>&1; then
+      ${config.homebrew.prefix}/bin/brew uninstall --cask paseo
+    fi
+  '';
 
   homebrew = {
     enable = true;
@@ -74,7 +83,6 @@ in
       "jordanbaird-ice"
       "hop"
       "headlamp"
-      "paseo"
       "zed"
       "font-fira-code-nerd-font"
       "font-d2coding"
