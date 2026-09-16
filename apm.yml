@@ -10,7 +10,7 @@ dependencies:
   apm:
     - git: https://github.com/vercel-labs/skills.git
       path: skills/find-skills
-      ref: 435076e78988e1e6ec40d00b0b1d76bdbbc5419a
+      ref: d6b37f62ae23c3825b0ed16c73e123eee0a41fdc
     - git: https://github.com/vercel-labs/agent-skills.git
       path: skills/react-best-practices
       ref: 063bee94c3f4df8453406c830b0a7df0f2860278
@@ -27,7 +27,7 @@ dependencies:
       ref: 91a30b36f05bb6424bd77e9817811c0e9c003aa2
     - git: https://github.com/cursor/plugins.git
       path: pstack/skills/principle-type-system-discipline
-      ref: 93b00b89ef425a9c1bac0d0b317dfc49c930ac99
+      ref: c1c0a32802223f4be824112dd83d33ad29a8b26c
     - git: https://github.com/cursor/plugins.git
       path: pstack/skills/typescript-best-practices
       ref: 93b00b89ef425a9c1bac0d0b317dfc49c930ac99
