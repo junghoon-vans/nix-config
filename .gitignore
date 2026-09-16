@@ -1,2 +1,5 @@
 # Oh My Pi runtime state
 .omp/
+
+# Local Git worktrees
+.worktrees/
