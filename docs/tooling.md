@@ -72,7 +72,7 @@ hash must change together. The Nix declaration is the canonical pin location.
 | Tool | Canonical pin | Source / package definition | Notes |
 | --- | --- | --- | --- |
 | OMP | `ompRelease` (`18.1.19`, `sha256-3vwdOY1qkPNJmNUSD7W1PPeuCMEN/5G4NMq1o7BGERk=`) | `modules/omp.nix` | Standalone `darwin-arm64` release binary; update version and integrity hash together |
-| APM CLI | Release `0.30.0` | `packages/apm.nix` | Pinned Apple Silicon artifact; the system executable is `/run/current-system/sw/bin/apm` |
+| APM CLI | Release `0.31.0` | `packages/apm.nix` | Pinned Apple Silicon artifact; the system executable is `/run/current-system/sw/bin/apm` |
 | Bun | `bunVersion` (`1.4.2`) | `modules/languages/bun.nix` | Standalone `darwin-aarch64` release binary |
 | Protobuf | `protobuf36` flake input (`v36.1`) | `flake.nix`, `modules/languages/go.nix` | Source build; the flake input is the only version pin |
 | Gno / gnokey | `gnoRev` and Go dependency hash | `modules/languages/gno.nix` | Both binaries are built from the same pinned source used by `GNOROOT` |
@@ -161,7 +161,7 @@ a Nix language profile when every supported host must use the same version.
 
 | Tool or integration | Owner | Configuration | Versioning / runtime boundary |
 | --- | --- | --- | --- |
-| APM CLI | Nix | `packages/apm.nix` | Pinned `0.30.0` Apple Silicon artifact; invoke `/run/current-system/sw/bin/apm` |
+| APM CLI | Nix | `packages/apm.nix` | Pinned `0.31.0` Apple Silicon artifact; invoke `/run/current-system/sw/bin/apm` |
 | OMP ACP agent | Nix | `modules/omp.nix`, `home/.config/zed/settings.json` | Fixed OMP release; Zed invokes `/run/current-system/sw/bin/omp acp` |
 | OMP skills | APM | `apm.yml`, `apm.lock.yaml`, `scripts/apm/setup-apm.sh` | Locked commits and content hashes; installed automatically by `make bootstrap` and `make switch`; generated output remains APM-owned |
 | gnomcp | Nix | `modules/mcp/gnomcp.nix`, `home/.omp/agent/mcp.json` | Fixed release; OMP spawns a local stdio subprocess |

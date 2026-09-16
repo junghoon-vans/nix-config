@@ -1,5 +1,5 @@
 lockfile_version: '1'
-apm_version: 0.30.0
+apm_version: 0.31.0
 dependencies:
 - repo_url: anthropics/skills
   name: mcp-builder
