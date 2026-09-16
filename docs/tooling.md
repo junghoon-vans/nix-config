@@ -71,7 +71,7 @@ hash must change together. The Nix declaration is the canonical pin location.
 
 | Tool | Canonical pin | Source / package definition | Notes |
 | --- | --- | --- | --- |
-| OMP | `ompRelease` (`18.1.19`, `sha256-3vwdOY1qkPNJmNUSD7W1PPeuCMEN/5G4NMq1o7BGERk=`) | `modules/omp.nix` | Standalone `darwin-arm64` release binary; update version and integrity hash together |
+| OMP | `ompRelease` (`18.2.1`, `sha256-rGc4aKFZi0vtqY3GziFI8kr6vEKBbHArLaxfefDYYd4=`) | `modules/omp.nix` | Standalone `darwin-arm64` release binary; update version and integrity hash together |
 | APM CLI | Release `0.31.0` | `packages/apm.nix` | Pinned Apple Silicon artifact; the system executable is `/run/current-system/sw/bin/apm` |
 | Bun | `bunVersion` (`1.4.2`) | `modules/languages/bun.nix` | Standalone `darwin-aarch64` release binary |
 | Protobuf | `protobuf36` flake input (`v36.1`) | `flake.nix`, `modules/languages/go.nix` | Source build; the flake input is the only version pin |
