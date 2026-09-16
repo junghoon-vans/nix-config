@@ -12,6 +12,7 @@ bash_scripts=(
   scripts/apm/install.sh
   scripts/apm/setup-apm.sh
   scripts/nix/bootstrap.sh
+  scripts/nix/home-manager-backups-cleanup.sh
   scripts/validation/check.sh
   scripts/zed/install-gno-extension.sh
 )
@@ -23,6 +24,7 @@ shellcheck --shell=bash "${bash_scripts[@]}"
 zsh -n home/.zshrc
 
 python3 scripts/nix/test-bootstrap.py
+python3 -B -m unittest discover -s scripts/nix -p 'test_*.py'
 python3 -B -m unittest discover -s scripts/aside -p 'test_*.py'
 python3 -B -m unittest discover -s scripts/maintenance -p 'test_*.py'
 
