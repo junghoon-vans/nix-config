@@ -11,6 +11,26 @@ dependencies:
   is_virtual: true
   package_type: claude_skill
   content_hash: sha256:c61468452cd59a348d0800ed5454c4206084d11089fffd14d77a685a29c7ba93
+- repo_url: anthropics/knowledge-work-plugins
+  name: documentation
+  host: github.com
+  resolved_commit: bdf7160f2b33598fb0cb3860027e033cbaec7ce6
+  resolved_ref: bdf7160f2b33598fb0cb3860027e033cbaec7ce6
+  version: unknown
+  virtual_path: engineering/skills/documentation
+  is_virtual: true
+  package_type: claude_skill
+  content_hash: sha256:c24a1672a7edad51225859d6549d9a61892f704a4527a65ce3cddd913ca04550
+- repo_url: anthropics/knowledge-work-plugins
+  name: incident-response
+  host: github.com
+  resolved_commit: bdf7160f2b33598fb0cb3860027e033cbaec7ce6
+  resolved_ref: bdf7160f2b33598fb0cb3860027e033cbaec7ce6
+  version: unknown
+  virtual_path: engineering/skills/incident-response
+  is_virtual: true
+  package_type: claude_skill
+  content_hash: sha256:7bca2a38e630dae90f022997b6a50754f6e9d83ca85f9134f677cfcde9c703a6
 - repo_url: anthropics/skills
   name: mcp-builder
   host: github.com
@@ -72,6 +92,16 @@ dependencies:
   is_virtual: true
   package_type: claude_skill
   content_hash: sha256:9e514c17fc029a02870ff7d3a8157368d617bd2d43eb869e4b70d487ceab43cd
+- repo_url: mattpocock/skills
+  name: diagnosing-bugs
+  host: github.com
+  resolved_commit: 74ca5fe077456a0b3b2f5310cf9430999fd0b5fd
+  resolved_ref: 74ca5fe077456a0b3b2f5310cf9430999fd0b5fd
+  version: unknown
+  virtual_path: skills/engineering/diagnosing-bugs
+  is_virtual: true
+  package_type: claude_skill
+  content_hash: sha256:251e085e9d789c31d8b526929e62f57f668a21c2cc0d7bf185f0fba591a8ac60
 - repo_url: obra/superpowers
   name: using-git-worktrees
   host: github.com
@@ -162,4 +192,14 @@ dependencies:
   is_virtual: true
   package_type: claude_skill
   content_hash: sha256:913b9d37d0d54047dd65222bb8c67b2bf04e3cb87dcad1729068d7a8b2c8c396
+- repo_url: wshobson/agents
+  name: helm-chart-scaffolding
+  host: github.com
+  resolved_commit: 4236bb91f8395b0435f1d8b8baf9e8e4c69a8620
+  resolved_ref: 4236bb91f8395b0435f1d8b8baf9e8e4c69a8620
+  version: unknown
+  virtual_path: plugins/kubernetes-operations/skills/helm-chart-scaffolding
+  is_virtual: true
+  package_type: claude_skill
+  content_hash: sha256:9de710be8ac94b8d4e60104d47e74d65842a197b42262b0415dc365341801792
 deployments: []

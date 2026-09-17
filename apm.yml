@@ -58,3 +58,15 @@ dependencies:
     - git: https://github.com/obra/superpowers.git
       path: skills/using-git-worktrees
       ref: b36e0829c6d0140e93cfef2ca599b1b07d4a7797
+    - git: https://github.com/mattpocock/skills.git
+      path: skills/engineering/diagnosing-bugs
+      ref: 74ca5fe077456a0b3b2f5310cf9430999fd0b5fd
+    - git: https://github.com/anthropics/knowledge-work-plugins.git
+      path: engineering/skills/incident-response
+      ref: bdf7160f2b33598fb0cb3860027e033cbaec7ce6
+    - git: https://github.com/anthropics/knowledge-work-plugins.git
+      path: engineering/skills/documentation
+      ref: bdf7160f2b33598fb0cb3860027e033cbaec7ce6
+    - git: https://github.com/wshobson/agents.git
+      path: plugins/kubernetes-operations/skills/helm-chart-scaffolding
+      ref: 4236bb91f8395b0435f1d8b8baf9e8e4c69a8620
