@@ -1,6 +1,16 @@
 lockfile_version: '1'
 apm_version: 0.31.0
 dependencies:
+- repo_url: anthropics/knowledge-work-plugins
+  name: slack-messaging
+  host: github.com
+  resolved_commit: bdf7160f2b33598fb0cb3860027e033cbaec7ce6
+  resolved_ref: bdf7160f2b33598fb0cb3860027e033cbaec7ce6
+  version: unknown
+  virtual_path: partner-built/slack/skills/slack-messaging
+  is_virtual: true
+  package_type: claude_skill
+  content_hash: sha256:c61468452cd59a348d0800ed5454c4206084d11089fffd14d77a685a29c7ba93
 - repo_url: anthropics/skills
   name: mcp-builder
   host: github.com
