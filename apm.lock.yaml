@@ -152,6 +152,26 @@ dependencies:
   is_virtual: true
   package_type: claude_skill
   content_hash: sha256:7bd6c2cc8083d90f5d5489c80887ed5399e167d3e7323c7f294035e1e586b689
+- repo_url: planetscale/database-skills
+  name: mysql
+  host: github.com
+  resolved_commit: 73b20b7eb64716d8c7100c054f0677c0c6e77e30
+  resolved_ref: 73b20b7eb64716d8c7100c054f0677c0c6e77e30
+  version: unknown
+  virtual_path: skills/mysql
+  is_virtual: true
+  package_type: claude_skill
+  content_hash: sha256:99c972c81a7d6e3181569a39ffb50691a3d05b7a2458432cdcfce3238c922985
+- repo_url: supabase/agent-skills
+  name: supabase-postgres-best-practices
+  host: github.com
+  resolved_commit: 8331f910845103c08d51f6ca1d86ebb7d1f745e3
+  resolved_ref: 8331f910845103c08d51f6ca1d86ebb7d1f745e3
+  version: unknown
+  virtual_path: skills/supabase-postgres-best-practices
+  is_virtual: true
+  package_type: claude_skill
+  content_hash: sha256:5766a8e9524c3c2a81041409be237c3baf515aa04a135871a21dd351682d173f
 - repo_url: vercel-labs/agent-skills
   name: vercel-composition-patterns
   host: github.com
