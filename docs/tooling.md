@@ -62,7 +62,7 @@ lockfile changes as dependency updates.
 | `protobuf36` | Protobuf source pinned to `v36.1` |
 | `oh-my-zsh`, `spaceship-prompt`, `zsh-*` | Shell framework, theme, and plugins |
 | `zed-gno` | Zed Gno extension source |
-| `homebrew-core`, `homebrew-cask`, `homebrew-tw93` | Homebrew repositories and taps |
+| `homebrew-core`, `homebrew-cask` | Homebrew repositories and taps |
 
 ## Nix-managed fixed releases
 

@@ -51,11 +51,6 @@
       url = "github:homebrew/homebrew-cask";
       flake = false;
     };
-
-    homebrew-tw93 = {
-      url = "github:tw93/homebrew-tap";
-      flake = false;
-    };
   };
 
   outputs =
