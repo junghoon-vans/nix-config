@@ -36,7 +36,7 @@ directory. Symlinks and non-regular configuration files are rejected rather than
 replaced. A failed activation does not restore the old feature settings; the
 backup remains available for manual recovery.
 
-Run `python3 scripts/nix/test-bootstrap.py` for isolated bootstrap regression
+Run `python3 -B -m unittest discover -s scripts/nix -p 'test_*.py'` for isolated
 checks. These use temporary configuration files and substitute Nix and sudo;
 they do not activate or modify the workstation.
 

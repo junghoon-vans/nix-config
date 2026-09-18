@@ -80,7 +80,8 @@ in
     ".omp/agent/mcp.json".source = ../home/.omp/agent/mcp.json;
     ".config/gh/config.yml".source = ../home/.config/gh/config.yml;
     ".config/karabiner/karabiner.json".source = ../home/.config/karabiner/karabiner.json;
-    ".config/terminal/com.apple.Terminal.plist".source = ../home/terminal/com.apple.Terminal.plist;
+    ".config/terminal/com.apple.Terminal.plist".source =
+      ../home/.config/terminal/com.apple.Terminal.plist;
     ".config/nvim/init.lua".source = ../home/.config/nvim/init.lua;
     ".config/nvim/lua/config/lazy.lua".source = ../home/.config/nvim/lua/config/lazy.lua;
     ".config/nvim/lua/config/options.lua".source = ../home/.config/nvim/lua/config/options.lua;

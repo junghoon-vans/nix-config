@@ -23,7 +23,6 @@ done
 shellcheck --shell=bash "${bash_scripts[@]}"
 zsh -n home/.zshrc
 
-python3 scripts/nix/test-bootstrap.py
 python3 -B -m unittest discover -s scripts/nix -p 'test_*.py'
 python3 -B -m unittest discover -s scripts/aside -p 'test_*.py'
 python3 -B -m unittest discover -s scripts/maintenance -p 'test_*.py'
