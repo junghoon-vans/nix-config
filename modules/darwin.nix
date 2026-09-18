@@ -16,9 +16,10 @@ in
   ];
   home-manager.backupCommand = homeManagerBackup;
 
-  system.activationScripts.removePaseoCask.text = ''
+  system.activationScripts.extraActivation.text = ''
     if ${config.homebrew.prefix}/bin/brew list --cask paseo >/dev/null 2>&1; then
-      ${config.homebrew.prefix}/bin/brew uninstall --cask paseo
+      sudo --user=${config.system.primaryUser} --set-home \
+        ${config.homebrew.prefix}/bin/brew uninstall --cask paseo
     fi
   '';
 
