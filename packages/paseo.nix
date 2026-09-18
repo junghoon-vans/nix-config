@@ -27,5 +27,6 @@ stdenvNoCC.mkDerivation {
     chmod +x "$out/bin/paseo"
   '';
 
+  dontPatchShebangs = true;
   dontStrip = true;
 }

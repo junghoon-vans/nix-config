@@ -17,7 +17,8 @@ in
   home-manager.backupCommand = homeManagerBackup;
 
   system.activationScripts.extraActivation.text = ''
-    if ${config.homebrew.prefix}/bin/brew list --cask paseo >/dev/null 2>&1; then
+    if sudo --user=${config.system.primaryUser} --set-home \
+      ${config.homebrew.prefix}/bin/brew list --cask paseo >/dev/null 2>&1; then
       sudo --user=${config.system.primaryUser} --set-home \
         ${config.homebrew.prefix}/bin/brew uninstall --cask paseo
     fi
