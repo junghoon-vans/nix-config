@@ -3,6 +3,15 @@
 {
   imports = [ ../common.nix ];
 
+  homebrew.casks = [
+    "datagrip"
+    "discord"
+    "notion"
+    "obsidian"
+    "slack"
+    "telegram"
+  ];
+
   workstation.languages = {
     gno.enable = true;
     go.enable = true;
