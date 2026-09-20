@@ -45,5 +45,13 @@ make help
 
 ## Guides
 
-- [Tooling and operations](docs/tooling.md): ownership, managed tools, updates, Homebrew maintenance, and safety boundaries.
+- [Tooling index](docs/tooling.md): ownership and links to focused operational guides.
+- [Activation](docs/activation.md): bootstrap, switch, and provenance verification.
+- [Nix toolchain](docs/nix-toolchain.md): inputs, fixed releases, and language profiles.
+- [Homebrew](docs/homebrew.md): managed inventory and manual upgrade policy.
+- [Oh My Pi](docs/omp.md): shared configuration and machine-local overlays.
+- [APM](docs/apm.md): locked agent-skill deployment.
+- [MCP integrations](docs/mcp.md): local and hosted MCP ownership.
+- [Zed](docs/zed.md), [Aside](docs/aside.md), and [maintenance](docs/maintenance.md):
+  feature-specific configuration and operational boundaries.
 - [Contributing](CONTRIBUTING.md): change scope, validation, and pull-request expectations.
