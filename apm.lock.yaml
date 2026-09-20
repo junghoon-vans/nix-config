@@ -2,16 +2,6 @@ lockfile_version: '1'
 apm_version: 0.31.0
 dependencies:
 - repo_url: anthropics/knowledge-work-plugins
-  name: slack-messaging
-  host: github.com
-  resolved_commit: bdf7160f2b33598fb0cb3860027e033cbaec7ce6
-  resolved_ref: bdf7160f2b33598fb0cb3860027e033cbaec7ce6
-  version: unknown
-  virtual_path: partner-built/slack/skills/slack-messaging
-  is_virtual: true
-  package_type: claude_skill
-  content_hash: sha256:c61468452cd59a348d0800ed5454c4206084d11089fffd14d77a685a29c7ba93
-- repo_url: anthropics/knowledge-work-plugins
   name: documentation
   host: github.com
   resolved_commit: bdf7160f2b33598fb0cb3860027e033cbaec7ce6
@@ -31,6 +21,16 @@ dependencies:
   is_virtual: true
   package_type: claude_skill
   content_hash: sha256:7bca2a38e630dae90f022997b6a50754f6e9d83ca85f9134f677cfcde9c703a6
+- repo_url: anthropics/knowledge-work-plugins
+  name: slack-messaging
+  host: github.com
+  resolved_commit: bdf7160f2b33598fb0cb3860027e033cbaec7ce6
+  resolved_ref: bdf7160f2b33598fb0cb3860027e033cbaec7ce6
+  version: unknown
+  virtual_path: partner-built/slack/skills/slack-messaging
+  is_virtual: true
+  package_type: claude_skill
+  content_hash: sha256:c61468452cd59a348d0800ed5454c4206084d11089fffd14d77a685a29c7ba93
 - repo_url: anthropics/skills
   name: mcp-builder
   host: github.com
@@ -85,28 +85,28 @@ dependencies:
   materialization_repo_url: JetBrains/go-modern-guidelines
   name: use-modern-go
   host: github.com
-  resolved_commit: 91a30b36f05bb6424bd77e9817811c0e9c003aa2
-  resolved_ref: 91a30b36f05bb6424bd77e9817811c0e9c003aa2
+  resolved_commit: 937827b86eeff98f45150ce00236bc34a30ed20f
+  resolved_ref: v0.1.1
   version: unknown
   virtual_path: plugin/skills/use-modern-go
   is_virtual: true
   package_type: claude_skill
-  content_hash: sha256:9e514c17fc029a02870ff7d3a8157368d617bd2d43eb869e4b70d487ceab43cd
+  content_hash: sha256:17fc96614baa7a671f1421a7412942af2b745681042f1030fc045fc5f93b35e5
 - repo_url: mattpocock/skills
   name: diagnosing-bugs
   host: github.com
-  resolved_commit: 74ca5fe077456a0b3b2f5310cf9430999fd0b5fd
-  resolved_ref: 74ca5fe077456a0b3b2f5310cf9430999fd0b5fd
+  resolved_commit: 6acc160e4e0cd062dbbbd7a1b26ae92855edf07e
+  resolved_ref: v1.2.3
   version: unknown
   virtual_path: skills/engineering/diagnosing-bugs
   is_virtual: true
   package_type: claude_skill
-  content_hash: sha256:251e085e9d789c31d8b526929e62f57f668a21c2cc0d7bf185f0fba591a8ac60
+  content_hash: sha256:577089e7d9a46e9b6744bd33f30acf8487a1376f52f18700ff7863070b880da9
 - repo_url: obra/superpowers
   name: using-git-worktrees
   host: github.com
-  resolved_commit: b36e0829c6d0140e93cfef2ca599b1b07d4a7797
-  resolved_ref: b36e0829c6d0140e93cfef2ca599b1b07d4a7797
+  resolved_commit: 5bf4e78011075bcfc0dc295f0724994cd123ee71
+  resolved_ref: v6.4.1
   version: unknown
   virtual_path: skills/using-git-worktrees
   is_virtual: true
@@ -166,7 +166,7 @@ dependencies:
   name: supabase-postgres-best-practices
   host: github.com
   resolved_commit: 8331f910845103c08d51f6ca1d86ebb7d1f745e3
-  resolved_ref: 8331f910845103c08d51f6ca1d86ebb7d1f745e3
+  resolved_ref: v0.1.8
   version: unknown
   virtual_path: skills/supabase-postgres-best-practices
   is_virtual: true
@@ -175,8 +175,8 @@ dependencies:
 - repo_url: vercel-labs/agent-skills
   name: vercel-composition-patterns
   host: github.com
-  resolved_commit: 063bee94c3f4df8453406c830b0a7df0f2860278
-  resolved_ref: 063bee94c3f4df8453406c830b0a7df0f2860278
+  resolved_commit: dd089a8c752c966dee8bf0f27cb625ba193ffd9e
+  resolved_ref: agent-skills-dd089a8c752c966dee8bf0f27cb625ba193ffd9e
   version: unknown
   virtual_path: skills/composition-patterns
   is_virtual: true
@@ -185,8 +185,8 @@ dependencies:
 - repo_url: vercel-labs/agent-skills
   name: vercel-react-best-practices
   host: github.com
-  resolved_commit: 063bee94c3f4df8453406c830b0a7df0f2860278
-  resolved_ref: 063bee94c3f4df8453406c830b0a7df0f2860278
+  resolved_commit: dd089a8c752c966dee8bf0f27cb625ba193ffd9e
+  resolved_ref: agent-skills-dd089a8c752c966dee8bf0f27cb625ba193ffd9e
   version: unknown
   virtual_path: skills/react-best-practices
   is_virtual: true
@@ -195,8 +195,8 @@ dependencies:
 - repo_url: vercel-labs/agent-skills
   name: web-design-guidelines
   host: github.com
-  resolved_commit: 063bee94c3f4df8453406c830b0a7df0f2860278
-  resolved_ref: 063bee94c3f4df8453406c830b0a7df0f2860278
+  resolved_commit: dd089a8c752c966dee8bf0f27cb625ba193ffd9e
+  resolved_ref: agent-skills-dd089a8c752c966dee8bf0f27cb625ba193ffd9e
   version: unknown
   virtual_path: skills/web-design-guidelines
   is_virtual: true
@@ -205,8 +205,8 @@ dependencies:
 - repo_url: vercel-labs/skills
   name: find-skills
   host: github.com
-  resolved_commit: d6b37f62ae23c3825b0ed16c73e123eee0a41fdc
-  resolved_ref: d6b37f62ae23c3825b0ed16c73e123eee0a41fdc
+  resolved_commit: 7407f3893ad4dceab546ac002c3ef806e4000c73
+  resolved_ref: v1.7.0
   version: unknown
   virtual_path: skills/find-skills
   is_virtual: true

@@ -7,15 +7,15 @@
 
 let
   cfg = config.workstation.languages.bun;
-  bunVersion = "1.4.2";
+  bunRelease = (builtins.fromJSON (builtins.readFile ../../release-pins.json)).bun;
 
   bun = pkgs.stdenvNoCC.mkDerivation {
     pname = "bun";
-    version = bunVersion;
+    inherit (bunRelease) version;
 
     src = pkgs.fetchzip {
-      url = "https://github.com/oven-sh/bun/releases/download/bun-v${bunVersion}/bun-darwin-aarch64.zip";
-      hash = "sha256-Izz/X4ccPjHW7sXmYK7wPMOZLXxCMxyPcruhpjiK+k0=";
+      url = "https://github.com/oven-sh/bun/releases/download/bun-v${bunRelease.version}/bun-darwin-aarch64.zip";
+      inherit (bunRelease) hash;
       stripRoot = false;
     };
 

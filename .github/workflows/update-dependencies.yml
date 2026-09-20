@@ -1,0 +1,64 @@
+name: update dependencies
+
+on:
+  schedule:
+    - cron: "0 18 * * 0"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: update-dependencies
+  cancel-in-progress: false
+
+jobs:
+  fixed-releases:
+    runs-on: macos-15
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [apm, bun, gnomcp, omp, paseo]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
+      - id: update
+        name: Resolve latest release and hash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          version="$(python3 scripts/updates/update-fixed-release.py '${{ matrix.package }}')"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - name: Open focused update pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          scripts/updates/open-update-pr.sh \
+            "automation/update-${{ matrix.package }}" \
+            "chore(deps): update ${{ matrix.package }} to ${{ steps.update.outputs.version }}" \
+            "Automated fixed-release update. The pull-request validation builds both supported hosts; activation remains manual."
+
+  tagged-skills:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
+      - name: Update tagged APM skills
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          apm_store="$(nix build --no-link --print-out-paths .#apm)"
+          python3 scripts/updates/update-tagged-skills.py --apm "$apm_store/bin/apm"
+      - name: Open skill update pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          scripts/updates/open-update-pr.sh \
+            automation/update-apm-skills \
+            "chore(deps): update tagged APM skills" \
+            "Automated update of APM dependencies whose upstream repositories publish stable tags. Commit-only dependencies remain pinned for manual review."

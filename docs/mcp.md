@@ -4,7 +4,7 @@
 | --- | --- | --- | --- |
 | gnomcp | Nix | `modules/mcp/gnomcp.nix`, `home/.omp/agent/mcp.json` | Fixed local stdio server |
 | Hosted MCP servers | OMP config | `home/.omp/agent/mcp.json` | Atlassian, GitHub, Context7, and Notion endpoints |
-| Firecrawl | External npm runtime | `home/.omp/agent/mcp.json` | Invokes `firecrawl-mcp@3.24.0` |
+| Firecrawl | External npm runtime | `home/.omp/agent/mcp.json` | Version-pinned npm invocation |
 | Aside | Homebrew cask | `home/.omp/agent/mcp.json` | Executable discovery depends on the local app installation |
 
 Credentials and authentication state are always user-local. Do not add API keys, OAuth state, or
