@@ -21,20 +21,6 @@ in
   ];
   home-manager.backupCommand = homeManagerBackup;
 
-  system.activationScripts.defaults.text = lib.mkBefore ''
-    sudo --user=${config.system.primaryUser} --set-home mkdir -p \
-      "${userHome}/Library/Application Support/DockStacks/Development" \
-      "${userHome}/Library/Application Support/DockStacks/Workspace"
-  '';
-
-  system.activationScripts.extraActivation.text = ''
-    if sudo --user=${config.system.primaryUser} --set-home \
-      ${config.homebrew.prefix}/bin/brew list --cask paseo >/dev/null 2>&1; then
-      sudo --user=${config.system.primaryUser} --set-home \
-        ${config.homebrew.prefix}/bin/brew uninstall --cask paseo
-    fi
-  '';
-
   homebrew = {
     enable = true;
     taps = builtins.attrNames config.nix-homebrew.taps;
@@ -115,70 +101,88 @@ in
     };
   };
 
-  system.defaults = {
-    NSGlobalDomain = {
-      AppleInterfaceStyle = "Dark";
-      AppleShowAllExtensions = true;
-      InitialKeyRepeat = 15;
-      KeyRepeat = 2;
-      NSAutomaticCapitalizationEnabled = false;
-      NSAutomaticDashSubstitutionEnabled = false;
-      NSAutomaticPeriodSubstitutionEnabled = false;
-      NSAutomaticQuoteSubstitutionEnabled = false;
-      NSAutomaticSpellingCorrectionEnabled = false;
-      NSDocumentSaveNewDocumentsToCloud = false;
+  system = {
+    activationScripts = {
+      defaults.text = lib.mkBefore ''
+        sudo --user=${config.system.primaryUser} --set-home mkdir -p \
+          "${userHome}/Library/Application Support/DockStacks/Development" \
+          "${userHome}/Library/Application Support/DockStacks/Workspace"
+      '';
+
+      extraActivation.text = ''
+        if sudo --user=${config.system.primaryUser} --set-home \
+          ${config.homebrew.prefix}/bin/brew list --cask paseo >/dev/null 2>&1; then
+          sudo --user=${config.system.primaryUser} --set-home \
+            ${config.homebrew.prefix}/bin/brew uninstall --cask paseo
+        fi
+      '';
     };
-    dock = {
-      autohide = true;
-      autohide-delay = 0.0;
-      autohide-time-modifier = 0.4;
-      launchanim = false;
-      show-recents = false;
-      persistent-apps = [
-        "/Applications/Aside.app"
-        "/Applications/Nix Apps/Paseo.app"
-        "/Applications/Zed.app"
-        "/Applications/Slack.app"
-        "/Applications/KakaoTalk.app"
-      ];
-      persistent-others = [
-        {
-          folder = {
-            path = "${userHome}/Library/Application Support/DockStacks/Development";
-            arrangement = "name";
-            displayas = "stack";
-            showas = "fan";
-          };
-        }
-        {
-          folder = {
-            path = "${userHome}/Library/Application Support/DockStacks/Workspace";
-            arrangement = "name";
-            displayas = "stack";
-            showas = "grid";
-          };
-        }
-        {
-          folder = {
-            path = "${userHome}/Downloads";
-            arrangement = "date-added";
-            displayas = "stack";
-            showas = "fan";
-          };
-        }
-      ];
-    };
-    finder = {
-      AppleShowAllFiles = true;
-      FXDefaultSearchScope = "SCcf";
-      FXEnableExtensionChangeWarning = false;
-      ShowPathbar = true;
-      ShowStatusBar = true;
-      _FXSortFoldersFirst = true;
-    };
-    screencapture = {
-      disable-shadow = true;
-      location = "${userHome}/Pictures/Screenshots";
+
+    defaults = {
+      NSGlobalDomain = {
+        AppleInterfaceStyle = "Dark";
+        AppleShowAllExtensions = true;
+        InitialKeyRepeat = 15;
+        KeyRepeat = 2;
+        NSAutomaticCapitalizationEnabled = false;
+        NSAutomaticDashSubstitutionEnabled = false;
+        NSAutomaticPeriodSubstitutionEnabled = false;
+        NSAutomaticQuoteSubstitutionEnabled = false;
+        NSAutomaticSpellingCorrectionEnabled = false;
+        NSDocumentSaveNewDocumentsToCloud = false;
+      };
+      dock = {
+        autohide = true;
+        autohide-delay = 0.0;
+        autohide-time-modifier = 0.4;
+        launchanim = false;
+        show-recents = false;
+        persistent-apps = [
+          "/Applications/Aside.app"
+          "/Applications/Nix Apps/Paseo.app"
+          "/Applications/Zed.app"
+          "/Applications/Slack.app"
+          "/Applications/KakaoTalk.app"
+        ];
+        persistent-others = [
+          {
+            folder = {
+              path = "${userHome}/Library/Application Support/DockStacks/Development";
+              arrangement = "name";
+              displayas = "stack";
+              showas = "fan";
+            };
+          }
+          {
+            folder = {
+              path = "${userHome}/Library/Application Support/DockStacks/Workspace";
+              arrangement = "name";
+              displayas = "stack";
+              showas = "grid";
+            };
+          }
+          {
+            folder = {
+              path = "${userHome}/Downloads";
+              arrangement = "date-added";
+              displayas = "stack";
+              showas = "fan";
+            };
+          }
+        ];
+      };
+      finder = {
+        AppleShowAllFiles = true;
+        FXDefaultSearchScope = "SCcf";
+        FXEnableExtensionChangeWarning = false;
+        ShowPathbar = true;
+        ShowStatusBar = true;
+        _FXSortFoldersFirst = true;
+      };
+      screencapture = {
+        disable-shadow = true;
+        location = "${userHome}/Pictures/Screenshots";
+      };
     };
   };
 }
