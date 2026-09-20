@@ -87,6 +87,12 @@ in
       "hop"
       "headlamp"
       "zed"
+      "datagrip"
+      "discord"
+      "notion"
+      "obsidian"
+      "slack"
+      "telegram"
       "font-fira-code-nerd-font"
       "font-d2coding"
     ];
