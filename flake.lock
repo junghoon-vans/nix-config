@@ -24,11 +24,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1789430117,
-        "narHash": "sha256-t+U1mijItLJ64xZOifpfQ17kpAL73nU7pDI48ScacVc=",
+        "lastModified": 1789652175,
+        "narHash": "sha256-OVgwnH7e/GlJRscTPXnJ8wwy6Mh+hk0MedEw360o8U8=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "cda90fd8838825c689fde9d3f3b4e937937790df",
+        "rev": "f2785222a14e90f8c5ad2ff62474ce88453c3421",
         "type": "github"
       },
       "original": {
@@ -128,11 +128,11 @@
     "oh-my-zsh": {
       "flake": false,
       "locked": {
-        "lastModified": 1789415031,
-        "narHash": "sha256-sXXvI1ZQJT9rSh+N2NYlz4GGlckAQusks3NpckFhIrQ=",
+        "lastModified": 1789548440,
+        "narHash": "sha256-ELhy7OVnRUbSsB0HRlKAeQ2bhtRlyPOWMgs048O6PoI=",
         "owner": "ohmyzsh",
         "repo": "ohmyzsh",
-        "rev": "fcf965912c4adf73ead540e7409bb42ec6e31b45",
+        "rev": "0ee67f042872d1dfab74270c31867771ca35aef4",
         "type": "github"
       },
       "original": {
@@ -259,11 +259,11 @@
     "zsh-syntax-highlighting": {
       "flake": false,
       "locked": {
-        "lastModified": 1787365145,
-        "narHash": "sha256-d/io9jvBn6XuSPWQia4OPWDwZRS8Pt74XG9VWqIYFFw=",
+        "lastModified": 1789641642,
+        "narHash": "sha256-6yqlW0AWQ2xzl27OqhGjb4MS7yxKnxzLC4g/6riIhn4=",
         "owner": "zsh-users",
         "repo": "zsh-syntax-highlighting",
-        "rev": "2fc57d63067c18b1100ecdbf684fa5baf49459d1",
+        "rev": "0bfcb582e71d3abe604ce67bc0fe5a21f377507e",
         "type": "github"
       },
       "original": {
