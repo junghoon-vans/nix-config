@@ -93,9 +93,15 @@ in
       "obsidian"
       "slack"
       "telegram"
+      "displaylink"
+      "logi-options+"
       "font-fira-code-nerd-font"
       "font-d2coding"
     ];
+
+    masApps = {
+      KakaoTalk = 869223134;
+    };
   };
 
   system.defaults = {
