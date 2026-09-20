@@ -1,4 +1,9 @@
-{ config, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   userHome = config.users.users.${config.system.primaryUser}.home;
@@ -15,6 +20,12 @@ in
     (pkgs.callPackage ../packages/paseo.nix { })
   ];
   home-manager.backupCommand = homeManagerBackup;
+
+  system.activationScripts.defaults.text = lib.mkBefore ''
+    sudo --user=${config.system.primaryUser} --set-home mkdir -p \
+      "${userHome}/Library/Application Support/DockStacks/Development" \
+      "${userHome}/Library/Application Support/DockStacks/Workspace"
+  '';
 
   system.activationScripts.extraActivation.text = ''
     if sudo --user=${config.system.primaryUser} --set-home \
