@@ -87,6 +87,8 @@ in
       "hop"
       "headlamp"
       "zed"
+      "displaylink"
+      "logi-options+"
       "font-fira-code-nerd-font"
       "font-d2coding"
     ];
