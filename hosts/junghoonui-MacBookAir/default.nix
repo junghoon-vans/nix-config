@@ -3,6 +3,10 @@
 {
   imports = [ ../common.nix ];
 
+  homebrew.masApps = {
+    KakaoTalk = 869223134;
+  };
+
   workstation.languages = {
     gno.enable = true;
     go.enable = true;
