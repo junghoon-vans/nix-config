@@ -1,306 +1,43 @@
-# Tooling Inventory
+# Tooling and Operations
 
-This document is the navigation index for tooling managed by this repository. The declarations
-and lockfiles named below are authoritative; this page explains ownership, versioning, and
-update procedure.
+This index maps each workstation feature to its owner, configuration, and focused guide. The
+declarations and lockfiles referenced by those guides are authoritative.
 
-## Ownership model
+## Ownership
 
-| Owner | What it manages | Version source | Mutable user state |
-| --- | --- | --- | --- |
-| Nix / nix-darwin | System packages, language runtimes, fixed release artifacts (including the APM CLI), macOS defaults | `flake.lock`, Nixpkgs, or an artifact pin and SRI hash in `modules/` or `packages/` | None |
-| Home Manager | Static home-directory configuration | Repository revision | None |
-| Homebrew | Formulae and casks deliberately outside Nixpkgs | Upstream Homebrew formula/cask revision | Homebrew cellar and application state |
-| APM | Agent skill deployment and generated skill output | `apm.yml` and `apm.lock.yaml` | `~/.apm/` |
-| User-local configuration | Credentials, OAuth sessions, API keys, machine overrides | User-owned | `~/.zshrc.local`, service-specific state directories |
-
-Never make two owners manage the same path. In particular, Home Manager must not declare
-APM-generated output or credential state.
-
-## Activation commands
-
-Run commands from the repository root. `make bootstrap HOST=<host>` enables the
-Nix features required by the flake and activates a host. Use it only for the
-first activation; later configuration changes use `make switch HOST=<host>`.
-Supported values are `junghoonui-MacBookAir` and `junghoonui-MacBookPro`.
-
-Bootstrap validates the repository path and supported host, then evaluates the
-selected host with command-local Nix feature flags and `--no-write-lock-file`
-before invoking `sudo` or changing `/etc/nix/nix.conf`. Invalid inputs or an
-evaluation failure leave that configuration untouched.
-
-When feature settings need changing, bootstrap saves the existing configuration
-to a unique `nix.conf.backup.*` file (printing its path), preserves its ownership
-and permissions, and atomically replaces it using a temporary file in the same
-directory. Symlinks and non-regular configuration files are rejected rather than
-replaced. A failed activation does not restore the old feature settings; the
-backup remains available for manual recovery.
-
-Run `python3 -B -m unittest discover -s scripts/nix -p 'test_*.py'` for isolated
-checks. These use temporary configuration files and substitute Nix and sudo;
-they do not activate or modify the workstation.
-
-After successful activation, both commands copy the locked APM manifest and
-lockfile to `~/.apm/` and install agent skills as the current user, outside
-`sudo`. The setup script invokes `/run/current-system/sw/bin/apm` explicitly,
-so a pre-existing Homebrew or user-local `apm` cannot shadow the Nix-managed CLI.
-Installation uses `--frozen`, so it does not update dependency versions.
-Generated output remains APM-owned. Do not manage it through Home Manager or Nix.
-Run `make` without `sudo`.
-
-## Nix inputs
-
-All flake inputs are locked in `flake.lock`. Dependabot updates the Nix input graph; review
-lockfile changes as dependency updates.
-
-| Input | Purpose |
-| --- | --- |
-| `nixpkgs` | Nix package set for language runtimes and development tooling |
-| `nix-darwin` | macOS system configuration |
-| `home-manager` | Home-directory configuration |
-| `nix-homebrew` | Declarative Homebrew taps and inventory |
-| `protobuf36` | Protobuf source pinned to `v36.1` |
-| `oh-my-zsh`, `spaceship-prompt`, `zsh-*` | Shell framework, theme, and plugins |
-| `zed-gno` | Zed Gno extension source |
-| `homebrew-core`, `homebrew-cask` | Homebrew repositories and taps |
-
-## Nix-managed fixed releases
-
-These are Apple Silicon artifacts or source builds whose version/revision, URL, and integrity
-hash must change together. The Nix declaration is the canonical pin location.
-
-| Tool | Canonical pin | Source / package definition | Notes |
-| --- | --- | --- | --- |
-| OMP | `ompRelease` (`18.2.1`, `sha256-rGc4aKFZi0vtqY3GziFI8kr6vEKBbHArLaxfefDYYd4=`) | `modules/omp.nix` | Standalone `darwin-arm64` release binary; update version and integrity hash together |
-| APM CLI | Release `0.31.0` | `packages/apm.nix` | Pinned Apple Silicon artifact; the system executable is `/run/current-system/sw/bin/apm` |
-| Bun | `bunVersion` (`1.4.2`) | `modules/languages/bun.nix` | Standalone `darwin-aarch64` release binary |
-| Protobuf | `protobuf36` flake input (`v36.1`) | `flake.nix`, `modules/languages/go.nix` | Source build; the flake input is the only version pin |
-| Gno / gnokey | `gnoRev` and Go dependency hash | `modules/languages/gno.nix` | Both binaries are built from the same pinned source used by `GNOROOT` |
-| gnopls | `gnoplsRev` | `modules/languages/gno.nix` | Source build with a pinned Go vendor hash |
-| Zed Gno WASI adapter | Wasmtime `v30.0.2` reactor adapter | `modules/home-manager.nix` | Integrity-hashed, architecture-independent WebAssembly; used only while packaging the extension |
-| gnomcp | `gnomcpVersion` (`0.11.0`) | `modules/mcp/gnomcp.nix` | Local stdio MCP server |
-
-Gno tools are built from the pinned commit, not the mutable `chain/mainnet` release
-assets. Updating Gno requires reviewing `gnoRev`, the source hash, and the Go dependency
-hash together. The dependency cache uses `proxyVendor` to retain the C sources needed
-for gnokey's Ledger support. Installed binaries report the source commit as their version.
-
-## Nixpkgs language tooling
-
-These versions follow the locked Nixpkgs revision rather than a per-tool release pin.
-
-| Area | Packages | Enabled hosts |
+| Owner | What it manages | Mutable user state |
 | --- | --- | --- |
-| Go | `go_1_25`, `gopls`, `golangci-lint`, `gofumpt`, Protobuf | Air, Pro |
-| Gno | `gno`, `gnokey`, `gnopls` | Air, Pro |
-| Node / TypeScript | `nodejs_24`, `corepack`, `pnpm`, `typescript`, `typescript-language-server`, `biome` | Air, Pro |
-| Python | `python313`, `uv`, `pyright`, `ruff` | Air, Pro |
-| Rust | `cargo`, `rustc`, `rustfmt`, `clippy`, `rust-analyzer`, `cargo-nextest` | Air, Pro |
-| XML | `lemminx` | Air, Pro |
-| Java | `temurin-bin-25`, `jdt-language-server` | Air only |
-| Kotlin | `kotlin`, `kotlin-language-server` | Air only |
+| Nix / nix-darwin | System packages, fixed releases, macOS defaults, LaunchAgents | None |
+| Home Manager | Static home-directory and shell configuration | None |
+| Homebrew | Deliberately mutable formulae and applications | Cellar and application state |
+| APM | Locked agent-skill deployment and generated output | `~/.apm/` |
+| User | Credentials, authentication, and machine-specific overrides | `~/.zshrc.local`, service state, OMP local overlay |
 
-Host enablement is declared in `hosts/junghoonui-MacBookAir/default.nix` and
-`hosts/junghoonui-MacBookPro/default.nix`.
+Each managed path has one owner. Home Manager must not declare APM-generated output, credentials,
+authentication state, or machine-local overrides.
 
-Language profiles under `modules/languages/` are opt-in. Each host enables only
-the profiles it needs through `workstation.languages.*.enable`; the locked
-Nixpkgs revision is their version authority. `mise` remains for repository-local
-`mise.toml` overrides.
+## Guides
 
-## Homebrew-managed tooling
+| Feature | Guide | Canonical configuration |
+| --- | --- | --- |
+| Bootstrap, activation, and provenance checks | [Activation](activation.md) | `Makefile`, `scripts/nix/` |
+| Nix inputs, fixed releases, and language profiles | [Nix toolchain](nix-toolchain.md) | `flake.lock`, `modules/`, `packages/` |
+| Formulae, casks, and manual upgrades | [Homebrew](homebrew.md) | `modules/darwin.nix` |
+| OMP shared settings and machine-local overlays | [Oh My Pi](omp.md) | `modules/omp.nix`, `home/.omp/agent/` |
+| Agent skills and locked deployment | [APM](apm.md) | `apm.yml`, `apm.lock.yaml` |
+| Local and hosted model-context servers | [MCP integrations](mcp.md) | `modules/mcp/`, `home/.omp/agent/mcp.json` |
+| Gno language support | [Zed](zed.md) | `modules/home-manager.nix`, `home/.config/zed/` |
+| Browser-agent preferences | [Aside](aside.md) | `modules/aside.nix`, `scripts/aside/` |
+| Disk reports and cleanup boundaries | [Maintenance](maintenance.md) | `modules/maintenance.nix`, `scripts/maintenance/` |
 
-Homebrew activation does not update, upgrade, or clean packages automatically. Version changes
-require explicit review and an approved Homebrew operation.
-
-### Formulae
-
-| Area | Formulae |
-| --- | --- |
-| Editors and VCS | `neovim`, `git`, `git-delta`, `gh`, `lazygit` |
-| CI and development workflow | `act`, `actionlint`, `prek`, `go-task`, `tmux`, `hermes-agent` |
-| Build and language support | `cmake`, `pkgconf`, `delve`, `marksman`, `bash-language-server`, `terraform-ls`, `yaml-language-server`, `shellcheck`, `shfmt`, `yamlfmt` |
-| Cloud and infrastructure | `awscli`, `kubernetes-cli`, `helm`, `terraform`, `grpcurl` |
-| Database clients | `mysql-client`, `libpq` |
-| CLI utilities | `mole`, `bat`, `eza`, `ripgrep`, `ast-grep`, `fd`, `htop`, `jq`, `tldr`, `fzf`, `zoxide` |
-
-### Casks
-
-`aside`, `session-manager-plugin`, `orbstack`, `tailscale-app`, `karabiner-elements`,
-`jordanbaird-ice`, `hop`, `headlamp`, `paseo`, `zed`, `font-fira-code-nerd-font`,
-and `font-d2coding` are declared in `modules/darwin.nix`.
-
-### Maintenance
-
-Activation installs missing declared formulae and casks, but never updates,
-upgrades, or cleans Homebrew packages. There are no automatic Homebrew upgrades.
-Review available upgrades first:
+## Common commands
 
 ```sh
-brew update
-brew outdated
-```
-
-Apply upgrades only after review:
-
-```sh
-brew upgrade
-brew upgrade neovim
-```
-
-Removing APM from the Homebrew inventory does not automatically delete an
-existing Homebrew installation or a `~/.local/bin/apm` installation. Any later
-cleanup or removal requires explicit approval. Until then, use
-`/run/current-system/sw/bin/apm` for manual APM lock operations and other
-version-sensitive commands rather than bare `apm`.
-
-Homebrew versions are mutable local state. Move a version-sensitive runtime to
-a Nix language profile when every supported host must use the same version.
-
-## Agent, MCP, and editor tooling
-
-| Tool or integration | Owner | Configuration | Versioning / runtime boundary |
-| --- | --- | --- | --- |
-| APM CLI | Nix | `packages/apm.nix` | Pinned `0.31.0` Apple Silicon artifact; invoke `/run/current-system/sw/bin/apm` |
-| OMP ACP agent | Nix | `modules/omp.nix`, `home/.config/zed/settings.json` | Fixed OMP release; Zed invokes `/run/current-system/sw/bin/omp acp` |
-| OMP skills | APM | `apm.yml`, `apm.lock.yaml`, `scripts/apm/setup-apm.sh` | Locked commits and content hashes; installed automatically by `make bootstrap` and `make switch`; generated output remains APM-owned |
-| gnomcp | Nix | `modules/mcp/gnomcp.nix`, `home/.omp/agent/mcp.json` | Fixed release; OMP spawns a local stdio subprocess |
-| Hosted MCP servers | OMP config | `home/.omp/agent/mcp.json` | Atlassian, GitHub, Context7, and Notion endpoints; credentials stay user-local |
-| Firecrawl MCP | External npm runtime | `home/.omp/agent/mcp.json` | Invoked as `firecrawl-mcp@3.24.0`; npm dependency resolution is outside Nix |
-| Aside MCP | Homebrew cask | `home/.omp/agent/mcp.json` | App installation is Homebrew-managed; executable discovery is environment-dependent |
-| Aside preferences | Home Manager | `modules/aside.nix`, `scripts/aside/apply-settings.py` | Partial activation-time merge; OAuth, account catalogs, and runtime state stay local |
-| Zed Gno support | Home Manager / Nix | `modules/home-manager.nix`, `scripts/zed/install-gno-extension.sh`, `home/.config/zed/settings.json` | Flake-locked Rust extension built as a WASI component; `gnopls` is Nix-managed |
-| Paseo OMP provider | Home Manager | `home/.paseo/config.json` | Invokes OMP from the shell environment |
-
-### Zed Gno language server
-
-Home Manager installs both the Gno language files and `extension.wasm`. The extension
-manifest must retain upstream's `language_servers.gnopls` registration: a binary path in
-Zed settings alone does not register a language server. The grammar remains Zed's built-in
-Go grammar; no separate grammar download is required.
-
-Nix cross-compiles the pinned extension to `wasm32-wasip1`, then packages it as a WASI
-component using the pinned reactor adapter. Cargo dependencies come from the upstream
-`Cargo.lock`. The manifest's `lib.version` identifies the Zed extension API version,
-not the extension's own release version.
-
-After an approved system activation, run `zed: reload extensions` or restart Zed to
-refresh its extension index. Open a `.gno` file in a trusted worktree and check that
-`gnopls` starts. Existing Home Manager backup behavior and the managed extension path
-are unchanged; no manual extension installation or `rustup` setup is needed.
-
-### Aside subscription preferences
-
-`modules/aside.nix` declares ChatGPT subscription (`openai-codex`) model choices:
-Luna/high for the default, Luna/medium for standard tasks, Sol/medium for deep
-tasks, and Terra/high for visual tasks. Fast mode is off and no image-generation
-model is selected. Each machine still requires its own ChatGPT OAuth connection
-in Aside; Nix neither copies credentials nor guarantees subscription quota or
-credit-free use of every Aside feature.
-
-The same policy asks before tools run by default, keeps the sandbox and
-outside-folder prompts enabled, disables context awareness (including typed-text
-capture and screen OCR), analytics, routine suggestions, payments, and message
-sending, and retains episodic memory for 30 days. Existing explicit tool rules,
-other memory settings, MCP configuration, and all other undeclared fields survive.
-Task-specific permissions can still override agent defaults. Shorter retention
-allows Aside to expire older episodic memories; the merge itself deletes no memory
-files.
-
-Home Manager invokes `apply-aside-settings` after its write boundary. This is a
-one-way merge at activation, not live or bidirectional sync, and `settings.json`
-remains a writable regular file rather than a `home.file` symlink. The first
-changed settings file is retained locally as `settings.json.pre-nix` (matching the
-repository's backup suffix); later applications never overwrite that snapshot.
-Settings, the backup, and an existing `models.json` are restricted to `0600`.
-The merger never reads `credentials.json`, `accounts.json`, or `models.json`
-contents and never copies them into the Nix store or repository.
-
-The merger discovers an existing numeric profile under `~/.aside/u/` instead of
-assuming account `0`. It does not create profiles before Aside initializes them.
-If more than one profile exists, choose the intended local account explicitly:
-
-```sh
-apply-aside-settings --account 7 --dry-run
-apply-aside-settings --account 7
-```
-
-These commands become available after an approved host activation. With exactly
-one profile, omit `--account`. Quit Aside and disconnect CLI/MCP clients first:
-an active browser or daemon defers the merge without killing processes or
-overwriting live settings. Activation reports the deferral and continues; the
-manual command returns a nonzero status until it can apply. Run it again after
-closing Aside. Malformed settings or symlinked/shared files fail rather than being
-replaced. Review the retained backup before any manual restore; the next
-activation reapplies the declared fields.
-
-## Update procedures
-
-### Nix inputs and Nixpkgs packages
-
-Use a focused dependency update. Inspect `flake.lock`, evaluate and build both supported hosts,
-and report the resulting package behavior. Do not update unrelated inputs in the same change.
-
-### Fixed release artifacts
-
-Update one tool per pull request unless two tools have a real compatibility dependency.
-
-1. Update only the canonical version or revision named in the package module.
-2. Update the artifact URL, SRI hash, and any Go vendor hash required by that package.
-3. Build both host configurations.
-4. Run the resulting binary's `--version` or equivalent command.
-5. Record source, version, hash update, and verification in the pull request.
-
-Do not use version-only update bots for fixed artifacts: they cannot safely recalculate Nix
-artifact hashes or Go vendor hashes.
-
-### Homebrew inventory
-
-Change the formula/cask declaration in `modules/darwin.nix`. Actual Homebrew update, upgrade,
-cleanup, or package removal requires explicit approval and is not part of normal activation.
-
-### Weekly disk maintenance
-
-Each host config controls `workstation.maintenance.enable`, which installs the weekly reporting
-LaunchAgent. `workstation.maintenance.mole.enable` and
-`workstation.maintenance.dockerPrune.enable` independently opt into destructive cleanup after
-the configured disk-usage threshold is reached. Both cleanup options default to disabled; enable
-them only after approving cleanup on that specific host. Both current hosts explicitly enable the
-Mole and Docker prune options.
-`WEEKLY_DISK_DRY_RUN` may be unset (defaulting to `0`) or set exactly to `0` or `1`; `1` logs
-cleanup commands without executing them. Any other value, including an explicit empty value,
-aborts before the log directory is created or cleanup is attempted.
-
-### APM skills
-
-Change `apm.yml`, refresh and commit `apm.lock.yaml` using the Nix-managed CLI
-at `/run/current-system/sw/bin/apm`, then activate and deploy:
-
-```sh
+make check
+make bootstrap HOST=junghoonui-MacBookAir
 make switch HOST=junghoonui-MacBookAir
+make help
 ```
 
-This writes generated state under `~/.apm/`; APM owns that output. Do not manage
-it through Home Manager, and use the absolute Nix path for any later manual
-lockfile operation.
-
-## Activation verification
-
-After a toolchain migration, activate explicitly and verify command provenance before deleting
-legacy user-local installations:
-
-```sh
-make switch HOST=junghoonui-MacBookAir
-type -a omp gno gnokey gnopls gnomcp apm
-omp --version
-gno version
-gnokey version
-gnopls version
-gnomcp version
-/run/current-system/sw/bin/apm --version
-```
-
-The Nix-managed commands should resolve from `/run/current-system/sw/bin`. For APM,
-use that absolute path even when `type -a apm` reports an older Homebrew or
-`~/.local/bin` installation. User credentials, OAuth sessions, and API keys remain
-outside this repository.
+`bootstrap` and `switch` mutate workstation state and require explicit approval. `make check`,
+Nix evaluation, and Nix builds are validation only.
