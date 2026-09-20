@@ -217,7 +217,7 @@ alias lg='lazygit'
 [ -f "$HOME/.zshrc.local" ] && source "$HOME/.zshrc.local"
 
 # Load an optional machine-local OMP settings overlay without duplicating it in child shells.
-omp_local_config="$HOME/.config/omp/local.yml"
+omp_local_config="$HOME/.omp/agent/config.local.yml"
 if [[ -f "$omp_local_config" && ":${PI_CONFIG_FILES:-}:" != *":$omp_local_config:"* ]]; then
   export PI_CONFIG_FILES="${PI_CONFIG_FILES:+$PI_CONFIG_FILES:}$omp_local_config"
 fi

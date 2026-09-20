@@ -12,7 +12,7 @@ and other workstation-specific values must not be committed.
 The managed shell config automatically adds this optional OMP overlay when the file exists:
 
 ```text
-~/.config/omp/local.yml
+~/.omp/agent/config.local.yml
 ```
 
 OMP reads it through the official `PI_CONFIG_FILES` setting. No file is created by activation, so
@@ -37,9 +37,9 @@ twice in child shells. OMP loads later overlays with higher precedence. Map keys
 override shared settings; lists such as `skills.customDirectories` should be treated as replacing
 the shared list.
 
-If `~/.config/omp/local.yml` does not exist, the shell leaves `PI_CONFIG_FILES` unchanged. Once it
-is registered, an invalid or later-removed overlay is an OMP startup error; open a new shell after
-fixing or removing the environment entry.
+If `~/.omp/agent/config.local.yml` does not exist, the shell leaves `PI_CONFIG_FILES`
+unchanged. Once registered, an invalid or later-removed overlay is an OMP startup error; open a
+new shell after fixing or removing the environment entry.
 
 This automatic registration applies to OMP processes launched from the managed interactive shell.
 GUI applications do not source `.zshrc`; a GUI launcher must pass `PI_CONFIG_FILES` itself or add
