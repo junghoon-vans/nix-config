@@ -3,11 +3,6 @@
 {
   imports = [ ../common.nix ];
 
-  homebrew.casks = [
-    "displaylink"
-    "logi-options+"
-  ];
-
   workstation.languages = {
     gno.enable = true;
     go.enable = true;
