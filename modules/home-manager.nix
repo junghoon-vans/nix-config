@@ -1,5 +1,6 @@
 {
   inputs,
+  config,
   lib,
   pkgs,
   workstationUser,
@@ -27,6 +28,17 @@ let
     ln -s ${inputs.spaceship-prompt} "$out/custom/themes/spaceship-prompt"
     ln -s ${inputs.spaceship-prompt}/spaceship.zsh-theme "$out/custom/themes/spaceship.zsh-theme"
   '';
+  dockStackRoot = "Library/Application Support/DockStacks";
+  dockStackLinks = {
+    "${dockStackRoot}/Development/DataGrip.app" = "/Applications/DataGrip.app";
+    "${dockStackRoot}/Development/Headlamp.app" = "/Applications/Headlamp.app";
+    "${dockStackRoot}/Development/OrbStack.app" = "/Applications/OrbStack.app";
+    "${dockStackRoot}/Workspace/ChatGPT.app" = "/Applications/ChatGPT.app";
+    "${dockStackRoot}/Workspace/Discord.app" = "/Applications/Discord.app";
+    "${dockStackRoot}/Workspace/Notion.app" = "/Applications/Notion.app";
+    "${dockStackRoot}/Workspace/Obsidian.app" = "/Applications/Obsidian.app";
+    "${dockStackRoot}/Workspace/Telegram.app" = "/Applications/Telegram.app";
+  };
   # Keep upstream's LSP registration; reuse Zed's built-in Go grammar.
   zedGnoManifest = (pkgs.formats.toml { }).generate "extension.toml" (
     removeAttrs (builtins.fromTOML (builtins.readFile "${inputs.zed-gno}/extension.toml")) [
@@ -99,7 +111,10 @@ in
       source = ohMyZsh;
       recursive = true;
     };
-  };
+  }
+  // lib.mapAttrs (_: appPath: {
+    source = config.lib.file.mkOutOfStoreSymlink appPath;
+  }) dockStackLinks;
 
   home.activation.createScreenshotsDirectory = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     $DRY_RUN_CMD mkdir -p "$HOME/Pictures/Screenshots"

@@ -123,6 +123,39 @@ in
       autohide-time-modifier = 0.4;
       launchanim = false;
       show-recents = false;
+      persistent-apps = [
+        "/Applications/Aside.app"
+        "/Applications/Nix Apps/Paseo.app"
+        "/Applications/Zed.app"
+        "/Applications/Slack.app"
+        "/Applications/KakaoTalk.app"
+      ];
+      persistent-others = [
+        {
+          folder = {
+            path = "${userHome}/Library/Application Support/DockStacks/Development";
+            arrangement = "name";
+            displayas = "stack";
+            showas = "fan";
+          };
+        }
+        {
+          folder = {
+            path = "${userHome}/Library/Application Support/DockStacks/Workspace";
+            arrangement = "name";
+            displayas = "stack";
+            showas = "grid";
+          };
+        }
+        {
+          folder = {
+            path = "${userHome}/Downloads";
+            arrangement = "date-added";
+            displayas = "stack";
+            showas = "fan";
+          };
+        }
+      ];
     };
     finder = {
       AppleShowAllFiles = true;
