@@ -13,6 +13,7 @@ bash_scripts=(
   scripts/apm/setup-apm.sh
   scripts/nix/bootstrap.sh
   scripts/nix/home-manager-backups-cleanup.sh
+  scripts/updates/open-update-pr.sh
   scripts/validation/check.sh
   scripts/zed/install-gno-extension.sh
 )
@@ -26,6 +27,9 @@ zsh -n home/.zshrc
 python3 -B -m unittest discover -s scripts/nix -p 'test_*.py'
 python3 -B -m unittest discover -s scripts/aside -p 'test_*.py'
 python3 -B -m unittest discover -s scripts/maintenance -p 'test_*.py'
+python3 -B scripts/validation/check-doc-version-drift.py
+python3 -B scripts/updates/update-fixed-release.py --help >/dev/null
+python3 -B scripts/updates/update-tagged-skills.py --help >/dev/null
 
 nix_files=()
 while IFS= read -r file; do

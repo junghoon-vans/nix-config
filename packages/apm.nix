@@ -1,12 +1,16 @@
 { stdenvNoCC, fetchurl }:
 
+let
+  release = (builtins.fromJSON (builtins.readFile ../release-pins.json)).apm;
+in
+
 stdenvNoCC.mkDerivation {
   pname = "apm";
-  version = "0.31.0";
+  inherit (release) version;
 
   src = fetchurl {
-    url = "https://github.com/microsoft/apm/releases/download/v0.31.0/apm-darwin-arm64.tar.gz";
-    hash = "sha256-O5hbpzVbPNkl/ThPQ699LUWRJUQx3yj10BY/FtOhPoE=";
+    url = "https://github.com/microsoft/apm/releases/download/v${release.version}/apm-darwin-arm64.tar.gz";
+    inherit (release) hash;
   };
 
   unpackPhase = "tar -xzf $src";

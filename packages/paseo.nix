@@ -5,13 +5,17 @@
   undmg,
 }:
 
+let
+  release = (builtins.fromJSON (builtins.readFile ../release-pins.json)).paseo;
+in
+
 stdenvNoCC.mkDerivation {
   pname = "paseo";
-  version = "0.8.0";
+  inherit (release) version;
 
   src = fetchurl {
-    url = "https://github.com/getpaseo/paseo/releases/download/v0.8.0/Paseo-0.8.0-arm64.dmg";
-    hash = "sha256-9YgQFntZ6s6IqNo1Yp1cm5HmKTtCOct9GVSxOhq5UB4=";
+    url = "https://github.com/getpaseo/paseo/releases/download/v${release.version}/Paseo-${release.version}-arm64.dmg";
+    inherit (release) hash;
   };
 
   nativeBuildInputs = [ undmg ];

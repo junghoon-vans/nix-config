@@ -10,21 +10,21 @@ dependencies:
   apm:
     - git: https://github.com/vercel-labs/skills.git
       path: skills/find-skills
-      ref: d6b37f62ae23c3825b0ed16c73e123eee0a41fdc
+      ref: v1.7.0
     - git: https://github.com/vercel-labs/agent-skills.git
       path: skills/react-best-practices
-      ref: 063bee94c3f4df8453406c830b0a7df0f2860278
+      ref: agent-skills-dd089a8c752c966dee8bf0f27cb625ba193ffd9e
       alias: vercel-react-best-practices
     - git: https://github.com/vercel-labs/agent-skills.git
       path: skills/composition-patterns
-      ref: 063bee94c3f4df8453406c830b0a7df0f2860278
+      ref: agent-skills-dd089a8c752c966dee8bf0f27cb625ba193ffd9e
       alias: vercel-composition-patterns
     - git: https://github.com/vercel-labs/agent-skills.git
       path: skills/web-design-guidelines
-      ref: 063bee94c3f4df8453406c830b0a7df0f2860278
+      ref: agent-skills-dd089a8c752c966dee8bf0f27cb625ba193ffd9e
     - git: https://github.com/JetBrains/go-modern-guidelines.git
       path: plugin/skills/use-modern-go
-      ref: 91a30b36f05bb6424bd77e9817811c0e9c003aa2
+      ref: v0.1.1
     - git: https://github.com/cursor/plugins.git
       path: pstack/skills/principle-type-system-discipline
       ref: c1c0a32802223f4be824112dd83d33ad29a8b26c
@@ -57,10 +57,10 @@ dependencies:
       ref: 7568a482ce2df38f8965ab5336a3220db796a4ba
     - git: https://github.com/obra/superpowers.git
       path: skills/using-git-worktrees
-      ref: b36e0829c6d0140e93cfef2ca599b1b07d4a7797
+      ref: v6.4.1
     - git: https://github.com/mattpocock/skills.git
       path: skills/engineering/diagnosing-bugs
-      ref: 74ca5fe077456a0b3b2f5310cf9430999fd0b5fd
+      ref: v1.2.3
     - git: https://github.com/anthropics/knowledge-work-plugins.git
       path: engineering/skills/incident-response
       ref: bdf7160f2b33598fb0cb3860027e033cbaec7ce6
@@ -72,7 +72,7 @@ dependencies:
       ref: 4236bb91f8395b0435f1d8b8baf9e8e4c69a8620
     - git: https://github.com/supabase/agent-skills.git
       path: skills/supabase-postgres-best-practices
-      ref: 8331f910845103c08d51f6ca1d86ebb7d1f745e3
+      ref: v0.1.8
     - git: https://github.com/planetscale/database-skills.git
       path: skills/mysql
       ref: 73b20b7eb64716d8c7100c054f0677c0c6e77e30

@@ -6,13 +6,13 @@
 }:
 
 let
-  gnomcpVersion = "0.11.0";
+  gnomcpRelease = (builtins.fromJSON (builtins.readFile ../../release-pins.json)).gnomcp;
   gnomcp = pkgs.stdenvNoCC.mkDerivation {
     pname = "gnomcp";
-    version = gnomcpVersion;
+    inherit (gnomcpRelease) version;
     src = pkgs.fetchurl {
-      url = "https://github.com/gnoverse/gno-mcp/releases/download/v${gnomcpVersion}/gno-mcp_darwin_arm64.tar.gz";
-      hash = "sha256-BeGxpShCMJRfwEEnzfRxYcOY90v5n8W/j1l8JBh6SYU=";
+      url = "https://github.com/gnoverse/gno-mcp/releases/download/v${gnomcpRelease.version}/gno-mcp_darwin_arm64.tar.gz";
+      inherit (gnomcpRelease) hash;
     };
     unpackPhase = "tar -xzf $src";
     installPhase = ''

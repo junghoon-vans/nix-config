@@ -67,6 +67,7 @@
       pkgs = nixpkgs.legacyPackages.${system};
     in
     {
+      packages.${system}.apm = pkgs.callPackage ./packages/apm.nix { };
       formatter.${system} = pkgs.writeShellApplication {
         name = "nixfmt-all";
         runtimeInputs = [

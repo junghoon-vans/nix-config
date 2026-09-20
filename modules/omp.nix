@@ -7,10 +7,7 @@
 
 let
   cfg = config.workstation.omp;
-  ompRelease = {
-    version = "18.2.1";
-    hash = "sha256-rGc4aKFZi0vtqY3GziFI8kr6vEKBbHArLaxfefDYYd4=";
-  };
+  ompRelease = (builtins.fromJSON (builtins.readFile ../release-pins.json)).omp;
   omp = pkgs.stdenvNoCC.mkDerivation {
     pname = "omp";
     inherit (ompRelease) version;

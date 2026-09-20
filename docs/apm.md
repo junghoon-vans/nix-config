@@ -7,7 +7,7 @@ inputs and installation procedure:
 | --- | --- |
 | Skill declarations | `apm.yml` |
 | Locked revisions and hashes | `apm.lock.yaml` |
-| Pinned CLI package | `packages/apm.nix` |
+| Pinned CLI package | `release-pins.json`, `packages/apm.nix` |
 | Installation | `scripts/apm/setup-apm.sh` |
 
 `make bootstrap` and `make switch` copy the locked manifest and lockfile to `~/.apm/`, then run the
@@ -16,14 +16,16 @@ output.
 
 ## Updating skills
 
-1. Change `apm.yml`.
-2. Refresh `apm.lock.yaml` with `/run/current-system/sw/bin/apm`.
-3. Review and commit both files.
-4. After approval, deploy with an activation command such as:
+Dependencies backed by upstream tags are checked weekly by
+`.github/workflows/update-dependencies.yml`. The workflow updates `apm.yml`, regenerates
+`apm.lock.yaml`, and opens a review pull request. Repositories without usable tags remain pinned
+to reviewed commits and require a manual manifest and lockfile update.
 
-   ```sh
-   make switch HOST=junghoonui-MacBookAir
-   ```
+After approval, deploy the locked output with an activation command such as:
+
+```sh
+make switch HOST=junghoonui-MacBookAir
+```
 
 A pre-existing Homebrew or `~/.local/bin/apm` must not determine lockfile behavior; use the
-absolute Nix-managed executable.
+absolute Nix-managed executable for manual lockfile operations.

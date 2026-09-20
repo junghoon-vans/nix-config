@@ -1,0 +1,22 @@
+{
+  "apm": {
+    "version": "0.31.0",
+    "hash": "sha256-O5hbpzVbPNkl/ThPQ699LUWRJUQx3yj10BY/FtOhPoE="
+  },
+  "bun": {
+    "version": "1.4.2",
+    "hash": "sha256-Izz/X4ccPjHW7sXmYK7wPMOZLXxCMxyPcruhpjiK+k0="
+  },
+  "gnomcp": {
+    "version": "0.11.0",
+    "hash": "sha256-BeGxpShCMJRfwEEnzfRxYcOY90v5n8W/j1l8JBh6SYU="
+  },
+  "omp": {
+    "version": "18.2.1",
+    "hash": "sha256-rGc4aKFZi0vtqY3GziFI8kr6vEKBbHArLaxfefDYYd4="
+  },
+  "paseo": {
+    "version": "0.8.0",
+    "hash": "sha256-9YgQFntZ6s6IqNo1Yp1cm5HmKTtCOct9GVSxOhq5UB4="
+  }
+}
