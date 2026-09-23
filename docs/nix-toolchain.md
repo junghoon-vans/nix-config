@@ -43,7 +43,7 @@ These versions follow the locked Nixpkgs revision.
 
 | Area | Packages | Enabled hosts |
 | --- | --- | --- |
-| Go | `go_1_25`, `gopls`, `golangci-lint`, `gofumpt`, Protobuf | Air, Pro |
+| Go | `go_1_26`, `gopls`, `golangci-lint`, `gofumpt`, Protobuf | Air, Pro |
 | Gno | `gno`, `gnokey`, `gnopls` | Air, Pro |
 | Node / TypeScript | `nodejs_24`, `corepack`, `pnpm`, `typescript`, `typescript-language-server`, `biome` | Air, Pro |
 | Python | `python313`, `uv`, `pyright`, `ruff` | Air, Pro |
