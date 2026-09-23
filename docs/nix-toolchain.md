@@ -57,7 +57,7 @@ Host enablement lives in `hosts/*/default.nix`. Profiles under `modules/language
 
 ## Updating
 
-`.github/workflows/update-dependencies.yml` checks release artifacts weekly. It opens one pull
+`.github/workflows/update-dependencies.yml` checks release artifacts daily. It opens one pull
 request per changed tool, resolves the matching Apple Silicon artifact, and recalculates its Nix
 SRI hash. Pull-request validation evaluates and builds both supported hosts; activation remains
 manual.
