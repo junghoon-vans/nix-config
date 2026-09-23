@@ -32,7 +32,7 @@ in
 
   config = lib.mkIf cfg.enable {
     environment.systemPackages = with pkgs; [
-      go_1_25
+      go_1_26
       gopls
       golangci-lint
       gofumpt
