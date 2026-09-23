@@ -1,6 +1,6 @@
 ---
 name: omp-paseo-model-tuning
-description: Research and calibrate OMP model roles, reasoning effort, and matching Paseo profiles in this nix-config repository. Use when the user asks to compare new models or benchmarks, investigate LUNA max versus high or token efficiency, reassess agent model routing, check post-update availability, or synchronize OMP/Paseo model names and defaults. Also trigger for Korean requests such as 모델 조사, 모델 보정, 추론 강도, 모델 역할 설정, and Paseo 프로필 동기화. Do not use for unrelated model integrations or general Paseo troubleshooting.
+description: Research and calibrate OMP model roles, reasoning effort, and matching Paseo profiles in this nix-config repository. Use for every model or effort recommendation, including conversational cost concerns such as ASTRA high 너무 비싼가, not just configuration edits. Also trigger when comparing new models or benchmarks, investigating LUNA max versus high or token efficiency, reassessing agent routing, checking post-update availability, or synchronizing OMP/Paseo names and defaults; Korean triggers include 모델 조사, 모델 보정, 추론 강도, 모델 역할 설정, and Paseo 프로필 동기화. Do not use for unrelated model integrations or general Paseo troubleshooting.
 ---
 
 # OMP / Paseo model calibration
@@ -36,6 +36,8 @@ Inspect the installed binary version and resolved executable path. Separate repo
 
 When a baseline value is not supplied or observed, mark it unknown. Do not infer an OMP role's current effort from its Paseo counterpart; existing drift is precisely what synchronization must detect.
 
+Separate the deployed/accepted baseline from an assistant's unmerged proposal. An unsupported earlier recommendation does not become the control merely because it was committed to a PR. When correcting it, identify the original setting and the proposed delta explicitly.
+
 Keep model identity, effort and display labels separate. `additionalModels` is for model IDs, labels and default selection, not profile reasoning; put Paseo effort in `thinkingOptionId`. Keep concrete OMP selectors in roles and agent overrides as aliases, rather than duplicating selectors during synchronization.
 
 Read current OMP model/agent discovery documentation and CLI help before assuming options, precedence or alias behavior. Read current Paseo profile/provider docs for changes to that schema. Use the available documentation tools and relevant skills. Avoid relying on this document for version-specific API syntax.
@@ -65,13 +67,28 @@ Look for regressions as well as improvements, especially coding correctness, sco
 
 Do not persist current prices, rankings or release candidates as timeless facts in this skill. Recheck them on every calibration.
 
+### Evidence gate for every selection
+
+Apply this gate before conversational recommendations as well as edits. For each changed model, effort, role override or profile, connect the decision to a dated source and say what that source actually supports. A role name such as "deep", "tiny" or "scout", model branding, higher price, or the user's cost concern is not evidence of the right effort.
+
+| Decision basis | Permitted conclusion |
+|---|---|
+| Comparable measurements for the exact models/efforts and relevant workload | Report the observed quality/cost/time tradeoff within that test scope. |
+| Explicit current vendor guidance for this model and use case | Adopt a documented starting point; do not call it measured parity or an optimum. |
+| Existing accepted setting or explicit user requirement | Preserve it as a continuity/routing decision, not proof that it is best. |
+| Role intuition, anecdotes alone, missing comparison or inaccessible evidence | Mark the candidate unvalidated; do not recommend or apply it as the default. |
+
+Show contrary results and uncertainty beside the recommendation. Include the real alternatives, not just endpoints that make a preferred option look attractive. A general intelligence index is not a coding-agent comparison, and cost per benchmark task is not cost per successful repository change. Lower quality cannot be silently traded away as an "optimization". Report API-derived cost and Codex usage separately; publish a quota multiplier only when the provider documents it or an authorized controlled test measures it.
+
+Missing evidence means retain the accepted value, omit an unsupported new override after checking fallback behavior, or propose an explicitly bounded experiment. Labeling a guess "provisional" is not permission to deploy it. If the decision requires the user to accept a material quality/cost tradeoff, present the evidence before asking them to choose. Do not run paid inference to fill gaps without benchmark authorization.
+
 ## 3. Separate model generation from reasoning effort
 
 Use the incumbent configuration as the control. For an incumbent `old-model:max`, compare in this order:
 
 1. `old-model:max` versus `new-model:max`: generation change.
 2. `new-model:max` versus `new-model:high`: reasoning change.
-3. Lower settings only for roles whose workload justifies them.
+3. Change effort only with a relevant measured comparison or explicit model-specific guidance, stating which basis applies.
 
 Do not infer `new:high >= old:max` from `new:max` benchmark results. Similarly, a high-effort improvement in workflow automation does not establish coding parity or superiority over max. Rounded equal aggregate scores do not imply identical behavior, and a benchmark's price-class rank is not a global rank.
 
@@ -84,7 +101,7 @@ Keep four quantities distinct:
 
 Lower effort can require more retries; max can therefore be efficient per successful task. Conversely, max is not automatically best for every small task. Output tokens/second excludes time to first token, reasoning latency, tool time and retries; it is not end-to-end completion speed. Shorter visible answers do not prove fewer reasoning tokens. API context limits do not establish Codex context limits.
 
-When evidence is insufficient, keep the incumbent effort for correctness-sensitive implementation and label proposed lower settings as provisional. A migration candidate is not a proven optimum.
+When evidence is insufficient, keep the accepted effort for every role, not only implementation. A migration candidate is not a proven optimum. For a new role with no accepted value, prefer documented model-specific guidance or preserve the observed inherited selection; do not invent an effort from its name.
 
 ## 4. Optional controlled local comparison
 
@@ -124,9 +141,9 @@ Do not change release pins merely to submit a recommendation. When preparing a r
 
 Answer in the user's language; prefer tables. Include:
 
-1. **Decision:** retain/migrate/provisional, with dated scope and uncertainty.
-2. **Evidence:** incumbent versus candidate, exact effort and workload, tokens/cost/time, linked sources and caveats.
-3. **OMP:** role, current selection, proposed selection, reasoning, rationale/confidence.
+1. **Decision:** retain/migrate/unvalidated candidate, with dated scope and uncertainty; distinguish the accepted baseline from previous proposals.
+2. **Evidence:** incumbent versus candidate, exact effort and workload, tokens/cost/time, linked sources, contrary findings and caveats.
+3. **OMP:** role, accepted selection, proposed selection, reasoning, and a per-row basis: measured comparison, vendor guidance, continuity/user requirement, or unvalidated. Missing evidence blocks changing that row by default.
 4. **Paseo:** profile label, model, thinking, ID preservation/replacement and provider default.
 5. **Execution state:** what was inspected/refreshed/edited/built/called/activated, and what remains unverified.
 
