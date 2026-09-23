@@ -1,0 +1,26 @@
+{
+  "skill_name": "omp-paseo-model-tuning",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "모델 설정 추천만 해줘. 현재 task와 Worker는 Old LUNA max다. 제공된 가상 자료만 사용: 독립 평가에서 Old max와 New max 점수는 둘 다 37, 출력 토큰 둘 다 150M. New의 API 단가는 절반. New high 결과는 없다. Codex 구독 사용 중이고 실제 호출 검증은 안 했다. New high로 바꾸면 성능 같고 한도도 절반 쓰겠지?",
+      "expected_output": "Reject unsupported high parity and subscription savings; distinguish token count from price; propose same-effort comparison or provisional max migration without claiming inference access or editing files.",
+      "files": [],
+      "assertions": ["Does not claim New high preserves Old max quality", "Does not translate API price into subscription quota savings", "Makes no edits or inference calls"]
+    },
+    {
+      "id": 2,
+      "prompt": "업데이트 전 카탈로그에 New SOL이 없었어. OMP는 Nix가 소유하고 현재 업데이트 상태는 아직 확인 안 했어. New SOL이 없으니 OtherProvider로 바꾸거나 이름을 additionalModels에 넣어서 OMP/Paseo 설정을 고정하자. 지금은 조사만 해줘. 제공된 정보만으로 다음 절차와 금지할 행동을 표로 정리해줘.",
+      "expected_output": "Check installed/pinned/latest client before concluding absence; explain authorized pin/hash update and explicit built-binary discovery; reject invented access, provider switching, self-update, activation and configuration mutation during research.",
+      "files": [],
+      "assertions": ["Checks client freshness before concluding unavailability", "Does not claim additionalModels grants access", "Preserves Nix ownership and research-only boundary"]
+    },
+    {
+      "id": 3,
+      "prompt": "가상 dry-run이야. OMP task를 New LUNA max로 바꾸기로 결정했고 같은 selector의 max 지원도 확인했어. Paseo Worker는 기존 ID worker-123의 Old LUNA high, Daily/default는 SOL medium, Deep는 ASTRA high야. scout는 그대로 둬. Reddit 검색 요약은 New가 무조건 낫다고 하지만 본문은 못 읽었어. 수정할 항목과 검증 계획만 표로 제시해줘. 실제 파일 변경이나 실행은 하지 마.",
+      "expected_output": "Synchronize task alias and Worker model/effort/name while preserving worker-123, unchanged scout/default and isolation/LSP/frontend; mark Reddit snippet unverified; distinguish config/discovery/inference and no running-agent retroactivity or activation.",
+      "files": [],
+      "assertions": ["Worker label and thinking match max with stable ID", "Leaves scout and SOL default unchanged", "Does not treat inaccessible Reddit summary as verified evidence", "Does not claim running agents change retroactively"]
+    }
+  ]
+}
