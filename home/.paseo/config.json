@@ -25,27 +25,43 @@
     "agentProfiles": [
       {
         "id": "agent_profile_mtrzdrhx_u53wbn92zos",
-        "name": "GPT-6-Astra",
+        "name": "Deep · GPT-6 ASTRA · high",
         "provider": "omp",
         "model": "openai-codex/gpt-6-astra",
         "modeId": "full",
-        "thinkingOptionId": "low"
+        "thinkingOptionId": "high"
       },
       {
         "id": "agent_profile_mtrzieoe_hm7824jl2p4",
-        "name": "GPT-5.6-Sol",
+        "name": "Daily · GPT-6 SOL · medium",
         "provider": "omp",
-        "model": "openai-codex/gpt-5.6-sol",
+        "model": "openai-codex/gpt-6-sol",
         "modeId": "full",
         "thinkingOptionId": "medium"
       },
       {
         "id": "agent_profile_mtmtxlv9_37mq53frt34",
-        "name": "GPT-5.6-Terra",
+        "name": "Worker · GPT-6 LUNA · max",
         "provider": "omp",
-        "model": "openai-codex/gpt-5.6-terra",
+        "model": "openai-codex/gpt-6-luna",
         "modeId": "full",
-        "thinkingOptionId": "medium"
+        "thinkingOptionId": "max"
+      },
+      {
+        "id": "agent_profile_omp_review",
+        "name": "Review · GPT-6 SOL · high",
+        "provider": "omp",
+        "model": "openai-codex/gpt-6-sol",
+        "modeId": "full",
+        "thinkingOptionId": "high"
+      },
+      {
+        "id": "agent_profile_omp_ui",
+        "name": "UI · Claude Sonnet 5 · high",
+        "provider": "omp",
+        "model": "anthropic/claude-sonnet-5",
+        "modeId": "full",
+        "thinkingOptionId": "high"
       }
     ],
     "cors": {
@@ -66,8 +82,8 @@
         "enabled": true,
         "additionalModels": [
           {
-            "id": "openai-codex/gpt-5.6-sol",
-            "label": "GPT-5.6-Sol",
+            "id": "openai-codex/gpt-6-sol",
+            "label": "GPT-6 SOL",
             "isDefault": true
           }
         ]
