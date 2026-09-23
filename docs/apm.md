@@ -16,7 +16,7 @@ output.
 
 ## Updating skills
 
-Dependencies backed by upstream tags are checked weekly by
+Dependencies backed by upstream tags are checked daily by
 `.github/workflows/update-dependencies.yml`. The workflow updates `apm.yml`, regenerates
 `apm.lock.yaml`, and opens a review pull request. Repositories without usable tags remain pinned
 to reviewed commits and require a manual manifest and lockfile update.
