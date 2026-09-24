@@ -90,6 +90,7 @@ in
     ".omp/agent/config.yml".source = ../home/.omp/agent/config.yml;
     ".omp/agent/RULES.md".source = ../home/.omp/agent/RULES.md;
     ".omp/agent/agents/frontend.md".source = ../home/.omp/agent/agents/frontend.md;
+    ".omp/agent/agents/frontend-deep.md".source = ../home/.omp/agent/agents/frontend-deep.md;
     ".omp/agent/mcp.json".source = ../home/.omp/agent/mcp.json;
     ".config/gh/config.yml".source = ../home/.config/gh/config.yml;
     ".config/karabiner/karabiner.json".source = ../home/.config/karabiner/karabiner.json;
