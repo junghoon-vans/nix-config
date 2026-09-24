@@ -9,7 +9,7 @@
       "type": "http",
       "url": "https://api.githubcopilot.com/mcp/",
       "headers": {
-        "Authorization": "!test -n \"$GITHUB_PERSONAL_ACCESS_TOKEN\" && printf 'Bearer %s' \"$GITHUB_PERSONAL_ACCESS_TOKEN\""
+        "Authorization": "!gh auth token | sed 's/^/Bearer /'"
       }
     },
     "context7": {
