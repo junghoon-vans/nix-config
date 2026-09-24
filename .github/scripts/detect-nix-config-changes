@@ -13,6 +13,7 @@ if git diff --quiet "$base_sha" "$head_sha" -- \
   Makefile \
   flake.nix \
   flake.lock \
+  release-pins.json \
   hosts \
   modules \
   packages \
