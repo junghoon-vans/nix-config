@@ -3,7 +3,7 @@ name: frontend
 description: Claude Sonnet 5 specialist for frontend implementation, visual verification, and UI polish
 spawns: "*"
 model:
-  - "anthropic/claude-sonnet-5"
+  - "@frontend"
 thinkingLevel: high
 ---
 

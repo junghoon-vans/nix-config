@@ -3,7 +3,7 @@ name: frontend-deep
 description: Claude Opus 5.5 specialist for complex UI architecture, interactions, and multi-component frontend work; select explicitly over frontend for demanding tasks
 spawns: "*"
 model:
-  - "anthropic/claude-opus-5-5"
+  - "@frontend_deep"
 thinkingLevel: medium
 ---
 
