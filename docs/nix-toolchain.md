@@ -65,3 +65,25 @@ manual.
 Gno, gnopls, and the Zed WASI adapter remain manual because their revisions or runtime
 compatibility require review. Change each source revision and its required source or dependency
 hashes together, then build both hosts and exercise the resulting binary.
+
+### Update workflow permissions
+
+The release and tagged-skill update jobs use the repository's `GITHUB_TOKEN`. In
+**Settings → Actions → General → Workflow permissions**, enable **Allow GitHub Actions to
+create and approve pull requests**. This repository-level setting is required in addition to
+the workflow's `contents: write` and `pull-requests: write` permissions; it cannot be enabled
+by a YAML change. Keep the default workflow permissions read-only.
+
+If `Open focused update pull request` or `Open skill update pull request` fails with
+`GitHub Actions is not permitted to create or approve pull requests`, the update branch may
+already have been pushed. After an administrator approves and enables the setting, use
+**Re-run failed jobs** on the latest failed update run to retry PR creation.
+
+PRs created or updated with `GITHUB_TOKEN` can require approval before their validation
+workflows run. A user with write access should select **Approve workflows to run** in the
+PR merge box when prompted, then require successful validation before merging. See
+[GitHub's workflow-triggering rules](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow).
+This approval starts CI only; workstation activation remains manual.
+
+Changing this repository permission requires explicit owner approval. To revoke it, clear
+the same setting; subsequent updates that need a new PR will fail at PR creation again.
