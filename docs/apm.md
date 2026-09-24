@@ -21,6 +21,9 @@ Dependencies backed by upstream tags are checked daily by
 `apm.lock.yaml`, and opens a review pull request. Repositories without usable tags remain pinned
 to reviewed commits and require a manual manifest and lockfile update.
 
+The shared [update workflow permissions](nix-toolchain.md#update-workflow-permissions) also
+apply to skill updates, including approval of validation workflows on bot-created PRs.
+
 After approval, deploy the locked output with an activation command such as:
 
 ```sh
