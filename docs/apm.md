@@ -22,7 +22,7 @@ Dependencies backed by upstream tags are checked daily by
 to reviewed commits and require a manual manifest and lockfile update.
 
 The shared [update workflow permissions](nix-toolchain.md#update-workflow-permissions) also
-apply to skill updates, including approval of validation workflows on bot-created PRs.
+apply to skill updates, including automatic validation without a workflow approval step.
 
 After approval, deploy the locked output with an activation command such as:
 

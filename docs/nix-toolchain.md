@@ -79,11 +79,15 @@ If `Open focused update pull request` or `Open skill update pull request` fails 
 already have been pushed. After an administrator approves and enables the setting, use
 **Re-run failed jobs** on the latest failed update run to retry PR creation.
 
-PRs created or updated with `GITHUB_TOKEN` can require approval before their validation
-workflows run. A user with write access should select **Approve workflows to run** in the
-PR merge box when prompted, then require successful validation before merging. See
+After creating or updating a PR, the update job dispatches `validate.yml` on the update
+branch with the pre-update base commit. Its `actions: write` permission allows this explicit
+dispatch using `GITHUB_TOKEN`, so these updates do not need **Approve workflows to run**.
+Validation itself has only `contents: read` permission and checks the dispatched commit,
+including release-pin-only changes. Require successful validation before merging.
+
+Ordinary PR validation and external-contributor approval policies remain unchanged. See
 [GitHub's workflow-triggering rules](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow).
-This approval starts CI only; workstation activation remains manual.
+No personal access token or GitHub App secret is needed. Workstation activation remains manual.
 
 Changing this repository permission requires explicit owner approval. To revoke it, clear
 the same setting; subsequent updates that need a new PR will fail at PR creation again.
