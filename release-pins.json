@@ -1,7 +1,7 @@
 {
   "apm": {
-    "version": "0.31.0",
-    "hash": "sha256-O5hbpzVbPNkl/ThPQ699LUWRJUQx3yj10BY/FtOhPoE="
+    "version": "0.32.0",
+    "hash": "sha256-IuMO89nuSV15j0Z70wYn3LLxemSmDs/KoVymzqojjFY="
   },
   "bun": {
     "version": "1.4.2",
