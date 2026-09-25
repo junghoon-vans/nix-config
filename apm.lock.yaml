@@ -105,8 +105,8 @@ dependencies:
 - repo_url: obra/superpowers
   name: using-git-worktrees
   host: github.com
-  resolved_commit: 5bf4e78011075bcfc0dc295f0724994cd123ee71
-  resolved_ref: v6.4.1
+  resolved_commit: 8ca22dba9a94f28898bbce59f2537ff4d87c747d
+  resolved_ref: v6.4.2
   version: unknown
   virtual_path: skills/using-git-worktrees
   is_virtual: true
