@@ -12,8 +12,8 @@
     "hash": "sha256-BeGxpShCMJRfwEEnzfRxYcOY90v5n8W/j1l8JBh6SYU="
   },
   "omp": {
-    "version": "18.2.11",
-    "hash": "sha256-+u/9V2dM/6JT4vEn1y3f5tzYHh65HrXSFIkT5ioBCig="
+    "version": "18.3.1",
+    "hash": "sha256-Z7gHqZRUpNjhz5gtznszQ7LC/BSPM+QD2/s/EEmyJXA="
   },
   "paseo": {
     "version": "0.9.1",
