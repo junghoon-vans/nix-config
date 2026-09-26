@@ -22,6 +22,12 @@ dependencies:
     - git: https://github.com/vercel-labs/agent-skills.git
       path: skills/web-design-guidelines
       ref: agent-skills-dd089a8c752c966dee8bf0f27cb625ba193ffd9e
+    - git: https://github.com/anthropics/skills.git
+      path: skills/frontend-design
+      ref: 33375500bcea98d610eb30ce10ac4e59b89c390d
+    - git: https://github.com/nextlevelbuilder/ui-ux-pro-max-skill.git
+      path: .claude/skills/ui-ux-pro-max
+      ref: 823b0a14d3539b5d78c0efb614426a4fab5983ec
     - git: https://github.com/JetBrains/go-modern-guidelines.git
       path: plugin/skills/use-modern-go
       ref: v0.1.1
