@@ -1,5 +1,5 @@
 lockfile_version: '1'
-apm_version: 0.31.0
+apm_version: 0.32.0
 dependencies:
 - repo_url: anthropics/knowledge-work-plugins
   name: documentation
@@ -31,6 +31,16 @@ dependencies:
   is_virtual: true
   package_type: claude_skill
   content_hash: sha256:c61468452cd59a348d0800ed5454c4206084d11089fffd14d77a685a29c7ba93
+- repo_url: anthropics/skills
+  name: frontend-design
+  host: github.com
+  resolved_commit: 33375500bcea98d610eb30ce10ac4e59b89c390d
+  resolved_ref: 33375500bcea98d610eb30ce10ac4e59b89c390d
+  version: unknown
+  virtual_path: skills/frontend-design
+  is_virtual: true
+  package_type: claude_skill
+  content_hash: sha256:89496d5dd00f4810205f351759594fc2742bf8eea85a2f2b2d1de59f4bd91576
 - repo_url: anthropics/skills
   name: mcp-builder
   host: github.com
@@ -102,6 +112,16 @@ dependencies:
   is_virtual: true
   package_type: claude_skill
   content_hash: sha256:577089e7d9a46e9b6744bd33f30acf8487a1376f52f18700ff7863070b880da9
+- repo_url: nextlevelbuilder/ui-ux-pro-max-skill
+  name: ui-ux-pro-max
+  host: github.com
+  resolved_commit: 823b0a14d3539b5d78c0efb614426a4fab5983ec
+  resolved_ref: 823b0a14d3539b5d78c0efb614426a4fab5983ec
+  version: unknown
+  virtual_path: .claude/skills/ui-ux-pro-max
+  is_virtual: true
+  package_type: claude_skill
+  content_hash: sha256:0ce2a01517e16cd88b2d7c55b264aacfdb3f7e7feb968a4ce05399142591a0a3
 - repo_url: obra/superpowers
   name: using-git-worktrees
   host: github.com
@@ -173,6 +193,7 @@ dependencies:
   package_type: claude_skill
   content_hash: sha256:5766a8e9524c3c2a81041409be237c3baf515aa04a135871a21dd351682d173f
 - repo_url: vercel-labs/agent-skills
+  alias: vercel-composition-patterns
   name: vercel-composition-patterns
   host: github.com
   resolved_commit: dd089a8c752c966dee8bf0f27cb625ba193ffd9e
@@ -183,6 +204,7 @@ dependencies:
   package_type: claude_skill
   content_hash: sha256:5b3564ca435f4714d5e65023351e1999e4744818603a9cfb6a6f6a61b7d84918
 - repo_url: vercel-labs/agent-skills
+  alias: vercel-react-best-practices
   name: vercel-react-best-practices
   host: github.com
   resolved_commit: dd089a8c752c966dee8bf0f27cb625ba193ffd9e
