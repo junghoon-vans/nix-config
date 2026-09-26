@@ -41,9 +41,9 @@
       },
       {
         "id": "agent_profile_mtmtxlv9_37mq53frt34",
-        "name": "Worker · GPT-5.6 LUNA · max",
+        "name": "Worker · GPT-6 LUNA · max",
         "provider": "omp",
-        "model": "openai-codex/gpt-5.6-luna",
+        "model": "openai-codex/gpt-6-luna",
         "modeId": "full",
         "thinkingOptionId": "max"
       },
