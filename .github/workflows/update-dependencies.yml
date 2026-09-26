@@ -61,4 +61,6 @@ jobs:
           scripts/updates/open-update-pr.sh \
             automation/update-apm-skills \
             "chore(deps): update tagged APM skills" \
-            "Automated update of APM dependencies whose upstream repositories publish stable tags. Commit-only dependencies remain pinned for manual review."
+            "Automated update of APM dependencies whose upstream repositories publish stable tags. Commit-only dependencies remain pinned for manual review." \
+            apm.yml \
+            apm.lock.yaml
