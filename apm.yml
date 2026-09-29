@@ -78,7 +78,7 @@ dependencies:
       ref: 4236bb91f8395b0435f1d8b8baf9e8e4c69a8620
     - git: https://github.com/supabase/agent-skills.git
       path: skills/supabase-postgres-best-practices
-      ref: v0.1.8
+      ref: v0.1.9
     - git: https://github.com/planetscale/database-skills.git
       path: skills/mysql
       ref: 73b20b7eb64716d8c7100c054f0677c0c6e77e30

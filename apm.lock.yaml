@@ -185,8 +185,8 @@ dependencies:
 - repo_url: supabase/agent-skills
   name: supabase-postgres-best-practices
   host: github.com
-  resolved_commit: 8331f910845103c08d51f6ca1d86ebb7d1f745e3
-  resolved_ref: v0.1.8
+  resolved_commit: 544bfc56c89afe2b87b20017a59b2c6e9502a1fb
+  resolved_ref: v0.1.9
   version: unknown
   virtual_path: skills/supabase-postgres-best-practices
   is_virtual: true
