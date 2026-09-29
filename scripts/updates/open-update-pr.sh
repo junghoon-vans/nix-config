@@ -25,7 +25,7 @@ git add --all -- "${paths[@]}"
 git commit -m "$title"
 git push --force-with-lease origin "HEAD:$branch"
 
-if ! gh pr view "$branch" >/dev/null 2>&1; then
+if [ "$(gh pr list --head "$branch" --state open --json number --jq 'length')" -eq 0 ]; then
   gh pr create --base main --head "$branch" --title "$title" --body "$body"
 fi
 
