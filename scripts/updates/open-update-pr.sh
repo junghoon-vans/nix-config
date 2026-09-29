@@ -2,6 +2,11 @@
 
 set -euo pipefail
 
+if (( $# < 4 )); then
+  printf 'Usage: %s BRANCH TITLE BODY PATH...\n' "$0" >&2
+  exit 2
+fi
+
 branch="$1"
 title="$2"
 body="$3"
