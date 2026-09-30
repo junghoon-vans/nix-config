@@ -20,5 +20,5 @@ fi
 if [ "$CONFIGURATION_CHANGED" = "true" ]; then
   printf 'Nix configuration validation passed.\n'
 else
-  printf 'No Nix configuration files changed; macOS/Nix validation skipped.\n'
+  printf 'No configuration-source changes; full macOS/Nix validation skipped.\n'
 fi

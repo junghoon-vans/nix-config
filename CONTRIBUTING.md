@@ -35,6 +35,10 @@ done
 `make check` enters the flake development shell and runs the same syntax, ShellCheck,
 Nix formatting, Nix lint, locked-input, and bootstrap failure-path checks used by CI.
 
+For changes limited to `release-pins.json`, CI validates the manifest and SHA-256 SRI
+hash syntax without running `make check` or Darwin host builds. Other configuration changes
+still require the full validation above.
+
 Run the relevant command or scenario for behavior changes. Do not claim Darwin build success when the current environment cannot build it.
 
 ## Pull requests

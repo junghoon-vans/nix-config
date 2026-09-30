@@ -40,7 +40,7 @@ jobs:
           scripts/updates/open-update-pr.sh \
             "automation/update-${{ matrix.package }}" \
             "chore(deps): update ${{ matrix.package }} to ${{ steps.update.outputs.version }}" \
-            "Automated fixed-release update. The pull-request validation builds both supported hosts; activation remains manual." \
+            "Automated fixed-release update. Release-pin-only validation checks manifest structure and SHA-256 hash syntax; full host builds are skipped. Activation remains manual." \
             release-pins.json
 
   tagged-skills:
