@@ -9,8 +9,6 @@ if ! git diff --quiet "$base_sha" "$head_sha" -- release-pins.json; then
 fi
 
 if git diff --quiet "$base_sha" "$head_sha" -- \
-  .github/scripts \
-  .github/workflows \
   apm.yml \
   apm.lock.yaml \
   Makefile \
@@ -19,8 +17,9 @@ if git diff --quiet "$base_sha" "$head_sha" -- \
   hosts \
   modules \
   packages \
+  home \
   scripts \
-  home; then
+  ':(exclude)scripts/validation'; then
   printf 'configuration_changed=false\n' >> "$GITHUB_OUTPUT"
 else
   printf 'configuration_changed=true\n' >> "$GITHUB_OUTPUT"
