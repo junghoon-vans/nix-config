@@ -58,15 +58,14 @@ the same name; use a small local bridge directory when only selected skills are 
 
 ## Model routing
 
-`home/.omp/agent/config.yml` selects GPT-6.1 Sol for daily, planning, review,
-and security review at their existing medium/high/xhigh effort levels. Paseo's
-Daily and Review profiles in `home/.paseo/config.json` use the same model and
-efforts. Workers stay on GPT-6 Luna; deep work stays on GPT-6 Astra.
+`home/.omp/agent/config.yml` owns daily, planning, review, security, worker, and
+deep model roles and their effort levels. Paseo's saved profiles and provider
+default in `home/.paseo/config.json` must match the corresponding OMP roles.
 
-Deploy this routing only after the separately pinned OMP release is at least
-18.4.4 and `omp models openai-codex --json` lists
-`openai-codex/gpt-6.1-sol` for the account. Earlier OMP releases can hide the
-model even when Codex grants access. Model discovery and a successful Nix build
+Before deploying a model change, confirm that the pinned OMP release in
+`release-pins.json` supports the exact selector in the configuration and that
+`omp models openai-codex --json` lists it for the account. Older clients can
+hide models that Codex grants access to. Discovery and a successful Nix build
 do not prove inference access; verify the selected model in an actual session
 before relying on the routing.
 
