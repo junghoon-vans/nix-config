@@ -33,9 +33,9 @@
       },
       {
         "id": "agent_profile_mtrzieoe_hm7824jl2p4",
-        "name": "Daily · GPT-6 SOL · medium",
+        "name": "Daily · GPT-6.1 SOL · medium",
         "provider": "omp",
-        "model": "openai-codex/gpt-6-sol",
+        "model": "openai-codex/gpt-6.1-sol",
         "modeId": "full",
         "thinkingOptionId": "medium"
       },
@@ -49,9 +49,9 @@
       },
       {
         "id": "agent_profile_omp_review",
-        "name": "Review · GPT-6 SOL · high",
+        "name": "Review · GPT-6.1 SOL · high",
         "provider": "omp",
-        "model": "openai-codex/gpt-6-sol",
+        "model": "openai-codex/gpt-6.1-sol",
         "modeId": "full",
         "thinkingOptionId": "high"
       },
@@ -105,8 +105,8 @@
         "enabled": true,
         "additionalModels": [
           {
-            "id": "openai-codex/gpt-6-sol",
-            "label": "GPT-6 SOL",
+            "id": "openai-codex/gpt-6.1-sol",
+            "label": "GPT-6.1 SOL",
             "isDefault": true
           }
         ]

@@ -56,6 +56,19 @@ containing the individual skill directories, not at a skill itself. Exposing a l
 directory makes every valid skill below it available and may shadow another provider's skill with
 the same name; use a small local bridge directory when only selected skills are required.
 
+## Model routing
+
+`home/.omp/agent/config.yml` owns daily, planning, review, security, worker, and
+deep model roles and their effort levels. Paseo's saved profiles and provider
+default in `home/.paseo/config.json` must match the corresponding OMP roles.
+
+Before deploying a model change, confirm that the pinned OMP release in
+`release-pins.json` supports the exact selector in the configuration and that
+`omp models openai-codex --json` lists it for the account. Older clients can
+hide models that Codex grants access to. Discovery and a successful Nix build
+do not prove inference access; verify the selected model in an actual session
+before relying on the routing.
+
 ## Updating OMP
 
 Update `ompRelease` in `modules/omp.nix` together with its Apple Silicon artifact URL and SRI hash.
