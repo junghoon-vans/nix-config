@@ -28,6 +28,7 @@ python3 -B -m unittest discover -s scripts/nix -p 'test_*.py'
 python3 -B -m unittest discover -s scripts/aside -p 'test_*.py'
 python3 -B -m unittest discover -s scripts/maintenance -p 'test_*.py'
 python3 -B scripts/validation/check-doc-version-drift.py
+python3 -B scripts/validation/check-release-pins.py
 python3 -B scripts/updates/update-fixed-release.py --help >/dev/null
 python3 -B scripts/updates/update-tagged-skills.py --help >/dev/null
 

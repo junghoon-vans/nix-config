@@ -59,8 +59,12 @@ Host enablement lives in `hosts/*/default.nix`. Profiles under `modules/language
 
 `.github/workflows/update-dependencies.yml` checks release artifacts daily. It opens one pull
 request per changed tool, resolves the matching Apple Silicon artifact, and recalculates its Nix
-SRI hash. Pull-request validation evaluates and builds both supported hosts; activation remains
-manual.
+SRI hash. CI checks release-pin structure and SHA-256 hash syntax on Ubuntu. Changes limited
+to `release-pins.json`, `.github/scripts/`, `.github/workflows/`, or `scripts/validation/`
+skip the full macOS checks and both Darwin builds; CI scripts still receive shell syntax
+checks. Configuration changes alongside them still run the full validation. The lightweight
+path does not verify the downloaded artifact or runtime behavior; review the release before
+merging. Activation remains manual.
 
 Gno, gnopls, and the Zed WASI adapter remain manual because their revisions or runtime
 compatibility require review. Change each source revision and its required source or dependency
@@ -83,7 +87,7 @@ After creating or updating a PR, the update job dispatches `validate.yml` on the
 branch with the pre-update base commit. Its `actions: write` permission allows this explicit
 dispatch using `GITHUB_TOKEN`, so these updates do not need **Approve workflows to run**.
 Validation itself has only `contents: read` permission and checks the dispatched commit,
-including release-pin-only changes. Require successful validation before merging.
+including the lightweight release-pin-only path. Require successful validation before merging.
 
 Ordinary PR validation and external-contributor approval policies remain unchanged. See
 [GitHub's workflow-triggering rules](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow).
