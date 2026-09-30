@@ -2,7 +2,7 @@ modelRoles:
   default: openai-codex/gpt-6.1-sol:medium
   plan: openai-codex/gpt-6.1-sol:high
   review: openai-codex/gpt-6.1-sol:high
-  security: openai-codex/gpt-6-sol:xhigh
+  security: openai-codex/gpt-6.1-sol:xhigh
   task: openai-codex/gpt-6-luna:max
   smol: openai-codex/gpt-6-luna:max
   tiny: openai-codex/gpt-6-luna:max

@@ -58,10 +58,10 @@ the same name; use a small local bridge directory when only selected skills are 
 
 ## Model routing
 
-`home/.omp/agent/config.yml` selects GPT-6.1 Sol for daily, planning, and review
-work at the existing medium/high effort levels. Paseo's Daily and Review profiles
-in `home/.paseo/config.json` use the same model and efforts. Security review stays
-on GPT-6 Sol; workers stay on GPT-6 Luna; deep work stays on GPT-6 Astra.
+`home/.omp/agent/config.yml` selects GPT-6.1 Sol for daily, planning, review,
+and security review at their existing medium/high/xhigh effort levels. Paseo's
+Daily and Review profiles in `home/.paseo/config.json` use the same model and
+efforts. Workers stay on GPT-6 Luna; deep work stays on GPT-6 Astra.
 
 Deploy this routing only after the separately pinned OMP release is at least
 18.4.4 and `omp models openai-codex --json` lists
