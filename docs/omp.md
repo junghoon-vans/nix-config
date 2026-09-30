@@ -56,6 +56,20 @@ containing the individual skill directories, not at a skill itself. Exposing a l
 directory makes every valid skill below it available and may shadow another provider's skill with
 the same name; use a small local bridge directory when only selected skills are required.
 
+## Model routing
+
+`home/.omp/agent/config.yml` selects GPT-6.1 Sol for daily, planning, and review
+work at the existing medium/high effort levels. Paseo's Daily and Review profiles
+in `home/.paseo/config.json` use the same model and efforts. Security review stays
+on GPT-6 Sol; workers stay on GPT-6 Luna; deep work stays on GPT-6 Astra.
+
+Deploy this routing only after the separately pinned OMP release is at least
+18.4.4 and `omp models openai-codex --json` lists
+`openai-codex/gpt-6.1-sol` for the account. Earlier OMP releases can hide the
+model even when Codex grants access. Model discovery and a successful Nix build
+do not prove inference access; verify the selected model in an actual session
+before relying on the routing.
+
 ## Updating OMP
 
 Update `ompRelease` in `modules/omp.nix` together with its Apple Silicon artifact URL and SRI hash.
