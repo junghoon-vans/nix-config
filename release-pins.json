@@ -8,8 +8,8 @@
     "hash": "sha256-Izz/X4ccPjHW7sXmYK7wPMOZLXxCMxyPcruhpjiK+k0="
   },
   "gnomcp": {
-    "version": "0.11.0",
-    "hash": "sha256-BeGxpShCMJRfwEEnzfRxYcOY90v5n8W/j1l8JBh6SYU="
+    "version": "0.12.0",
+    "hash": "sha256-7HuYEqW6GyNlflcSKlhx/V5OcltwFOWRd8TySDkQ9O8="
   },
   "omp": {
     "version": "18.4.4",
