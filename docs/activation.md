@@ -32,12 +32,35 @@ required.
 Activation changes workstation state and requires explicit approval. Evaluation and build checks
 do not activate a host.
 
+## Dock stack shortcuts
+
+Home Manager creates native Finder aliases in
+`~/Library/Application Support/DockStacks/{Development,Workspace}` after linking the
+home generation. Each activation refreshes the aliases, then restarts only the current
+user's Dock to refresh its stack icons. A headless session without Dock skips the restart.
+Dry-run activation does not create aliases or restart Dock.
+
+The first activation of this configuration removes the previous Home Manager-owned
+symlinks and replaces them with aliases at the same paths. Other colliding files or
+symlinks are preserved as timestamped `.pre-nix.*` backups. Missing application targets
+are logged and skipped without replacing an existing item.
+
+Alias creation uses Foundation rather than Finder automation; no Finder automation
+permission is required. The shortcut arrow remains because these are aliases. This
+does not change Spotlight indexing or guarantee Spotlight UI search results.
+
 ## Verification
 
 Run the isolated bootstrap checks without modifying the workstation:
 
 ```sh
 python3 -B -m unittest discover -s scripts/nix -p 'test_*.py'
+```
+
+On macOS, run the native alias checks in a temporary home directory without restarting Dock:
+
+```sh
+python3 -B -m unittest discover -s scripts/dock -p 'test_*.py'
 ```
 
 After a toolchain migration and an approved activation, verify command provenance:
