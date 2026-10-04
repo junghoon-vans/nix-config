@@ -1,6 +1,5 @@
 {
   inputs,
-  config,
   lib,
   pkgs,
   workstationUser,
@@ -29,7 +28,7 @@ let
     ln -s ${inputs.spaceship-prompt}/spaceship.zsh-theme "$out/custom/themes/spaceship.zsh-theme"
   '';
   dockStackRoot = "Library/Application Support/DockStacks";
-  dockStackLinks = {
+  dockStackAliases = {
     "${dockStackRoot}/Development/DataGrip.app" = "/Applications/DataGrip.app";
     "${dockStackRoot}/Development/Headlamp.app" = "/Applications/Headlamp.app";
     "${dockStackRoot}/Development/OrbStack.app" = "/Applications/OrbStack.app";
@@ -113,13 +112,17 @@ in
       source = ohMyZsh;
       recursive = true;
     };
-  }
-  // lib.mapAttrs (_: appPath: {
-    source = config.lib.file.mkOutOfStoreSymlink appPath;
-  }) dockStackLinks;
+  };
 
   home.activation.createScreenshotsDirectory = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     $DRY_RUN_CMD mkdir -p "$HOME/Pictures/Screenshots"
+  '';
+
+  home.activation.updateDockStacks = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+    run ${pkgs.writeShellScript "update-dock-stacks" (builtins.readFile ../scripts/dock/update-stacks.sh)} \
+      ${../scripts/dock/create-stack-aliases.js} \
+      ${lib.escapeShellArg homeDirectory} \
+      ${lib.escapeShellArg (builtins.toJSON dockStackAliases)}
   '';
 
   home.activation.applyTerminalPreferences = lib.hm.dag.entryAfter [ "linkGeneration" ] ''

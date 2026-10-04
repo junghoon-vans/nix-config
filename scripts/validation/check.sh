@@ -11,6 +11,7 @@ bash_scripts=(
   home/.local/bin/weekly-disk-maintenance
   scripts/apm/install.sh
   scripts/apm/setup-apm.sh
+  scripts/dock/update-stacks.sh
   scripts/nix/bootstrap.sh
   scripts/nix/home-manager-backups-cleanup.sh
   scripts/updates/open-update-pr.sh
@@ -26,6 +27,7 @@ zsh -n home/.zshrc
 
 python3 -B -m unittest discover -s scripts/nix -p 'test_*.py'
 python3 -B -m unittest discover -s scripts/aside -p 'test_*.py'
+python3 -B -m unittest discover -s scripts/dock -p 'test_*.py'
 python3 -B -m unittest discover -s scripts/maintenance -p 'test_*.py'
 python3 -B scripts/validation/check-doc-version-drift.py
 python3 -B scripts/validation/check-release-pins.py
