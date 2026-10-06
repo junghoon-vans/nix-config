@@ -1,5 +1,5 @@
 lockfile_version: '1'
-apm_version: 0.32.0
+apm_version: 0.33.0
 dependencies:
 - repo_url: anthropics/knowledge-work-plugins
   name: documentation
@@ -105,13 +105,13 @@ dependencies:
 - repo_url: mattpocock/skills
   name: diagnosing-bugs
   host: github.com
-  resolved_commit: 6acc160e4e0cd062dbbbd7a1b26ae92855edf07e
-  resolved_ref: v1.2.3
+  resolved_commit: 24fe0ef7737efae15c87225755e9f6f5965e4888
+  resolved_ref: v1.3.1
   version: unknown
   virtual_path: skills/engineering/diagnosing-bugs
   is_virtual: true
   package_type: claude_skill
-  content_hash: sha256:577089e7d9a46e9b6744bd33f30acf8487a1376f52f18700ff7863070b880da9
+  content_hash: sha256:6e4bfebac7befd070f31a0711c295426933481888c38c240f558e8338fc0c72e
 - repo_url: nextlevelbuilder/ui-ux-pro-max-skill
   name: ui-ux-pro-max
   host: github.com
