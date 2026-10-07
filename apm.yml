@@ -10,7 +10,7 @@ dependencies:
   apm:
     - git: https://github.com/vercel-labs/skills.git
       path: skills/find-skills
-      ref: v1.7.0
+      ref: v1.7.1
     - git: https://github.com/vercel-labs/agent-skills.git
       path: skills/react-best-practices
       ref: agent-skills-dd089a8c752c966dee8bf0f27cb625ba193ffd9e
