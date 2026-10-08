@@ -70,28 +70,49 @@ Gno, gnopls, and the Zed WASI adapter remain manual because their revisions or r
 compatibility require review. Change each source revision and its required source or dependency
 hashes together, then build both hosts and exercise the resulting binary.
 
-### Update workflow permissions
+### Update workflow authentication
 
-The release and tagged-skill update jobs use the repository's `GITHUB_TOKEN`. In
-**Settings → Actions → General → Workflow permissions**, enable **Allow GitHub Actions to
-create and approve pull requests**. This repository-level setting is required in addition to
-the workflow's `contents: write` and `pull-requests: write` permissions; it cannot be enabled
-by a YAML change. Keep the default workflow permissions read-only.
+Release and tagged-skill updates use a dedicated GitHub App installation token for both
+Git pushes and PR creation. The token is scoped to this repository with **Contents: Read
+and write** and **Pull requests: Read and write** permissions and is revoked after each
+job. The default `GITHUB_TOKEN` remains read-only and is used for upstream release queries.
+No Actions write permission or personal access token is needed.
 
-If `Open focused update pull request` or `Open skill update pull request` fails with
-`GitHub Actions is not permitted to create or approve pull requests`, the update branch may
-already have been pushed. After an administrator approves and enables the setting, use
-**Re-run failed jobs** on the latest failed update run to retry PR creation.
+Before merging the authentication change, the repository owner must:
 
-After creating or updating a PR, the update job dispatches `validate.yml` on the update
-branch with the pre-update base commit. Its `actions: write` permission allows this explicit
-dispatch using `GITHUB_TOKEN`, so these updates do not need **Approve workflows to run**.
-Validation itself has only `contents: read` permission and checks the dispatched commit,
-including the lightweight release-pin-only path. Require successful validation before merging.
+1. [Register a GitHub App](https://github.com/settings/apps/new) with a unique name and
+   this repository's URL as its homepage. Disable **Active** under Webhook; no webhook
+   delivery or OAuth callback is needed.
+2. Grant repository permissions **Contents: Read and write** and **Pull requests: Read
+   and write**. Leave other optional permissions unset. Limit installation to the owning
+   account (**Only on this account**).
+3. Select **Install App** and install it on **Only select repositories → nix-config**.
+4. In the App's General settings, copy its **Client ID** and generate a private key.
+5. In this repository's **Settings → Secrets and variables → Actions**, add:
+   - Repository variable `DEPENDENCY_UPDATES_APP_CLIENT_ID`: the App's Client ID.
+   - Repository secret `DEPENDENCY_UPDATES_APP_PRIVATE_KEY`: the complete generated PEM
+     file, including its header, footer, and line breaks.
 
-Ordinary PR validation and external-contributor approval policies remain unchanged. See
-[GitHub's workflow-triggering rules](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow).
-No personal access token or GitHub App secret is needed. Workstation activation remains manual.
+Keep the private key out of Git, PR descriptions, chat, and Home Manager declarations.
+Missing configuration or insufficient installation permissions will fail token creation
+before any update branch is pushed; there is no fallback to `GITHUB_TOKEN`.
 
-Changing this repository permission requires explicit owner approval. To revoke it, clear
-the same setting; subsequent updates that need a new PR will fail at PR creation again.
+The App's PR creation and branch updates trigger ordinary `pull_request` validation;
+`validate.yml` no longer accepts workflow dispatches. This removes the duplicate validation
+run and the approval-required PR run caused by `github-actions[bot]`. GitHub introduced
+that approval requirement for default-token PRs in
+[June 2026](https://github.blog/changelog/2026-06-11-bot-created-pull-requests-can-run-workflows-if-approved/).
+External-contributor approval policies and lightweight release-pin-only validation remain
+unchanged. Require successful validation before merging.
+
+After merging and configuring the App, use **Actions → update dependencies → Run workflow**
+or wait for the daily schedule. If an update is available, verify that the created or updated
+PR starts `validate` without **Approve workflows to run**. Already-open PRs created by
+`github-actions[bot]` may retain their old approval-required runs; verify a new App-authored
+PR to confirm the cutover.
+
+The old **Allow GitHub Actions to create and approve pull requests** repository setting
+is no longer needed by these jobs. Disabling it is an optional owner-approved permission
+change, not part of activation. To revoke App access, uninstall the App and remove its
+repository variable and secret; subsequent update jobs will fail at token creation.
+Workstation activation remains manual.
