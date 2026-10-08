@@ -6,9 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
-  pull-requests: write
-  actions: write
+  contents: read
 
 concurrency:
   group: update-dependencies
@@ -22,9 +20,18 @@ jobs:
       matrix:
         package: [apm, bun, gnomcp, omp, paseo]
     steps:
+      - name: Create repository-scoped update token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.DEPENDENCY_UPDATES_APP_CLIENT_ID }}
+          private-key: ${{ secrets.DEPENDENCY_UPDATES_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token }}
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
       - id: update
         name: Resolve latest release and hash
@@ -35,7 +42,7 @@ jobs:
           echo "version=$version" >> "$GITHUB_OUTPUT"
       - name: Open focused update pull request
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           scripts/updates/open-update-pr.sh \
             "automation/update-${{ matrix.package }}" \
@@ -46,9 +53,18 @@ jobs:
   tagged-skills:
     runs-on: macos-15
     steps:
+      - name: Create repository-scoped update token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.DEPENDENCY_UPDATES_APP_CLIENT_ID }}
+          private-key: ${{ secrets.DEPENDENCY_UPDATES_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token }}
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
       - name: Update tagged APM skills
         env:
@@ -58,7 +74,7 @@ jobs:
           python3 scripts/updates/update-tagged-skills.py --apm "$apm_store/bin/apm"
       - name: Open skill update pull request
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           scripts/updates/open-update-pr.sh \
             automation/update-apm-skills \
