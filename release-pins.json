@@ -4,8 +4,8 @@
     "hash": "sha256-MSAC3KnhQQVXvA2kFLfZvIQ4yQXGVz6BwGNw/emRCFc="
   },
   "bun": {
-    "version": "1.4.2",
-    "hash": "sha256-Izz/X4ccPjHW7sXmYK7wPMOZLXxCMxyPcruhpjiK+k0="
+    "version": "1.4.3",
+    "hash": "sha256-Uftisgp9eiF+1BD9GytNBrILECSHgkrl5yQI/KjxUUA="
   },
   "gnomcp": {
     "version": "0.12.0",
