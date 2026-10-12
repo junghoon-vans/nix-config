@@ -23,7 +23,7 @@ task:
   enableLsp: true
 symbolPreset: nerd
 browser:
-  relay: true
+  relay: false
 bashInterceptor:
   enabled: true
 astGrep:
