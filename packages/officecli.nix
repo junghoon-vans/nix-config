@@ -3,7 +3,7 @@
   stdenvNoCC,
   fetchurl,
   makeWrapper,
-  browser,
+  braveLauncher,
 }:
 
 let
@@ -25,7 +25,10 @@ stdenvNoCC.mkDerivation {
   installPhase = ''
     install -Dm755 "$src" "$out/libexec/officecli"
     install -Dm644 ${skill} "$out/share/officecli/SKILL.md"
-    makeWrapper "$out/libexec/officecli" "$out/bin/officecli" --prefix PATH : ${lib.makeBinPath [ browser ]}
+    # OfficeCLI discovers Chromium-compatible browsers by this private command name.
+    # The launcher runs the installed Brave app, not a bundled Chromium binary.
+    makeWrapper ${lib.getExe braveLauncher} "$out/libexec/browser/chromium"
+    makeWrapper "$out/libexec/officecli" "$out/bin/officecli" --prefix PATH : "$out/libexec/browser"
   '';
   # Preserve the upstream Mach-O signature.
   dontFixup = true;

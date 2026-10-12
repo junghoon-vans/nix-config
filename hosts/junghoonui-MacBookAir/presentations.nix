@@ -1,8 +1,14 @@
 { lib, pkgs, ... }:
 
 let
-  browser = pkgs.callPackage ../../packages/presentation-browser.nix { };
-  officecli = pkgs.callPackage ../../packages/officecli.nix { inherit browser; };
+  braveExecutable = "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser";
+  braveLauncher = pkgs.writeShellApplication {
+    name = "officecli-brave-browser";
+    text = ''
+      exec ${python}/bin/python3 ${../../scripts/presentations/brave_cli.py} ${lib.escapeShellArg braveExecutable} "$@"
+    '';
+  };
+  officecli = pkgs.callPackage ../../packages/officecli.nix { inherit braveLauncher; };
   python = pkgs.python3.withPackages (ps: [
     ps.pillow
     ps.playwright
@@ -11,11 +17,12 @@ let
     name = "render-presentation";
     runtimeInputs = [ officecli ];
     text = ''
-      exec ${python}/bin/python3 ${../../scripts/presentations/render.py} ${lib.getExe browser} "$@"
+      exec ${python}/bin/python3 ${../../scripts/presentations/render.py} ${lib.escapeShellArg braveExecutable} "$@"
     '';
   };
 in
 {
+  homebrew.casks = [ "brave-browser" ];
   environment.systemPackages = [
     officecli
     render

@@ -21,6 +21,7 @@ Managed by: Homebrew cask.
 | Name | Description | Hosts | Declaration |
 | --- | --- | --- | --- |
 | `aside` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
+| `brave-browser` | — | `junghoonui-MacBookAir` | [`hosts/junghoonui-MacBookAir/presentations.nix`](../hosts/junghoonui-MacBookAir/presentations.nix) |
 | `chatgpt` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `datagrip` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `discord` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |

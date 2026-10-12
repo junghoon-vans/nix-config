@@ -2,6 +2,7 @@
 """Render an OfficeCLI PPTX preview to HTML, slide PNGs, PDF, and a contact sheet."""
 
 import argparse
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -16,6 +17,8 @@ def main():
     parser.add_argument("presentation", type=Path)
     parser.add_argument("output", type=Path, help="Directory for preview artifacts")
     args = parser.parse_args()
+    if not os.access(browser, os.X_OK):
+        parser.error(f"Brave Browser is required at {browser}; no fallback browser will be downloaded")
     presentation = args.presentation.resolve(strict=True)
     if presentation.suffix.lower() != ".pptx":
         parser.error("presentation must be a .pptx file")
@@ -26,8 +29,8 @@ def main():
         ["officecli", "view", str(presentation), "html", "-o", str(html)], check=True
     )
     with sync_playwright() as playwright:
-        with playwright.chromium.launch(executable_path=browser, headless=True) as chromium:
-            page = chromium.new_page(viewport={"width": 1600, "height": 1000}, device_scale_factor=1)
+        with playwright.chromium.launch(executable_path=browser, headless=True) as brave:
+            page = brave.new_page(viewport={"width": 1600, "height": 1000}, device_scale_factor=1)
             page.goto(html.as_uri(), wait_until="load")
             page.evaluate("document.fonts.ready")
             slides = page.locator(".main .slide")
