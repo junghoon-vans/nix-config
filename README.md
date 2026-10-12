@@ -46,6 +46,7 @@ make help
 ## Guides
 
 - [Tooling index](docs/tooling.md): ownership and links to focused operational guides.
+- [Managed apps and tools](docs/apps.md): generated package inventory, hosts, and declaration locations.
 - [Activation](docs/activation.md): bootstrap, switch, and provenance verification.
 - [Nix toolchain](docs/nix-toolchain.md): inputs, fixed releases, and language profiles.
 - [Homebrew](docs/homebrew.md): managed inventory and manual upgrade policy.
