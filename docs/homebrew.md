@@ -4,22 +4,14 @@ nix-darwin owns the declared Homebrew inventory in `modules/darwin.nix`. Activat
 missing formulae and casks but never updates, upgrades, cleans, or removes packages automatically.
 Those operations require explicit review and approval.
 
-## Formulae
+## Inventory
 
-| Area | Formulae |
-| --- | --- |
-| Editors and VCS | `neovim`, `git`, `git-delta`, `gh`, `lazygit` |
-| CI and workflow | `act`, `actionlint`, `prek`, `go-task`, `tmux`, `hermes-agent` |
-| Build and language support | `cmake`, `pkgconf`, `delve`, `marksman`, `bash-language-server`, `terraform-ls`, `yaml-language-server`, `shellcheck`, `shfmt`, `yamlfmt` |
-| Cloud and infrastructure | `awscli`, `kubernetes-cli`, `helm`, `terraform`, `grpcurl` |
-| Database clients | `mysql-client`, `libpq` |
-| CLI utilities | `mole`, `bat`, `eza`, `ripgrep`, `ast-grep`, `fd`, `htop`, `jq`, `tldr`, `fzf`, `zoxide` |
+See [Managed apps and tools](apps.md) for the generated formula, cask, and Mac App Store
+tables, including host coverage and declaration locations. These tables come from evaluated
+Nix configuration rather than a separately maintained package list.
 
-## Casks
-
-Declared casks include `aside`, `session-manager-plugin`, `orbstack`, `tailscale-app`,
-`karabiner-elements`, `jordanbaird-ice`, `hop`, `headlamp`, `paseo`, `zed`,
-`font-fira-code-nerd-font`, and `font-d2coding`.
+After changing package declarations, run `make inventory` and include `docs/apps.md` in
+the same change. `make check` verifies synchronization in CI.
 
 ## Reviewing upgrades
 
