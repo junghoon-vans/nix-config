@@ -2,18 +2,12 @@ name: validate
 
 on:
   pull_request:
-  workflow_dispatch:
-    inputs:
-      base_sha:
-        description: Base commit before the dependency update
-        required: true
-        type: string
 
 permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.head.repo.full_name || github.repository }}-${{ github.head_ref || github.ref_name }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.head.repo.full_name }}-${{ github.head_ref }}
   cancel-in-progress: true
 
 jobs:
@@ -31,8 +25,8 @@ jobs:
           python3 -B scripts/validation/check-release-pins.py
       - id: detect
         env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha || inputs.base_sha }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: .github/scripts/detect-nix-config-changes "$BASE_SHA" "$HEAD_SHA"
 
   checks:
