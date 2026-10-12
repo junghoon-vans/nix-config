@@ -75,6 +75,7 @@ in
 
     casks = [
       "aside"
+      "brave-browser"
       "chatgpt"
       "session-manager-plugin"
       "orbstack"
