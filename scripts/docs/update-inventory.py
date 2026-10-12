@@ -55,7 +55,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true", help="Fail if the checked-in inventory is stale")
     args = parser.parse_args()
-    expression = f"(import {ROOT / 'scripts/docs/inventory.nix'}) (builtins.getFlake {json.dumps('git+file:' + str(ROOT))})"
+    expression = f"(import {ROOT / 'scripts/docs/inventory.nix'}) (builtins.getFlake {json.dumps('git+file:' + str(ROOT) + '?shallow=1')})"
     result = subprocess.run(
         ["nix", "eval", "--impure", "--json", "--no-write-lock-file", "--expr", expression],
         cwd=ROOT, check=True, text=True, stdout=subprocess.PIPE,
