@@ -22,7 +22,6 @@ let
   };
 in
 {
-  homebrew.casks = [ "brave-browser" ];
   environment.systemPackages = [
     officecli
     render
