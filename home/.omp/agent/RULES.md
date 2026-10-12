@@ -22,6 +22,6 @@ Use Aside MCP as the default for browser automation, including authenticated web
 - Aside uses the user's login session. Preserve existing confirmation requirements for submissions, messages, purchases, and destructive actions; never export cookies or credentials to another browser.
 - OMP Browser Relay is disabled. Do not enable it or launch Aside through OMP's browser `app.path`; use Aside MCP directly.
 - OMP's independent browser automation is an exception, not a fallback. Use it only when the user explicitly requests another browser or approves a stated isolation, compatibility, or Aside capability limitation. Never silently switch to Brave, Chrome, or another browser after an Aside failure.
-- Version-pinned headless document rendering, such as OfficeCLI PPT screenshots and PDF export, is a separate permitted exception. Keep it isolated from the user's browser profiles.
+- Headless document rendering through the installed Brave app, such as OfficeCLI PPT screenshots and PDF export, is a separate permitted exception. Use temporary profiles isolated from the user's browser profiles; do not install Chrome, Chromium, or a separate headless browser for it.
 
 Apply this routing policy to delegated browser work as well. Do not install or update browsers, CLIs, or extensions merely to bypass an unavailable Aside connection; report the prerequisite and obtain approval first.
