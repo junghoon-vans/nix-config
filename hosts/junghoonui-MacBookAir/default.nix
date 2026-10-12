@@ -1,7 +1,10 @@
 { ... }:
 
 {
-  imports = [ ../common.nix ];
+  imports = [
+    ../common.nix
+    ./presentations.nix
+  ];
 
   workstation.languages = {
     gno.enable = true;

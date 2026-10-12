@@ -12,6 +12,7 @@ SPECS = {
     "apm": ("microsoft/apm", "v", "apm-darwin-arm64.tar.gz", False),
     "bun": ("oven-sh/bun", "bun-v", "bun-darwin-aarch64.zip", True),
     "gnomcp": ("gnoverse/gno-mcp", "v", "gno-mcp_darwin_arm64.tar.gz", False),
+    "officecli": ("iOfficeAI/OfficeCLI", "v", "officecli-mac-arm64", False),
     "omp": ("can1357/oh-my-pi", "v", "omp-darwin-arm64", False),
     "paseo": ("getpaseo/paseo", "v", "Paseo-{version}-arm64.dmg", False),
 }
@@ -71,6 +72,13 @@ def main() -> None:
             ).stdout.strip()
 
     manifest[args.package] = {"version": version, "hash": artifact_hash}
+    if args.package == "officecli":
+        skill_url = f"https://raw.githubusercontent.com/{repository}/{tag}/skills/officecli/SKILL.md"
+        skill = subprocess.run(
+            ["nix", "store", "prefetch-file", "--json", skill_url],
+            check=True, capture_output=True, text=True,
+        )
+        manifest[args.package]["skillHash"] = json.loads(skill.stdout)["hash"]
     manifest_path.write_text(json.dumps(manifest, indent=2) + "\n")
     print(version)
 

@@ -121,12 +121,14 @@ Managed by: Nix system.
 | `kotlin-language-server` | Kotlin language server | `junghoonui-MacBookAir` | [`modules/languages/kotlin.nix`](../modules/languages/kotlin.nix) |
 | `lemminx` | XML Language Server | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/languages/xml.nix`](../modules/languages/xml.nix) |
 | `nodejs` | Event-driven I/O framework for the V8 JavaScript engine | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/languages/node.nix`](../modules/languages/node.nix) |
+| `officecli` | Read, create, and edit Office documents from the command line | `junghoonui-MacBookAir` | [`hosts/junghoonui-MacBookAir/presentations.nix`](../hosts/junghoonui-MacBookAir/presentations.nix) |
 | `omp` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/omp.nix`](../modules/omp.nix) |
 | `paseo` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `pnpm` | Fast, disk space efficient package manager for JavaScript | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/languages/node.nix`](../modules/languages/node.nix) |
 | `protobuf` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/languages/go.nix`](../modules/languages/go.nix) |
 | `pyright` | Type checker for the Python language | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/languages/python.nix`](../modules/languages/python.nix) |
 | `python3` | High-level dynamically-typed programming language | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/languages/python.nix`](../modules/languages/python.nix) |
+| `render-presentation` | — | `junghoonui-MacBookAir` | [`hosts/junghoonui-MacBookAir/presentations.nix`](../hosts/junghoonui-MacBookAir/presentations.nix) |
 | `ruff` | Extremely fast Python linter and code formatter | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/languages/python.nix`](../modules/languages/python.nix) |
 | `rust-analyzer` | Language server for the Rust language | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/languages/rust.nix`](../modules/languages/rust.nix) |
 | `rustc` | Safe, concurrent, practical language (wrapper script) | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/languages/rust.nix`](../modules/languages/rust.nix) |
