@@ -27,4 +27,4 @@ lockfile="$repository_root/apm.lock.yaml"
 mkdir -p "$HOME/.apm"
 cp "$manifest" "$HOME/.apm/apm.yml"
 cp "$lockfile" "$HOME/.apm/apm.lock.yaml"
-"$apm" install --global --target agent-skills --only apm --frozen
+"$apm" install --global --target agent-skills --only apm --frozen --trust-bin

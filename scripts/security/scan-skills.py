@@ -27,7 +27,7 @@ NAME_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}\Z")
 VALID_SEVERITIES = {"LOW", "MEDIUM", "HIGH", "CRITICAL"}
 VALID_RECOMMENDATIONS = {"SAFE", "CAUTION", "DO_NOT_INSTALL"}
 GIT_TIMEOUT_SECONDS = 300
-SCAN_TIMEOUT_SECONDS = 600
+SCAN_TIMEOUT_SECONDS = 3600
 
 
 class ScanError(RuntimeError):
@@ -449,6 +449,8 @@ def _safe_scanner_environment() -> dict[str, str]:
         "TEMP",
         "SSL_CERT_FILE",
         "SSL_CERT_DIR",
+        "SKILLSPECTOR_MAX_WORKFLOW_SECONDS",
+        "SKILLSPECTOR_MAX_STATIC_ANALYSIS_SECONDS_PER_ARTIFACT",
     }
     return {key: value for key, value in os.environ.items() if key in allowed}
 
@@ -610,7 +612,8 @@ def _summary_text(results: list[dict[str, Any]], *, errors: list[str], plan_only
     return "\n".join(lines) + "\n"
 
 
-def _write_summary(markdown: str) -> None:
+def _write_summary(markdown: str, output_dir: Path) -> None:
+    (output_dir / "summary.md").write_text(markdown, encoding="utf-8")
     summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
     if summary_path:
         with open(summary_path, "a", encoding="utf-8") as summary:
@@ -898,10 +901,10 @@ def main(argv: list[str] | None = None) -> int:
         _write_json(output_dir / "plan.json", serializable_plan)
         if args.plan_only:
             _append_github_output(bool(plan["dependencies"]))
-            _write_summary(_summary_text(plan["dependencies"], errors=[], plan_only=True))
+            _write_summary(_summary_text(plan["dependencies"], errors=[], plan_only=True), output_dir)
             return 0
         if not plan["dependencies"]:
-            _write_summary(_summary_text([], errors=[], plan_only=False))
+            _write_summary(_summary_text([], errors=[], plan_only=False), output_dir)
             return 0
 
         results = _scan_plan(plan, output_dir, args.scanner)
@@ -912,13 +915,13 @@ def main(argv: list[str] | None = None) -> int:
             for reason in result.get("failures", ["scan failed"])
         ]
         _write_json(output_dir / "results.json", {"results": results, "failures": failures})
-        _write_summary(_summary_text(results, errors=failures, plan_only=False))
+        _write_summary(_summary_text(results, errors=failures, plan_only=False), output_dir)
         return 1 if failures else 0
     except (ScanError, ValueError, OSError, subprocess.SubprocessError) as error:
         errors.append(str(error))
         _write_json(output_dir / "results.json", {"results": results, "failures": errors})
         _write_json(output_dir / "validation-error.json", {"error": str(error)})
-        _write_summary(_summary_text(results, errors=errors, plan_only=args.plan_only))
+        _write_summary(_summary_text(results, errors=errors, plan_only=args.plan_only), output_dir)
         if args.plan_only:
             _append_github_output(False)
         print(f"Security scan failed: {error}", file=sys.stderr)
