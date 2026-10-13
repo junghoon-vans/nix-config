@@ -61,6 +61,17 @@ dependencies:
   is_virtual: true
   package_type: claude_skill
   content_hash: sha256:b2bfe91d69ca99994c0566baede889e7d2b9bb8791c6b6106c5d387392f717f6
+- repo_url: blader/humanizer
+  name: humanizer
+  host: github.com
+  resolved_commit: 225a6f39ac85f76ee48dbad772ea4abe4ed6c9d8
+  resolved_ref: 225a6f39ac85f76ee48dbad772ea4abe4ed6c9d8
+  version: 3.1.0
+  package_type: hybrid
+  content_hash: sha256:7873801af820e6ccba7a750b594ae61e28a4ac321b53196f1dbd6a2e31d81d2b
+  skill_subset:
+  - humanizer
+  declared_license: MIT
 - repo_url: cursor/plugins
   name: principle-type-system-discipline
   host: github.com
@@ -202,6 +213,16 @@ dependencies:
   is_virtual: true
   package_type: claude_skill
   content_hash: sha256:5766a8e9524c3c2a81041409be237c3baf515aa04a135871a21dd351682d173f
+- repo_url: tt-a1i/archify
+  name: archify
+  host: github.com
+  resolved_commit: 58ab0b98d2d0def8e49dced705c7b566936723ec
+  resolved_ref: 58ab0b98d2d0def8e49dced705c7b566936723ec
+  version: unknown
+  virtual_path: archify
+  is_virtual: true
+  package_type: claude_skill
+  content_hash: sha256:61fcee4d930f7765a5e197476ab13db10ad148d02ae87c955349c415625696a2
 - repo_url: vercel-labs/agent-skills
   alias: vercel-composition-patterns
   name: vercel-composition-patterns
