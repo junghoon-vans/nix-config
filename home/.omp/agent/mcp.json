@@ -30,6 +30,15 @@
         "source \"$HOME/.zshrc.local\" 2>/dev/null || true; exec npx -y firecrawl-mcp@3.24.0"
       ]
     },
+    "ux-ui-gates": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "--package=ux-ui-agent-skills@2.9.8",
+        "ux-ui-mcp"
+      ],
+      "instructions": false
+    },
     "aside": {
       "command": "aside",
       "args": [
