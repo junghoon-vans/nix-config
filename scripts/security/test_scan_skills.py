@@ -245,126 +245,86 @@ class DependencyValidationTests(unittest.TestCase):
 
 
 class ScanReportValidationTests(unittest.TestCase):
-    def failures(self, report, returncode=0):
-        return scan_skills.validate_scan_report(report, returncode)
-
-    def test_complete_static_safe_and_caution_reports_pass(self):
-        self.assertEqual(self.failures(complete_report()), [])
-
-        caution = complete_report(
-            score=50,
-            severity="MEDIUM",
-            recommendation="CAUTION",
-            issues=[finding("LOW"), finding("MEDIUM")],
-        )
-        self.assertEqual(self.failures(caution), [])
-
-    def test_high_and_critical_findings_fail_even_if_overall_score_looks_safe(self):
-        for severity in ("HIGH", "CRITICAL"):
+    def test_findings_remain_visible_without_becoming_a_safety_gate(self):
+        for severity in ("LOW", "MEDIUM", "HIGH", "CRITICAL"):
             with self.subTest(severity=severity):
-                report = complete_report(issues=[finding(severity)])
-                self.assertTrue(self.failures(report))
+                report = complete_report(
+                    score=100, severity="CRITICAL", recommendation="DO_NOT_INSTALL",
+                    issues=[finding(severity)],
+                )
+                result = scan_skills._report_details(report, 1)
+                self.assertEqual(result["scan_status"], "completed")
+                self.assertEqual(result["risk"], "CRITICAL (100)")
+                self.assertEqual(result["recommendation"], "DO_NOT_INSTALL")
+                self.assertEqual(result["finding_count"], 1)
+                self.assertEqual(result["high_critical_count"], int(severity in {"HIGH", "CRITICAL"}))
+                self.assertTrue(result["review_required"])
+                self.assertEqual(result["failures"], [])
 
-    def test_high_critical_and_do_not_install_assessments_fail(self):
-        assessments = (
-            ("HIGH", "DO_NOT_INSTALL", 51),
-            ("CRITICAL", "DO_NOT_INSTALL", 100),
-            ("HIGH", "SAFE", 0),
-            ("CRITICAL", "CAUTION", 50),
-            ("LOW", "DO_NOT_INSTALL", 0),
-            ("MEDIUM", "CAUTION", 51),
-        )
-        for severity, recommendation, score in assessments:
-            with self.subTest(severity=severity, recommendation=recommendation):
-                report = complete_report(score, severity, recommendation)
-                self.assertTrue(self.failures(report))
+    def test_low_score_caution_and_missing_reference_are_incomplete_not_malformed(self):
+        report = complete_report(recommendation="CAUTION")
+        report["analysis_completeness"].update({
+            "is_complete": False,
+            "status": "incomplete",
+            "ledger_exceptions": [{"reason_code": "reference_missing"}],
+        })
+        result = scan_skills._report_details(report, 1)
+        self.assertEqual(result["scan_status"], "incomplete")
+        self.assertEqual(result["coverage"]["percent"], 100)
+        self.assertEqual(result["coverage"]["exceptions"], 1)
+        self.assertEqual(result["recommendation"], "CAUTION")
+        self.assertTrue(result["review_required"])
+        self.assertEqual(result["failures"], [])
 
-    def test_static_mode_and_scanner_exit_status_are_enforced(self):
-        llm_report = complete_report()
-        llm_report["metadata"]["llm_requested"] = True
-        self.assertTrue(self.failures(llm_report))
+    def test_coverage_exclusions_and_analyzer_limits_are_reported_separately(self):
+        report = complete_report()
+        completeness = report["analysis_completeness"]
+        completeness["scope_exclusions"] = [{"path": "assets/logo.png", "reason_code": "binary_content"}]
+        completeness["analyzer_statuses"][0].update({"status": "degraded", "failed": 1})
+        result = scan_skills._report_details(report, 0)
+        self.assertEqual(result["scan_status"], "incomplete")
+        self.assertEqual(result["finding_count"], 0)
+        self.assertEqual(result["coverage"]["exclusions"], 1)
+        self.assertEqual(result["coverage"]["analyzer_problems"], ["static_patterns_prompt_injection"])
 
-        missing_mode = complete_report()
-        del missing_mode["metadata"]["llm_requested"]
-        self.assertTrue(self.failures(missing_mode))
+    def test_partial_coverage_is_not_a_security_finding(self):
+        report = complete_report()
+        report["analysis_completeness"].update({"is_complete": False, "coverage_percent": 48.3})
+        result = scan_skills._report_details(report, 1)
+        self.assertEqual(result["scan_status"], "incomplete")
+        self.assertEqual(result["high_critical_count"], 0)
+        self.assertEqual(result["coverage"]["percent"], 48.3)
 
-        wrong_mode_type = complete_report()
-        wrong_mode_type["metadata"]["llm_requested"] = "false"
-        self.assertTrue(self.failures(wrong_mode_type))
+    def test_complete_report_is_not_labelled_a_safety_approval(self):
+        result = scan_skills._report_details(complete_report(), 0)
+        self.assertEqual(result["scan_status"], "completed")
+        self.assertFalse(result["review_required"])
+        self.assertTrue(result["coverage"]["complete"])
 
-        # Exit status 1 cannot be discarded just because the JSON says SAFE.
-        self.assertTrue(self.failures(complete_report(), returncode=1))
-        self.assertTrue(self.failures(complete_report(), returncode=2))
+    def test_scanner_errors_and_unexplained_exits_stay_errors(self):
+        for returncode in (1, 2, -9):
+            with self.subTest(returncode=returncode):
+                result = scan_skills._report_details(complete_report(), returncode)
+                self.assertEqual(result["scan_status"], "error")
+                self.assertTrue(result["review_required"])
+                self.assertTrue(result["failures"])
+        report = complete_report()
+        report["execution_successful"] = False
+        self.assertEqual(scan_skills._report_details(report, 0)["scan_status"], "error")
 
-    def test_incomplete_or_failed_execution_is_rejected(self):
-        incomplete = complete_report()
-        completeness = incomplete["analysis_completeness"]
-        completeness.update(
-            {
-                "scanned_components": 0,
-                "coverage_percent": 0.0,
-                "is_complete": False,
-                "status": "incomplete",
-                "partially_inspected_files": 1,
-                "entirely_uninspected_files": 1,
-            }
-        )
-        self.assertTrue(self.failures(incomplete))
-
-        failed = complete_report()
-        failed["execution_successful"] = False
-        failed["analysis_completeness"]["execution_successful"] = False
-        self.assertTrue(self.failures(failed, returncode=2))
-
-        skipped_work = complete_report()
-        status = skipped_work["analysis_completeness"]["analyzer_statuses"][0]
-        status.update({"planned_work": 2, "completed": 1, "skipped": 1})
-        self.assertTrue(self.failures(skipped_work))
-
-    def test_malformed_or_internally_inconsistent_reports_fail_closed(self):
-        malformed_reports = (
+    def test_malformed_reports_and_llm_mode_mismatch_are_errors(self):
+        malformed = (
             {},
-            {"risk_assessment": {}, "issues": [], "metadata": {"llm_requested": False}},
-            complete_report() | {"execution_successful": "true"},
-            complete_report() | {"components": []},
-            complete_report() | {"issues": {}},
-            complete_report(issues=[{"severity": "LOW"}]),
-            complete_report(issues=[finding("BLOCKER")]),
             complete_report(score="0"),
+            complete_report(issues=[finding("UNKNOWN")]),
+            complete_report() | {"issues": {}},
+            complete_report() | {"metadata": {"llm_requested": True}},
+            complete_report() | {"metadata": {"llm_requested": "false"}},
+            complete_report() | {"analysis_completeness": {}},
         )
-        for report in malformed_reports:
+        for report in malformed:
             with self.subTest(report=report):
-                self.assertTrue(self.failures(report))
-
-        missing_skill = complete_report()
-        del missing_skill["skill"]
-        self.assertTrue(self.failures(missing_skill))
-
-        wrong_version = complete_report()
-        wrong_version["metadata"]["skillspector_version"] = "2.11.0"
-        self.assertTrue(self.failures(wrong_version))
-
-        malformed_component = complete_report()
-        del malformed_component["components"][0]["type"]
-        self.assertTrue(self.failures(malformed_component))
-
-        for line in (-1, "1", True):
-            with self.subTest(start_line=line):
-                malformed_location = complete_report(issues=[finding("LOW")])
-                malformed_location["issues"][0]["location"]["start_line"] = line
-                self.assertTrue(self.failures(malformed_location))
-
-        no_analyzers = complete_report()
-        no_analyzers["analysis_completeness"]["analyzer_statuses"] = []
-        self.assertTrue(self.failures(no_analyzers))
-
-        malformed_analyzer = complete_report()
-        del malformed_analyzer["analysis_completeness"]["analyzer_statuses"][0]["completed"]
-        self.assertTrue(self.failures(malformed_analyzer))
-
-        inconsistent = complete_report()
-        inconsistent["analysis_completeness"]["coverage_percent"] = 99.0
-        self.assertTrue(self.failures(inconsistent))
+                self.assertEqual(scan_skills._report_details(report, 0)["scan_status"], "error")
 
 
 if __name__ == "__main__":

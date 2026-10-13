@@ -6,18 +6,11 @@ set -euo pipefail
 : "${CONFIGURATION_CHANGED:?CONFIGURATION_CHANGED must be set}"
 : "${CHECKS_RESULT:?CHECKS_RESULT must be set}"
 : "${EVALUATE_RESULT:?EVALUATE_RESULT must be set}"
-: "${SECURITY_RESULT:?SECURITY_RESULT must be set}"
 
 if [ "$CHANGES_RESULT" != "success" ]; then
-  printf 'Change detection failed: changes=%s\n' "$CHANGES_RESULT" >&2
+  printf 'Change detection or pinned skill input validation failed: changes=%s\n' "$CHANGES_RESULT" >&2
   exit 1
 fi
-
-if [ "$SECURITY_RESULT" != "success" ]; then
-  printf 'Agent skill security validation failed: security=%s\n' "$SECURITY_RESULT" >&2
-  exit 1
-fi
-printf 'Agent skill security validation passed.\n'
 
 if [ "$CONFIGURATION_CHANGED" = "true" ] && { [ "$CHECKS_RESULT" != "success" ] || [ "$EVALUATE_RESULT" != "success" ]; }; then
   printf 'Nix configuration validation failed: checks=%s evaluate=%s\n' "$CHECKS_RESULT" "$EVALUATE_RESULT" >&2

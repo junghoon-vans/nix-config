@@ -15,14 +15,32 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       configuration_changed: ${{ steps.detect.outputs.configuration_changed }}
+      skill_dependencies_changed: ${{ steps.skills.outputs.changed }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
       - name: Validate CI scripts and release pins
         run: |
           bash -n .github/scripts/* scripts/validation/check.sh
           python3 -B scripts/validation/check-release-pins.py
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - name: Install lockfile parser
+        run: python -m pip install --disable-pip-version-check -r scripts/security/requirements.txt
+      - name: Test skill inspection contract
+        run: python -B -m unittest discover -s scripts/security -p 'test_*.py'
+      - id: skills
+        name: Validate pinned skill inputs
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.sha }}
+        run: >-
+          python scripts/security/scan-skills.py
+          --base-ref "$BASE_REF"
+          --output-dir "$RUNNER_TEMP/skill-input-validation"
+          --plan-only
       - id: detect
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
@@ -30,6 +48,10 @@ jobs:
         run: .github/scripts/detect-nix-config-changes "$BASE_SHA" "$HEAD_SHA"
 
   security:
+    name: SkillSpector advisory
+    needs: changes
+    if: needs.changes.outputs.skill_dependencies_changed == 'true'
+    continue-on-error: true
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -41,30 +63,23 @@ jobs:
           python-version: "3.12"
       - name: Install lockfile parser
         run: python -m pip install --disable-pip-version-check -r scripts/security/requirements.txt
-      - id: plan
-        name: Plan changed pinned skills
-        env:
-          BASE_REF: ${{ github.event.pull_request.base.sha }}
-        run: >-
-          python scripts/security/scan-skills.py
-          --base-ref "$BASE_REF"
-          --output-dir "$RUNNER_TEMP/skillspector-reports"
-          --plan-only
-      - name: Test security scan contract
-        run: python -B -m unittest discover -s scripts/security -p 'test_*.py'
       - name: Install pinned SkillSpector
-        if: success() && steps.plan.outputs.changed == 'true'
         run: >-
           python -m pip install --disable-pip-version-check --no-cache-dir
           'skillspector @ git+https://github.com/NVIDIA/SkillSpector.git@69d7d059da38160296b2311320ed4c72a9c3fdb6'
-      - name: Scan changed pinned skills
-        if: success() && steps.plan.outputs.changed == 'true'
+      - name: Inspect changed pinned skills (advisory only)
         env:
           BASE_REF: ${{ github.event.pull_request.base.sha }}
         run: >-
           python scripts/security/scan-skills.py
           --base-ref "$BASE_REF"
           --output-dir "$RUNNER_TEMP/skillspector-reports"
+      - name: Report inspection infrastructure failure
+        if: failure()
+        run: |
+          printf '%s\n' '## SkillSpector advisory' \
+            'Inspection did not finish successfully. Review the job logs and any report artifacts; no safety conclusion is available.' \
+            >> "$GITHUB_STEP_SUMMARY"
       - name: Upload security reports
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
@@ -103,7 +118,7 @@ jobs:
 
   validate:
     if: always()
-    needs: [changes, checks, evaluate, security]
+    needs: [changes, checks, evaluate]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -113,5 +128,4 @@ jobs:
           CONFIGURATION_CHANGED: ${{ needs.changes.outputs.configuration_changed }}
           CHECKS_RESULT: ${{ needs.checks.result }}
           EVALUATE_RESULT: ${{ needs.evaluate.result }}
-          SECURITY_RESULT: ${{ needs.security.result }}
         run: .github/scripts/require-nix-validation

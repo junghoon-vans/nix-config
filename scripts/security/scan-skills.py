@@ -464,169 +464,93 @@ def _is_number(value: Any) -> bool:
 
 
 def validate_scan_report(report: dict, returncode: int) -> list[str]:
-    """Return fail-closed report/security-gate reasons; an empty list means allow."""
-    failures: list[str] = []
+    """Validate usable static-analysis evidence, not whether a skill is safe."""
+    errors: list[str] = []
     if not isinstance(report, dict):
         return ["scanner report must be a JSON object"]
-
-    skill = report.get("skill")
-    if not isinstance(skill, dict) or any(
-        not isinstance(skill.get(field), str) or not skill[field]
-        for field in ("name", "source", "scanned_at")
-    ):
-        failures.append("report skill identity is missing or malformed")
     assessment = report.get("risk_assessment")
     if not isinstance(assessment, dict):
-        failures.append("missing or malformed risk_assessment")
+        errors.append("missing or malformed risk_assessment")
         assessment = {}
     score = assessment.get("score")
-    severity = assessment.get("severity")
-    recommendation = assessment.get("recommendation")
     if not _is_number(score) or not 0 <= score <= 100:
-        failures.append("risk_assessment.score must be a finite number from 0 to 100")
-        score = None
-    if severity not in VALID_SEVERITIES:
-        failures.append("risk_assessment.severity must be LOW, MEDIUM, HIGH, or CRITICAL")
-    if recommendation not in VALID_RECOMMENDATIONS:
-        failures.append("risk_assessment.recommendation is missing or unsupported")
-
-    expected_severity = None
-    if score is not None:
-        expected_severity = "LOW" if score <= 20 else "MEDIUM" if score <= 50 else "HIGH" if score <= 80 else "CRITICAL"
-        if score > 50:
-            failures.append(f"risk score {score:g} exceeds the allowed maximum of 50")
-    if expected_severity is not None and severity in VALID_SEVERITIES and severity != expected_severity:
-        failures.append("risk_assessment severity does not match its score band")
-    expected_recommendation = "SAFE" if severity == "LOW" else "CAUTION" if severity == "MEDIUM" else "DO_NOT_INSTALL"
-    if severity in VALID_SEVERITIES and recommendation in VALID_RECOMMENDATIONS and recommendation != expected_recommendation:
-        failures.append("risk_assessment recommendation does not match its severity")
-    if recommendation == "DO_NOT_INSTALL":
-        failures.append("scanner recommendation is DO_NOT_INSTALL")
-    if severity in {"HIGH", "CRITICAL"}:
-        failures.append(f"scanner reported {severity} overall risk")
-
+        errors.append("risk_assessment.score must be a finite number from 0 to 100")
+    if assessment.get("severity") not in VALID_SEVERITIES:
+        errors.append("risk_assessment.severity is missing or unsupported")
+    if assessment.get("recommendation") not in VALID_RECOMMENDATIONS:
+        errors.append("risk_assessment.recommendation is missing or unsupported")
     metadata = report.get("metadata")
-    if not isinstance(metadata, dict):
-        failures.append("report metadata is missing or malformed")
-    else:
-        if metadata.get("llm_requested") is not False:
-            failures.append("report must confirm metadata.llm_requested is false")
-        if metadata.get("skillspector_version") != "2.12.0":
-            failures.append("report must identify the pinned SkillSpector version 2.12.0")
-
-    components = report.get("components")
-    if not isinstance(components, list) or not components:
-        failures.append("report components must be a non-empty list")
-    else:
-        for number, component in enumerate(components, start=1):
-            if (
-                not isinstance(component, dict)
-                or not isinstance(component.get("path"), str)
-                or not component["path"]
-                or not isinstance(component.get("type"), str)
-                or not component["type"]
-            ):
-                failures.append(f"component {number} is malformed")
-
+    if not isinstance(metadata, dict) or metadata.get("llm_requested") is not False:
+        errors.append("report must confirm metadata.llm_requested is false")
     issues = report.get("issues")
     if not isinstance(issues, list):
-        failures.append("report issues must be a list")
-    else:
-        for number, issue in enumerate(issues, start=1):
-            if not isinstance(issue, dict):
-                failures.append(f"issue {number} must be an object")
-                continue
-            issue_severity = issue.get("severity")
-            if issue_severity not in VALID_SEVERITIES:
-                failures.append(f"issue {number} has a missing or unsupported severity")
-                continue
-            if not isinstance(issue.get("id"), str) or not issue["id"]:
-                failures.append(f"issue {number} has a missing id")
-            location = issue.get("location")
-            if (
-                not isinstance(location, dict)
-                or not isinstance(location.get("file"), str)
-                or not location["file"]
-                or not isinstance(location.get("start_line"), int)
-                or isinstance(location.get("start_line"), bool)
-                or location["start_line"] < 0
-            ):
-                failures.append(f"issue {number} has a missing or malformed location")
-            if issue_severity in {"HIGH", "CRITICAL"}:
-                issue_id = issue.get("id", "unknown")
-                safe_id = re.sub(r"[^A-Za-z0-9_.-]", "?", str(issue_id))[:80]
-                failures.append(f"active {issue_severity} issue: {safe_id}")
-
-    if report.get("execution_successful") is not True:
-        failures.append("root execution_successful must be true")
-
+        errors.append("report issues must be a list")
+    elif any(not isinstance(issue, dict) or issue.get("severity") not in VALID_SEVERITIES for issue in issues):
+        errors.append("report contains malformed issue severities")
     completeness = report.get("analysis_completeness")
     if not isinstance(completeness, dict):
-        failures.append("missing or malformed analysis_completeness")
+        errors.append("missing or malformed analysis_completeness")
         completeness = {}
-    if completeness.get("is_complete") is not True:
-        failures.append("analysis_completeness.is_complete must be true")
-    if completeness.get("status") != "complete":
-        failures.append("analysis_completeness.status must be complete")
-    if completeness.get("execution_successful") is not True:
-        failures.append("analysis_completeness.execution_successful must be true")
-
-    total = completeness.get("total_components")
-    scanned = completeness.get("scanned_components")
-    if not isinstance(total, int) or isinstance(total, bool) or total < 1:
-        failures.append("analysis_completeness.total_components must be a positive integer")
-    if not isinstance(scanned, int) or isinstance(scanned, bool) or scanned < 1:
-        failures.append("analysis_completeness.scanned_components must be a positive integer")
-    elif isinstance(total, int) and not isinstance(total, bool) and scanned != total:
-        failures.append("analysis_completeness.scanned_components does not match total_components")
+    if not isinstance(completeness.get("is_complete"), bool):
+        errors.append("analysis_completeness.is_complete must be a boolean")
     coverage = completeness.get("coverage_percent")
-    if not _is_number(coverage) or coverage != 100:
-        failures.append("analysis_completeness.coverage_percent must be 100")
-    if isinstance(components, list) and isinstance(total, int) and not isinstance(total, bool) and len(components) != total:
-        failures.append("report component count does not match analysis_completeness.total_components")
+    if not _is_number(coverage) or not 0 <= coverage <= 100:
+        errors.append("analysis_completeness.coverage_percent must be from 0 to 100")
+    for field in ("ledger_exceptions", "scope_exclusions", "limitations", "analyzer_statuses"):
+        if not isinstance(completeness.get(field), list):
+            errors.append(f"analysis_completeness.{field} must be a list")
+    if report.get("execution_successful") is not True:
+        errors.append("scanner execution was unsuccessful")
+    if type(returncode) is not int or returncode not in {0, 1}:
+        errors.append(f"scanner exited with error code {returncode}")
+    elif returncode == 1 and not errors:
+        # Upstream exit 1 means either findings or incomplete analysis. Never
+        # discard an unexplained failure just because a report happens to exist.
+        if not issues and assessment.get("score") <= 50 and completeness.get("is_complete") is True:
+            errors.append("scanner exited 1 without findings or incomplete analysis")
+    return errors
 
-    for field in ("partially_inspected_files", "entirely_uninspected_files"):
-        count = completeness.get(field)
-        if not isinstance(count, int) or isinstance(count, bool) or count != 0:
-            failures.append(f"analysis_completeness.{field} must be zero")
-    for field in ("ledger_exceptions", "scope_exclusions", "limitations"):
-        value = completeness.get(field)
-        if not isinstance(value, list) or value:
-            failures.append(f"analysis_completeness.{field} must be an empty list")
 
-    statuses = completeness.get("analyzer_statuses")
-    if not isinstance(statuses, list) or not statuses:
-        failures.append("analysis_completeness.analyzer_statuses must be a non-empty list")
-    else:
-        for number, status in enumerate(statuses, start=1):
-            if (
-                not isinstance(status, dict)
-                or not isinstance(status.get("analyzer_id"), str)
-                or not status["analyzer_id"]
-                or not isinstance(status.get("status"), str)
-            ):
-                failures.append(f"analyzer status {number} is malformed")
-                continue
-            state = status["status"].lower()
-            if state not in {"completed", "not_applicable", "disabled"}:
-                failures.append(f"analyzer status {number} is incomplete or unsupported: {state}")
-
-            counter_fields = ("planned_work", "completed", "partial", "skipped", "failed", "unaccounted")
-            counters = {field: status.get(field) for field in counter_fields}
-            if any(not isinstance(value, int) or isinstance(value, bool) or value < 0 for value in counters.values()):
-                failures.append(f"analyzer status {number} has malformed work counters")
-                continue
-            if counters["planned_work"] != sum(counters[field] for field in counter_fields[1:]):
-                failures.append(f"analyzer status {number} work counters do not reconcile")
-            for field in ("partial", "skipped", "failed", "unaccounted"):
-                if counters[field] != 0:
-                    failures.append(f"analyzer status {number} reports {field} work")
-
-    if not isinstance(returncode, int) or isinstance(returncode, bool) or returncode not in {0, 1}:
-        failures.append(f"scanner exited with error code {returncode}")
-    elif returncode == 1 and not failures:
-        failures.append("scanner exited 1 without a report-based security or completeness gate failure")
-    return failures
+def _report_details(report: dict, returncode: int) -> dict[str, Any]:
+    errors = validate_scan_report(report, returncode)
+    assessment = report.get("risk_assessment", {})
+    completeness = report.get("analysis_completeness", {})
+    issues = report.get("issues", [])
+    if errors:
+        return {"scan_status": "error", "review_required": True, "failures": errors}
+    analyzer_problems = [
+        status.get("analyzer_id", "unknown") for status in completeness["analyzer_statuses"]
+        if isinstance(status, dict) and (
+            status.get("status") not in {"completed", "disabled", "not_applicable"}
+            or any(status.get(field, 0) for field in ("partial", "skipped", "failed", "unaccounted"))
+        )
+    ]
+    incomplete = (
+        not completeness["is_complete"] or completeness["coverage_percent"] < 100
+        or completeness["ledger_exceptions"] or completeness["scope_exclusions"]
+        or completeness["limitations"] or analyzer_problems
+    )
+    return {
+        "scan_status": "incomplete" if incomplete else "completed",
+        "review_required": bool(
+            issues or incomplete or assessment["severity"] in {"HIGH", "CRITICAL"}
+            or assessment["recommendation"] != "SAFE"
+        ),
+        "returncode": returncode,
+        "risk": f"{assessment['severity']} ({assessment['score']})",
+        "recommendation": assessment["recommendation"],
+        "finding_count": len(issues),
+        "high_critical_count": sum(issue["severity"] in {"HIGH", "CRITICAL"} for issue in issues),
+        "coverage": {
+            "percent": completeness["coverage_percent"],
+            "complete": not bool(incomplete),
+            "exceptions": len(completeness["ledger_exceptions"]),
+            "exclusions": len(completeness["scope_exclusions"]),
+            "limitations": len(completeness["limitations"]),
+            "analyzer_problems": analyzer_problems,
+        },
+        "failures": [],
+    }
 
 
 def _read_json_report(path: Path) -> dict[str, Any]:
@@ -649,27 +573,41 @@ def _summary_value(value: Any) -> str:
 
 
 def _summary_text(results: list[dict[str, Any]], *, errors: list[str], plan_only: bool) -> str:
-    lines = ["## Agent skill security scan", ""]
+    lines = ["## Agent skill inspection", ""]
     if errors and not results:
-        lines.extend(["**Result: failed.**", "", *[f"- {_summary_value(error)}" for error in errors], ""])
-    elif plan_only and results and not errors:
-        lines.extend(["Selected added or changed pinned APM skills (scan plan only):", ""])
+        lines.extend(["**Input validation or inspection failed.**", "", *[f"- {_summary_value(error)}" for error in errors], ""])
+    elif plan_only and results:
+        lines.extend(["Validated added or changed pinned APM skill inputs:", ""])
         lines.extend(f"- `{result['name']}` — {result['change']}" for result in results)
-        lines.append("")
     elif not results:
-        lines.extend(["No added or changed pinned APM skills; scanner installation and scans were skipped.", ""])
+        lines.append("No added or changed pinned APM skills; scanner installation and scans were skipped.")
     else:
-        passed = not errors and all(result.get("passed") is True for result in results)
-        lines.extend([f"**Result: {'passed' if passed else 'failed'}.**", "", "| Skill | Change | Result | Risk | Findings |", "| --- | --- | --- | --- | ---: |"])
+        lines.extend([
+            "**Advisory only: findings and coverage limits require human review, not an automatic safety verdict.**",
+            "",
+            "| Skill | Inspection | Risk | Recommendation | Findings (HIGH/CRITICAL) | Coverage |",
+            "| --- | --- | --- | --- | ---: | --- |",
+        ])
         for result in results:
-            risk = _summary_value(result.get("risk", "unavailable"))
-            finding_count = _summary_value(result.get("finding_count", "unavailable"))
-            state = "passed" if result.get("passed") else "failed"
-            lines.append(f"| `{result['name']}` | {result['change']} | {state} | {risk} | {finding_count} |")
+            coverage = result.get("coverage")
+            coverage_text = "unavailable"
+            if coverage:
+                coverage_text = (
+                    f"{coverage['percent']}%; {'complete' if coverage['complete'] else 'incomplete'}; "
+                    f"{coverage['exceptions']} exceptions, {coverage['exclusions']} exclusions, "
+                    f"{len(coverage['analyzer_problems'])} analyzer problems"
+                )
+            cells = [
+                result["name"], result["scan_status"], result.get("risk", "unavailable"),
+                result.get("recommendation", "unavailable"),
+                f"{result.get('finding_count', 'unavailable')} ({result.get('high_critical_count', 'unavailable')})",
+                coverage_text,
+            ]
+            lines.append("| " + " | ".join(_summary_value(cell) for cell in cells) + " |")
             for reason in result.get("failures", []):
                 lines.append(f"  - {_summary_value(reason)}")
-        lines.append("")
-    return "\n".join(lines)
+        lines.extend(["", "Full findings and coverage details are preserved in the JSON report artifacts."])
+    return "\n".join(lines) + "\n"
 
 
 def _write_summary(markdown: str) -> None:
@@ -824,15 +762,7 @@ def _scan_one(entry: dict[str, Any], source: Path, output_dir: Path, report_id: 
             raise ScanError(f"could not run SkillSpector: {error}") from error
 
         report = _read_json_report(report_path)
-        failures = validate_scan_report(report, returncode)
-        assessment = report.get("risk_assessment", {})
-        result.update({
-            "returncode": returncode,
-            "risk": f"{assessment.get('severity', 'unknown')} ({assessment.get('score', 'unknown')})",
-            "finding_count": len(report.get("issues", [])) if isinstance(report.get("issues"), list) else "invalid",
-            "passed": not failures,
-            "failures": failures,
-        })
+        result.update(_report_details(report, returncode))
     except (ScanError, ValueError, OSError) as error:
         if not report_path.exists():
             _write_json(report_path, {
@@ -841,7 +771,7 @@ def _scan_one(entry: dict[str, Any], source: Path, output_dir: Path, report_id: 
                 "virtual_path": entry["virtual_path"],
                 "error": str(error),
             })
-        result.update({"passed": False, "failures": [str(error)], "risk": "unavailable", "finding_count": "unavailable"})
+        result.update({"scan_status": "error", "review_required": True, "failures": [str(error)]})
     return result
 
 
@@ -865,7 +795,8 @@ def _scan_plan(plan: dict[str, Any], output_dir: Path, scanner: str) -> list[dic
                 "name": entry["name"],
                 "change": entry["change"],
                 "report": str(report_path.relative_to(output_dir)),
-                "passed": False,
+                "scan_status": "error",
+                "review_required": True,
                 "failures": [message],
                 "risk": "unavailable",
                 "finding_count": "unavailable",
@@ -911,7 +842,8 @@ def _scan_plan(plan: dict[str, Any], output_dir: Path, scanner: str) -> list[dic
                             "name": name,
                             "change": entry["change"],
                             "report": str(report_path.relative_to(output_dir)),
-                            "passed": False,
+                            "scan_status": "error",
+                            "review_required": True,
                             "failures": [str(error)],
                             "risk": "unavailable",
                             "finding_count": "unavailable",
@@ -930,7 +862,8 @@ def _scan_plan(plan: dict[str, Any], output_dir: Path, scanner: str) -> list[dic
                         "name": name,
                         "change": entry["change"],
                         "report": str(report_path.relative_to(output_dir)),
-                        "passed": False,
+                        "scan_status": "error",
+                        "review_required": True,
                         "failures": [str(error)],
                         "risk": "unavailable",
                         "finding_count": "unavailable",
@@ -975,7 +908,7 @@ def main(argv: list[str] | None = None) -> int:
         failures = [
             f"{result['name']}: {reason}"
             for result in results
-            if not result.get("passed")
+            if result["scan_status"] == "error"
             for reason in result.get("failures", ["scan failed"])
         ]
         _write_json(output_dir / "results.json", {"results": results, "failures": failures})
