@@ -28,6 +28,12 @@ dependencies:
     - git: https://github.com/nextlevelbuilder/ui-ux-pro-max-skill.git
       path: .claude/skills/ui-ux-pro-max
       ref: 823b0a14d3539b5d78c0efb614426a4fab5983ec
+    - git: https://github.com/Owl-Listener/designpowers.git
+      path: skills/inspiration-scouting
+      ref: cb00757da9d554591fa78d27aa1854d60a05c4f7
+    - git: https://github.com/Jakubantalik/transitions.dev.git
+      path: skills/transitions-dev
+      ref: a0c6e7bbf603a0a46588e37c6c6a4d0af3290d52
     - git: https://github.com/JetBrains/go-modern-guidelines.git
       path: plugin/skills/use-modern-go
       ref: v0.1.1

@@ -91,6 +91,17 @@ dependencies:
   is_virtual: true
   package_type: claude_skill
   content_hash: sha256:2607fc60629b82b257136dd2a7a373f0a4466c0b49df7746d845d59313c99b21
+- repo_url: jakubantalik/transitions.dev
+  materialization_repo_url: Jakubantalik/transitions.dev
+  name: transitions-dev
+  host: github.com
+  resolved_commit: a0c6e7bbf603a0a46588e37c6c6a4d0af3290d52
+  resolved_ref: a0c6e7bbf603a0a46588e37c6c6a4d0af3290d52
+  version: unknown
+  virtual_path: skills/transitions-dev
+  is_virtual: true
+  package_type: claude_skill
+  content_hash: sha256:91c26bc8d817ce933a3739554ac653d562ebc0863d886d1eea2f5fc1cb9ceca5
 - repo_url: jetbrains/go-modern-guidelines
   materialization_repo_url: JetBrains/go-modern-guidelines
   name: use-modern-go
@@ -182,6 +193,17 @@ dependencies:
   is_virtual: true
   package_type: claude_skill
   content_hash: sha256:7bd6c2cc8083d90f5d5489c80887ed5399e167d3e7323c7f294035e1e586b689
+- repo_url: owl-listener/designpowers
+  materialization_repo_url: Owl-Listener/designpowers
+  name: inspiration-scouting
+  host: github.com
+  resolved_commit: cb00757da9d554591fa78d27aa1854d60a05c4f7
+  resolved_ref: cb00757da9d554591fa78d27aa1854d60a05c4f7
+  version: unknown
+  virtual_path: skills/inspiration-scouting
+  is_virtual: true
+  package_type: claude_skill
+  content_hash: sha256:324d966829db6644de3e602929549cbbff935b752d02bb95cb32edb345731ad2
 - repo_url: planetscale/database-skills
   name: mysql
   host: github.com
