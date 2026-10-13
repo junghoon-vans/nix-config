@@ -449,6 +449,8 @@ def _safe_scanner_environment() -> dict[str, str]:
         "TEMP",
         "SSL_CERT_FILE",
         "SSL_CERT_DIR",
+        "SKILLSPECTOR_MAX_WORKFLOW_SECONDS",
+        "SKILLSPECTOR_MAX_STATIC_ANALYSIS_SECONDS_PER_ARTIFACT",
     }
     return {key: value for key, value in os.environ.items() if key in allowed}
 

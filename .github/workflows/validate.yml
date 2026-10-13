@@ -70,6 +70,9 @@ jobs:
       - name: Inspect changed pinned skills (advisory only)
         env:
           BASE_REF: ${{ github.event.pull_request.base.sha }}
+          # Reserve one minute of the wrapper's 60-minute limit for reporting.
+          SKILLSPECTOR_MAX_WORKFLOW_SECONDS: ${{ vars.SKILLSPECTOR_MAX_WORKFLOW_SECONDS || '3540' }}
+          SKILLSPECTOR_MAX_STATIC_ANALYSIS_SECONDS_PER_ARTIFACT: ${{ vars.SKILLSPECTOR_MAX_STATIC_ANALYSIS_SECONDS_PER_ARTIFACT || '3540' }}
         run: >-
           python scripts/security/scan-skills.py
           --base-ref "$BASE_REF"
