@@ -23,7 +23,7 @@ jobs:
           persist-credentials: false
       - name: Validate CI scripts and release pins
         run: |
-          bash -n .github/scripts/* scripts/validation/check.sh
+          bash -n .github/scripts/* scripts/validation/check.sh scripts/security/*.sh
           python3 -B scripts/validation/check-release-pins.py
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
@@ -88,6 +88,28 @@ jobs:
           path: ${{ runner.temp }}/skillspector-reports/
           if-no-files-found: ignore
           retention-days: 30
+
+  security-comment:
+    name: Publish SkillSpector advisory
+    needs: [changes, security]
+    if: >-
+      always() && !cancelled() &&
+      needs.changes.outputs.skill_dependencies_changed == 'true' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Publish or update advisory comment
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: bash scripts/security/comment-skills.sh
 
   checks:
     needs: changes
