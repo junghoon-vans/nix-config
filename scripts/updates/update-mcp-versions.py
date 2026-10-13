@@ -61,14 +61,11 @@ def update_configuration(text, fetch=fetch_latest):
             continue
         old_spec, new_spec = f"{package}@{current}", f"{package}@{version}"
         args = config["mcpServers"][name]["args"]
-        if server["command"] == "/bin/zsh":
-            args[1] = MCP_INPUTS.FIRECRAWL_PREFIX + new_spec
+        index = 1 if args[0] in {"-y", "--yes"} else 0
+        if args[index] == old_spec:
+            args[index] = new_spec
         else:
-            index = 1 if args[0] in {"-y", "--yes"} else 0
-            if args[index] == old_spec:
-                args[index] = new_spec
-            else:
-                args[index] = "--package=" + new_spec
+            args[index] = "--package=" + new_spec
         updates.append(f"{name}: {old_spec} -> {new_spec}")
     # No writes occur until every selected registry response has been validated.
     return (json.dumps(config, indent=2, ensure_ascii=False) + "\n" if updates else text), updates

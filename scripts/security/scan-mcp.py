@@ -17,7 +17,6 @@ CONFIG_PATH = "home/.omp/agent/mcp.json"
 NAME_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}\Z")
 PACKAGE_RE = re.compile(r"(?:@[a-z0-9][a-z0-9._-]*/)?[a-z0-9][a-z0-9._-]*\Z")
 VERSION_RE = re.compile(r"(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?\Z")
-FIRECRAWL_PREFIX = 'source "$HOME/.zshrc.local" 2>/dev/null || true; exec npx -y '
 TEXT_SUFFIXES = {".js", ".mjs", ".cjs", ".jsx", ".ts", ".mts", ".cts", ".tsx", ".py", ".json", ".md", ".txt", ".html", ".css", ".yaml", ".yml"}
 REINSPECT_PATHS = {"scripts/security/scan-mcp.py", "scripts/security/mcp_sandbox.py", "scripts/security/mcp-requirements.txt", ".github/workflows/mcp-security.yml"}
 MAX_SOURCE_BYTES = 20 * 1024 * 1024
@@ -55,11 +54,6 @@ def npm_target(server: dict) -> tuple[str, str, str | None] | None:
     command, args = server.get("command"), server.get("args", [])
     if not isinstance(args, list) or not all(isinstance(arg, str) for arg in args):
         return None
-    if command == "/bin/zsh" and len(args) == 2 and args[0] == "-lc":
-        if not args[1].startswith(FIRECRAWL_PREFIX):
-            return None
-        args = ["-y", args[1][len(FIRECRAWL_PREFIX):]]
-        command = "npx"
     if command != "npx":
         return None
     if args and args[0] in {"-y", "--yes"}:
@@ -73,9 +67,6 @@ def npm_target(server: dict) -> tuple[str, str, str | None] | None:
         return None
     package, separator, version = spec.rpartition("@")
     if not separator or not PACKAGE_RE.fullmatch(package) or not VERSION_RE.fullmatch(version):
-        return None
-    # Do not normalize arbitrary shell payloads into a different executable.
-    if server.get("command") == "/bin/zsh" and package != "firecrawl-mcp":
         return None
     return package, version, binary
 

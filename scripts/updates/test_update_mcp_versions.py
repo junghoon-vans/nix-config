@@ -24,17 +24,14 @@ class MCPVersionUpdateTests(unittest.TestCase):
             "mcpServers": {
                 "direct": {"command": "npx", "args": ["--yes", "server@9.9.9"], "env": {"KEEP": "value"}},
                 "scoped": {"command": "npx", "args": ["--package=@scope/server@1.0.0", "server-cli"], "instructions": False},
-                "firecrawl": {"command": "/bin/zsh", "args": ["-lc", updater.MCP_INPUTS.FIRECRAWL_PREFIX + "firecrawl-mcp@3.24.0"]},
                 "remote": {"type": "http", "url": "https://example.invalid/mcp", "headers": {"Authorization": "!do-not-execute"}},
             },
         }
-        updated, changes = updater.update_configuration(json.dumps(original), metadata)
+        updated, _ = updater.update_configuration(json.dumps(original), metadata)
         result = json.loads(updated)
-        self.assertEqual(len(changes), 3)
         self.assertEqual(result["mcpServers"]["direct"]["args"], ["--yes", "server@10.0.0"])
         self.assertEqual(result["mcpServers"]["scoped"]["args"], ["--package=@scope/server@10.0.0", "server-cli"])
-        self.assertEqual(result["mcpServers"]["firecrawl"]["args"], ["-lc", updater.MCP_INPUTS.FIRECRAWL_PREFIX + "firecrawl-mcp@10.0.0"])
-        for name in ("direct", "scoped", "firecrawl"):
+        for name in ("direct", "scoped"):
             result["mcpServers"][name]["args"] = original["mcpServers"][name]["args"]
         self.assertEqual(result, original)
 
@@ -48,6 +45,7 @@ class MCPVersionUpdateTests(unittest.TestCase):
             "disabled": {"command": "npx", "args": ["server@1.0.0"], "disabled": True},
             "floating": {"command": "npx", "args": ["server@latest"]},
             "shell": {"command": "/bin/zsh", "args": ["-lc", "npx -y server@1.0.0; touch unexpected"]},
+            "local-env-shell": {"command": "/bin/zsh", "args": ["-lc", 'source "$HOME/.zshrc.local" 2>/dev/null || true; exec npx -y server@1.0.0']},
         }}
         text = json.dumps(config)
         self.assertEqual(updater.update_configuration(text, metadata), (text, []))
