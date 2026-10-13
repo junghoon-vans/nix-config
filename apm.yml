@@ -82,3 +82,6 @@ dependencies:
     - git: https://github.com/planetscale/database-skills.git
       path: skills/mysql
       ref: 73b20b7eb64716d8c7100c054f0677c0c6e77e30
+    - git: https://github.com/NVIDIA/SkillSpector.git
+      path: skills/skill-inspector
+      ref: 69d7d059da38160296b2311320ed4c72a9c3fdb6

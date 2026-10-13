@@ -122,6 +122,16 @@ dependencies:
   is_virtual: true
   package_type: claude_skill
   content_hash: sha256:0ce2a01517e16cd88b2d7c55b264aacfdb3f7e7feb968a4ce05399142591a0a3
+- repo_url: nvidia/skillspector
+  name: skill-inspector
+  host: github.com
+  resolved_commit: 69d7d059da38160296b2311320ed4c72a9c3fdb6
+  resolved_ref: 69d7d059da38160296b2311320ed4c72a9c3fdb6
+  version: unknown
+  virtual_path: skills/skill-inspector
+  is_virtual: true
+  package_type: claude_skill
+  content_hash: sha256:26e8cdf95215de34f9f832ff3b897649dcef118da318886d2665a7fcd026f91d
 - repo_url: obra/superpowers
   name: using-git-worktrees
   host: github.com

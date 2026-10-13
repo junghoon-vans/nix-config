@@ -8,7 +8,7 @@ set -euo pipefail
 : "${EVALUATE_RESULT:?EVALUATE_RESULT must be set}"
 
 if [ "$CHANGES_RESULT" != "success" ]; then
-  printf 'Change detection failed: changes=%s\n' "$CHANGES_RESULT" >&2
+  printf 'Change detection or pinned skill input validation failed: changes=%s\n' "$CHANGES_RESULT" >&2
   exit 1
 fi
 
