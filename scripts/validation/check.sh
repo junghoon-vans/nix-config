@@ -29,11 +29,13 @@ python3 -B -m unittest discover -s scripts/nix -p 'test_*.py'
 python3 -B -m unittest discover -s scripts/aside -p 'test_*.py'
 python3 -B -m unittest discover -s scripts/dock -p 'test_*.py'
 python3 -B -m unittest discover -s scripts/maintenance -p 'test_*.py'
+python3 -B -m unittest discover -s scripts/updates -p 'test_*.py'
 python3 -B scripts/validation/check-doc-version-drift.py
 python3 -B scripts/validation/check-release-pins.py
 python3 -B scripts/docs/update-inventory.py --check
 python3 -B scripts/updates/update-fixed-release.py --help >/dev/null
 python3 -B scripts/updates/update-tagged-skills.py --help >/dev/null
+python3 -B scripts/updates/update-mcp-versions.py --help >/dev/null
 
 nix_files=()
 while IFS= read -r file; do
