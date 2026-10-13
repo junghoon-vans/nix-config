@@ -82,3 +82,36 @@ jobs:
             "Automated update of APM dependencies whose upstream repositories publish stable tags. Commit-only dependencies remain pinned for manual review." \
             apm.yml \
             apm.lock.yaml
+
+  npm-mcps:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Create repository-scoped update token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.DEPENDENCY_UPDATES_APP_CLIENT_ID }}
+          private-key: ${{ secrets.DEPENDENCY_UPDATES_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token }}
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - name: Test MCP version updates
+        run: python -B -m unittest discover -s scripts/updates -p 'test_*.py'
+      - name: Resolve newer stable npm MCP versions
+        run: python -B scripts/updates/update-mcp-versions.py
+      - name: Open MCP version update pull request
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          scripts/updates/open-update-pr.sh \
+            automation/update-npm-mcps \
+            "chore(deps): update npm MCP server versions" \
+            "Automated exact-version npm MCP update from the registry latest tags. Prerelease pins, disabled servers, remote services, and unsupported launch commands remain unchanged. MCP inspection runs on the changed configuration; findings are advisory. Review and activation remain manual." \
+            home/.omp/agent/mcp.json
