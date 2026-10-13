@@ -1,0 +1,2 @@
+cisco-ai-mcp-scanner @ git+https://github.com/cisco-ai-defense/mcp-scanner.git@5d147dc7e3635606e41104112fa297b45444b05c
+mcp==2.3.0

@@ -1,0 +1,68 @@
+name: MCP security advisory
+
+on:
+  pull_request:
+    paths:
+      - home/.omp/agent/mcp.json
+      - scripts/security/scan-mcp.py
+      - scripts/security/mcp_sandbox.py
+      - scripts/security/mcp-requirements.txt
+      - scripts/security/test_scan_mcp.py
+      - .github/workflows/mcp-security.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.head.repo.full_name || github.repository }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  scan:
+    name: MCP Scanner advisory
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - name: Test MCP inspection contract
+        run: python -B -m unittest discover -s scripts/security -p 'test_scan_mcp.py'
+      - name: Install pinned Cisco MCP Scanner
+        run: >-
+          python -m pip install --disable-pip-version-check --no-cache-dir
+          -r scripts/security/mcp-requirements.txt
+      - name: Inspect changed MCP servers (advisory only)
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.sha }}
+        run: >-
+          python -B scripts/security/scan-mcp.py
+          --base-ref "$BASE_REF"
+          --output-dir "$RUNNER_TEMP/mcp-reports"
+      - name: Inspect all configured MCP servers (manual advisory run)
+        if: github.event_name == 'workflow_dispatch'
+        run: >-
+          python -B scripts/security/scan-mcp.py
+          --all
+          --output-dir "$RUNNER_TEMP/mcp-reports"
+      - name: Upload MCP inspection reports
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: mcp-security-reports
+          path: ${{ runner.temp }}/mcp-reports/
+          if-no-files-found: ignore
+          retention-days: 30
+      - name: Report inspection infrastructure failure
+        if: failure()
+        run: |
+          printf '%s\n' '## MCP Scanner advisory' \
+            'Inspection did not finish successfully. Review the job logs and any report artifacts; no safety conclusion is available.' \
+            >> "$GITHUB_STEP_SUMMARY"
