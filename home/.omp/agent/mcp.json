@@ -23,6 +23,15 @@
     "gnomcp": {
       "command": "/run/current-system/sw/bin/gnomcp"
     },
+    "ux-ui-gates": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "--package=ux-ui-agent-skills@2.9.8",
+        "ux-ui-mcp"
+      ],
+      "instructions": false
+    },
     "aside": {
       "command": "aside",
       "args": [
