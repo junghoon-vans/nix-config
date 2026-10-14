@@ -76,6 +76,9 @@ dependencies:
       path: skills/using-git-worktrees
       ref: v7.0.0
     - git: https://github.com/mattpocock/skills.git
+      path: skills/engineering/codebase-design
+      ref: 49dd158d1076134a641b33efb035946536778336
+    - git: https://github.com/mattpocock/skills.git
       path: skills/engineering/diagnosing-bugs
       ref: v1.3.1
     - git: https://github.com/anthropics/knowledge-work-plugins.git
