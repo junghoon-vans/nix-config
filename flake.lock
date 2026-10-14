@@ -128,11 +128,11 @@
     "oh-my-zsh": {
       "flake": false,
       "locked": {
-        "lastModified": 1791555077,
-        "narHash": "sha256-uH64MqoZDdxMiwpvp//mTgaLTpr3NntwYk3ERM3IqFg=",
+        "lastModified": 1791707276,
+        "narHash": "sha256-M2WyDsu5//I4sEFFkG3sQhUkQBUsfK8Yb0cGN5h/few=",
         "owner": "ohmyzsh",
         "repo": "ohmyzsh",
-        "rev": "42a4ccb1b14dbeffe81259105a5243b4f4cb618e",
+        "rev": "48feb570f7b7d80cc7554629ba428c520ea8a3d5",
         "type": "github"
       },
       "original": {
