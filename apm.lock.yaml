@@ -134,6 +134,16 @@ dependencies:
   is_virtual: true
   package_type: claude_skill
   content_hash: sha256:6e4bfebac7befd070f31a0711c295426933481888c38c240f558e8338fc0c72e
+- repo_url: mattpocock/skills
+  name: tdd
+  host: github.com
+  resolved_commit: 49dd158d1076134a641b33efb035946536778336
+  resolved_ref: 49dd158d1076134a641b33efb035946536778336
+  version: unknown
+  virtual_path: skills/engineering/tdd
+  is_virtual: true
+  package_type: claude_skill
+  content_hash: sha256:ef3cbb31aa8b1f8a3f9b6a042c230dc9312019e84cdc6337f60890f177fd5764
 - repo_url: nextlevelbuilder/ui-ux-pro-max-skill
   name: ui-ux-pro-max
   host: github.com
