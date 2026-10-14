@@ -87,6 +87,9 @@ dependencies:
     - git: https://github.com/anthropics/knowledge-work-plugins.git
       path: engineering/skills/documentation
       ref: bdf7160f2b33598fb0cb3860027e033cbaec7ce6
+    - git: https://github.com/anthropics/knowledge-work-plugins.git
+      path: product-management/skills/write-spec
+      ref: 02ffa99ff00ce4d3046ccebabb8357cb39f3ab06
     - git: https://github.com/wshobson/agents.git
       path: plugins/kubernetes-operations/skills/helm-chart-scaffolding
       ref: 4236bb91f8395b0435f1d8b8baf9e8e4c69a8620

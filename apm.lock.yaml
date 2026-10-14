@@ -31,6 +31,16 @@ dependencies:
   is_virtual: true
   package_type: claude_skill
   content_hash: sha256:c61468452cd59a348d0800ed5454c4206084d11089fffd14d77a685a29c7ba93
+- repo_url: anthropics/knowledge-work-plugins
+  name: write-spec
+  host: github.com
+  resolved_commit: 02ffa99ff00ce4d3046ccebabb8357cb39f3ab06
+  resolved_ref: 02ffa99ff00ce4d3046ccebabb8357cb39f3ab06
+  version: unknown
+  virtual_path: product-management/skills/write-spec
+  is_virtual: true
+  package_type: claude_skill
+  content_hash: sha256:be9823943cc5f15fba80d32308dd74406371986c1327842c5ce4fe276705fb6a
 - repo_url: anthropics/skills
   name: frontend-design
   host: github.com
