@@ -125,6 +125,16 @@ dependencies:
   package_type: claude_skill
   content_hash: sha256:17fc96614baa7a671f1421a7412942af2b745681042f1030fc045fc5f93b35e5
 - repo_url: mattpocock/skills
+  name: codebase-design
+  host: github.com
+  resolved_commit: 49dd158d1076134a641b33efb035946536778336
+  resolved_ref: 49dd158d1076134a641b33efb035946536778336
+  version: unknown
+  virtual_path: skills/engineering/codebase-design
+  is_virtual: true
+  package_type: claude_skill
+  content_hash: sha256:07246bd43eadfb50ac686aee5297d2cb808bf5ad00fb2ed289416b4b79e7850c
+- repo_url: mattpocock/skills
   name: diagnosing-bugs
   host: github.com
   resolved_commit: 24fe0ef7737efae15c87225755e9f6f5965e4888
