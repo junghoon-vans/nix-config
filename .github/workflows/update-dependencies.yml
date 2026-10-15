@@ -18,7 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        package: [apm, bun, gnomcp, omp, paseo]
+        package: [apm, bun, gnomcp, omp, paseo, hermes]
     steps:
       - name: Create repository-scoped update token
         id: app-token
@@ -33,6 +33,16 @@ jobs:
           fetch-depth: 0
           token: ${{ steps.app-token.outputs.token }}
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        if: matrix.package == 'hermes'
+        with:
+          python-version: "3.12"
+      - name: Install Hermes release feed parser
+        if: matrix.package == 'hermes'
+        run: python -m pip install PyYAML==6.0.3
+      - name: Test Hermes stable feed parser
+        if: matrix.package == 'hermes'
+        run: python3 -B -m unittest discover -s scripts/updates -p 'test_hermes_release.py'
       - id: update
         name: Resolve latest release and hash
         env:
@@ -47,7 +57,7 @@ jobs:
           scripts/updates/open-update-pr.sh \
             "automation/update-${{ matrix.package }}" \
             "chore(deps): update ${{ matrix.package }} to ${{ steps.update.outputs.version }}" \
-            "Automated fixed-release update. Release-pin-only validation checks manifest structure and SHA-256 hash syntax; full host builds are skipped. Activation remains manual." \
+            "Automated fixed-release update. Release-pin-only validation checks manifest structure and SRI hash syntax; full host builds are skipped. Activation remains manual." \
             release-pins.json
 
   tagged-skills:
@@ -102,6 +112,8 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12"
+      - name: Install Hermes release feed parser for updater tests
+        run: python -m pip install PyYAML==6.0.3
       - name: Test MCP version updates
         run: python -B -m unittest discover -s scripts/updates -p 'test_*.py'
       - name: Resolve newer stable npm MCP versions
