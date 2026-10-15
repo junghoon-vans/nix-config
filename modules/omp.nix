@@ -16,6 +16,7 @@ let
       inherit (ompRelease) hash;
     };
     dontUnpack = true;
+    meta.mainProgram = "omp";
     installPhase = ''
       install -Dm755 "$src" "$out/bin/omp"
     '';
@@ -24,9 +25,14 @@ in
 {
   options.workstation.omp = {
     enable = lib.mkEnableOption "Oh My Pi";
+    package = lib.mkOption {
+      type = lib.types.package;
+      default = omp;
+      description = "Pinned OMP executable shared by interactive and ACP sessions.";
+    };
   };
 
   config = lib.mkIf cfg.enable {
-    environment.systemPackages = [ omp ];
+    environment.systemPackages = [ cfg.package ];
   };
 }
