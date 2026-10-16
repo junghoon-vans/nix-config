@@ -22,16 +22,6 @@ dependencies:
   package_type: claude_skill
   content_hash: sha256:7bca2a38e630dae90f022997b6a50754f6e9d83ca85f9134f677cfcde9c703a6
 - repo_url: anthropics/knowledge-work-plugins
-  name: slack-messaging
-  host: github.com
-  resolved_commit: bdf7160f2b33598fb0cb3860027e033cbaec7ce6
-  resolved_ref: bdf7160f2b33598fb0cb3860027e033cbaec7ce6
-  version: unknown
-  virtual_path: partner-built/slack/skills/slack-messaging
-  is_virtual: true
-  package_type: claude_skill
-  content_hash: sha256:c61468452cd59a348d0800ed5454c4206084d11089fffd14d77a685a29c7ba93
-- repo_url: anthropics/knowledge-work-plugins
   name: write-spec
   host: github.com
   resolved_commit: 02ffa99ff00ce4d3046ccebabb8357cb39f3ab06
@@ -255,6 +245,16 @@ dependencies:
   is_virtual: true
   package_type: claude_skill
   content_hash: sha256:99c972c81a7d6e3181569a39ffb50691a3d05b7a2458432cdcfce3238c922985
+- repo_url: slackapi/slack-skills-plugin
+  name: slack-messaging
+  host: github.com
+  resolved_commit: ad6be88096678812c448b0279390b4d25bce0164
+  resolved_ref: ad6be88096678812c448b0279390b4d25bce0164
+  version: unknown
+  virtual_path: skills/slack-messaging
+  is_virtual: true
+  package_type: claude_skill
+  content_hash: sha256:5ade5a5d2698e71a9010b750097ebaf3e6a8055591ba7611d3f8128f32be6699
 - repo_url: supabase/agent-skills
   name: supabase-postgres-best-practices
   host: github.com
