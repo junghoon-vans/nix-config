@@ -63,6 +63,9 @@ dependencies:
     - git: https://github.com/slackapi/slack-skills-plugin.git
       path: skills/slack-messaging
       ref: ad6be88096678812c448b0279390b4d25bce0164
+    - git: https://github.com/netresearch/jira-skill.git
+      path: skills/jira-syntax
+      ref: 7ce57b7a60ab0173aed2c1808d2375a438204937
     - git: https://github.com/openai/skills.git
       path: skills/.curated/security-best-practices
       ref: 49f948faa9258a0c61caceaf225e179651397431
