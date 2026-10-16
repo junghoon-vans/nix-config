@@ -8,6 +8,9 @@ version_pattern = re.compile(r"(?<![A-Za-z0-9_])v?\d+\.\d+(?:\.\d+)?(?:[-+][A-Za
 violations = []
 
 for document in (root / "docs").rglob("*.md"):
+    # Generated refs are checked against apm.yml by the skill inventory CI step.
+    if document == root / "docs/skills.md":
+        continue
     for line_number, line in enumerate(document.read_text().splitlines(), start=1):
         if match := version_pattern.search(line):
             violations.append(

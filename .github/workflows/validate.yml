@@ -30,6 +30,8 @@ jobs:
           python-version: "3.12"
       - name: Install lockfile parser
         run: python -m pip install --disable-pip-version-check -r scripts/security/requirements.txt
+      - name: Check generated skill inventory
+        run: make skills-check
       - name: Test skill inspection contract
         run: python -B -m unittest discover -s scripts/security -p 'test_*.py'
       - id: skills
