@@ -164,6 +164,16 @@ dependencies:
   is_virtual: true
   package_type: claude_skill
   content_hash: sha256:ef3cbb31aa8b1f8a3f9b6a042c230dc9312019e84cdc6337f60890f177fd5764
+- repo_url: netresearch/jira-skill
+  name: jira-syntax
+  host: github.com
+  resolved_commit: 7ce57b7a60ab0173aed2c1808d2375a438204937
+  resolved_ref: 7ce57b7a60ab0173aed2c1808d2375a438204937
+  version: unknown
+  virtual_path: skills/jira-syntax
+  is_virtual: true
+  package_type: claude_skill
+  content_hash: sha256:caeae96c8c0793645f08183c43e1ffe5ee2c4d4234729f674eee0d707e042145
 - repo_url: nextlevelbuilder/ui-ux-pro-max-skill
   name: ui-ux-pro-max
   host: github.com
