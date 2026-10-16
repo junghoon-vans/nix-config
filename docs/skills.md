@@ -9,7 +9,7 @@ Names use explicit skill selectors, then aliases, then the final path component.
 Source links use the declared ref and package path; selectors identify package exports,
 not inferred repository directories. See [APM management](apm.md) for deployment and updates.
 
-Declared skills: 32.
+Declared skills: 33.
 
 | Skill | Repository | Package path | Ref | Skill selector | Source |
 | --- | --- | --- | --- | --- | --- |
@@ -26,6 +26,7 @@ Declared skills: 32.
 | `humanizer` | https://github.com/blader/humanizer | `.` | `225a6f39ac85f76ee48dbad772ea4abe4ed6c9d8` | humanizer | [upstream](https://github.com/blader/humanizer/tree/225a6f39ac85f76ee48dbad772ea4abe4ed6c9d8) |
 | `incident-response` | https://github.com/anthropics/knowledge-work-plugins | `engineering/skills/incident-response` | `bdf7160f2b33598fb0cb3860027e033cbaec7ce6` | — | [upstream](https://github.com/anthropics/knowledge-work-plugins/tree/bdf7160f2b33598fb0cb3860027e033cbaec7ce6/engineering/skills/incident-response) |
 | `inspiration-scouting` | https://github.com/Owl-Listener/designpowers | `skills/inspiration-scouting` | `cb00757da9d554591fa78d27aa1854d60a05c4f7` | — | [upstream](https://github.com/Owl-Listener/designpowers/tree/cb00757da9d554591fa78d27aa1854d60a05c4f7/skills/inspiration-scouting) |
+| `jira-syntax` | https://github.com/netresearch/jira-skill | `skills/jira-syntax` | `7ce57b7a60ab0173aed2c1808d2375a438204937` | — | [upstream](https://github.com/netresearch/jira-skill/tree/7ce57b7a60ab0173aed2c1808d2375a438204937/skills/jira-syntax) |
 | `mcp-builder` | https://github.com/anthropics/skills | `skills/mcp-builder` | `34040c9c568585f6929bedeaad110ad08f079624` | — | [upstream](https://github.com/anthropics/skills/tree/34040c9c568585f6929bedeaad110ad08f079624/skills/mcp-builder) |
 | `mysql` | https://github.com/planetscale/database-skills | `skills/mysql` | `73b20b7eb64716d8c7100c054f0677c0c6e77e30` | — | [upstream](https://github.com/planetscale/database-skills/tree/73b20b7eb64716d8c7100c054f0677c0c6e77e30/skills/mysql) |
 | `notion-research-documentation` | https://github.com/openai/skills | `skills/.curated/notion-research-documentation` | `49f948faa9258a0c61caceaf225e179651397431` | — | [upstream](https://github.com/openai/skills/tree/49f948faa9258a0c61caceaf225e179651397431/skills/.curated/notion-research-documentation) |
@@ -33,7 +34,7 @@ Declared skills: 32.
 | `security-best-practices` | https://github.com/openai/skills | `skills/.curated/security-best-practices` | `49f948faa9258a0c61caceaf225e179651397431` | — | [upstream](https://github.com/openai/skills/tree/49f948faa9258a0c61caceaf225e179651397431/skills/.curated/security-best-practices) |
 | `skill-creator` | https://github.com/anthropics/skills | `skills/skill-creator` | `34040c9c568585f6929bedeaad110ad08f079624` | — | [upstream](https://github.com/anthropics/skills/tree/34040c9c568585f6929bedeaad110ad08f079624/skills/skill-creator) |
 | `skill-inspector` | https://github.com/NVIDIA/SkillSpector | `skills/skill-inspector` | `69d7d059da38160296b2311320ed4c72a9c3fdb6` | — | [upstream](https://github.com/NVIDIA/SkillSpector/tree/69d7d059da38160296b2311320ed4c72a9c3fdb6/skills/skill-inspector) |
-| `slack-messaging` | https://github.com/anthropics/knowledge-work-plugins | `partner-built/slack/skills/slack-messaging` | `bdf7160f2b33598fb0cb3860027e033cbaec7ce6` | — | [upstream](https://github.com/anthropics/knowledge-work-plugins/tree/bdf7160f2b33598fb0cb3860027e033cbaec7ce6/partner-built/slack/skills/slack-messaging) |
+| `slack-messaging` | https://github.com/slackapi/slack-skills-plugin | `skills/slack-messaging` | `ad6be88096678812c448b0279390b4d25bce0164` | — | [upstream](https://github.com/slackapi/slack-skills-plugin/tree/ad6be88096678812c448b0279390b4d25bce0164/skills/slack-messaging) |
 | `supabase-postgres-best-practices` | https://github.com/supabase/agent-skills | `skills/supabase-postgres-best-practices` | `v0.1.9` | — | [upstream](https://github.com/supabase/agent-skills/tree/v0.1.9/skills/supabase-postgres-best-practices) |
 | `tdd` | https://github.com/mattpocock/skills | `skills/engineering/tdd` | `49dd158d1076134a641b33efb035946536778336` | — | [upstream](https://github.com/mattpocock/skills/tree/49dd158d1076134a641b33efb035946536778336/skills/engineering/tdd) |
 | `transitions-dev` | https://github.com/Jakubantalik/transitions.dev | `skills/transitions-dev` | `a0c6e7bbf603a0a46588e37c6c6a4d0af3290d52` | — | [upstream](https://github.com/Jakubantalik/transitions.dev/tree/a0c6e7bbf603a0a46588e37c6c6a4d0af3290d52/skills/transitions-dev) |
