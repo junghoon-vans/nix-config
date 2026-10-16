@@ -1,0 +1,29 @@
+{
+  "skill_name": "jira-cloud-formatting",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Jira Cloud 이슈 설명에 바로 붙여넣을 수 있게 아래 버그 메모를 한국어로 정리해줘. 제목은 '결제 완료 후 주문 내역이 비어 있음'. 재현: 상품 선택, 결제 진행, 완료 화면 확인. 기대 결과: 주문 번호와 상품이 표시됨. 실제 결과: 완료 화면은 뜨지만 주문 내역이 비어 있음. 초안만 만들고 Jira에는 올리지 마.",
+      "expected_output": "A Korean, paste-ready Jira Cloud editor draft using supported Markdown structure (for example, headings and an ordered list) that preserves the supplied title and reproduction/expected/actual details without adding facts. It clearly remains a draft and does not post to Jira.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Convert this Jira Wiki Markup content for a Jira Cloud description I will paste manually:\nh2. 장애 정보\n앱이 간헐적으로 로그인을 거부합니다.\n{panel:title=주의}\n비밀번호 변경 직후에는 재시도하지 말고 지원팀에 문의하세요.\n{panel}\n||환경||결과||\n|iOS 18.1|실패|\n|Web 127.0.0.1|성공|\n{code:json}\n{\"error\":\"AUTH-17\"}\n{code}\n요청 ID {{rq-81}}\nKeep every value, explain what I need to insert with Jira's editor controls, and don't post it.",
+      "expected_output": "A Cloud-editor-oriented conversion with a Markdown heading, preserved prose, fenced JSON code, and inline code for the request ID; no legacy Wiki syntax in the converted draft. It preserves the panel title/text and every table header/cell, explicitly says to insert a real panel and table with the toolbar or slash-command menu and place the supplied content there, and does not claim Wiki/Markdown table or panel syntax will convert on paste. No posting.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Prepare, but do not send, payloads for these two Jira Cloud routes. MCP create_issue input schema: {\"type\":\"object\",\"required\":[\"projectKey\",\"summary\",\"description\"],\"properties\":{\"projectKey\":{\"type\":\"string\"},\"summary\":{\"type\":\"string\"},\"description\":{\"type\":\"string\",\"description\":\"Plain text only; no Markdown or ADF parser\"}}}. Values: projectKey WEB, summary 'Login retry counter resets', description 'After 3 failed logins, retry counter returns to 0 instead of locking after 5.' Also show the Jira REST API v3 description field representation if I use that route instead. Explain why the formats differ.",
+      "expected_output": "A schema-conforming MCP payload with projectKey WEB, the exact summary, and a plain-text description string (not Markdown or an ADF object); a separate direct REST API v3 description field fragment represented as an ADF doc object; a concise explanation that the MCP schema governs MCP while ADF applies to the specified REST rich-text field. It prepares drafts only, does not invoke a tool, and invents no account IDs or other identifiers.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Prepare but do not send a Jira comment for WEB-42 on example.atlassian.net. Make 'Retry limit reached' bold and use ADF for fidelity. The MCP input has cloudId:string, issueIdOrKey:string, commentBody:string, contentFormat:enum(markdown,adf). Its docs explicitly say commentBody accepts serialized ADF JSON when contentFormat is adf. Return the tool arguments only.",
+      "expected_output": "JSON tool arguments with the supplied cloudId and issueIdOrKey, contentFormat adf, and commentBody containing a JSON-encoded ADF doc string with a strong mark. It does not pass an ADF object into the string field and does not send the comment.",
+      "files": []
+    }
+  ]
+}

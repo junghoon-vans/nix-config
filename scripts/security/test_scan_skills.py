@@ -1,7 +1,9 @@
 import importlib.util
 from pathlib import Path
+import tempfile
 import unittest
-
+from types import SimpleNamespace
+from unittest.mock import patch
 
 SCRIPT = Path(__file__).with_name("scan-skills.py")
 spec = importlib.util.spec_from_file_location("scan_skills", SCRIPT)
@@ -178,6 +180,110 @@ class ChangedDependenciesTests(unittest.TestCase):
         }
 
         self.assertEqual(scan_skills.changed_dependencies(base, head), [])
+
+
+class LocalDependencyTests(unittest.TestCase):
+    def test_local_manifest_and_lock_identity_are_supported(self):
+        manifest = {"dependencies": {"apm": [{"path": "./skills/jira-cloud-formatting"}]}}
+        lock = {"dependencies": [{
+            "repo_url": "_local/jira-cloud-formatting",
+            "name": "jira-cloud-formatting",
+            "version": "unknown",
+            "package_type": "claude_skill",
+            "source": "local",
+            "local_path": "./skills/jira-cloud-formatting",
+        }]}
+
+        scan_skills._assert_manifest_lock_consistent(manifest, lock, "head")
+
+    def test_local_manifest_paths_are_restricted_to_safe_skill_directories(self):
+        unsafe_paths = (
+            "/skills/jira-cloud-formatting",
+            "../skills/jira-cloud-formatting",
+            "./skills/../outside",
+            "./other/jira-cloud-formatting",
+            "./skills/nested/jira-cloud-formatting",
+            "./skills/jira-cloud-formatting/",
+            "./skills/jira-cloud-formatting\\outside",
+            "./skills/.git",
+        )
+        for path in unsafe_paths:
+            with self.subTest(path=path):
+                manifest = {"dependencies": {"apm": [{"path": path}]}}
+                with self.assertRaises(scan_skills.ScanError):
+                    scan_skills._manifest_dependencies(manifest)
+
+    def test_local_lock_source_path_and_name_must_match_manifest(self):
+        manifest = {"dependencies": {"apm": [{"path": "./skills/jira-cloud-formatting"}]}}
+        entry = {
+            "repo_url": "_local/jira-cloud-formatting",
+            "name": "jira-cloud-formatting",
+            "version": "unknown",
+            "package_type": "claude_skill",
+            "source": "local",
+            "local_path": "./skills/jira-cloud-formatting",
+        }
+        invalid_values = {
+            "repo_url": "_local/other",
+            "source": "remote",
+            "local_path": "./skills/other",
+            "name": "other",
+        }
+        for field, value in invalid_values.items():
+            with self.subTest(field=field):
+                lock = {"dependencies": [entry | {field: value}]}
+                with self.assertRaises(scan_skills.ScanError):
+                    scan_skills._assert_manifest_lock_consistent(manifest, lock, "head")
+
+    def test_changed_local_skill_source_is_selected_without_lock_changes(self):
+        manifest = {"dependencies": {"apm": [{"path": "./skills/jira-cloud-formatting"}]}}
+        lock = {"dependencies": [{
+            "repo_url": "_local/jira-cloud-formatting",
+            "name": "jira-cloud-formatting",
+            "version": "unknown",
+            "package_type": "claude_skill",
+            "source": "local",
+            "local_path": "./skills/jira-cloud-formatting",
+        }]}
+        manifest_yaml = """dependencies:
+  apm:
+    - path: ./skills/jira-cloud-formatting
+"""
+        lock_yaml = """dependencies:
+  - repo_url: _local/jira-cloud-formatting
+    name: jira-cloud-formatting
+    version: unknown
+    package_type: claude_skill
+    source: local
+    local_path: ./skills/jira-cloud-formatting
+"""
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "apm.yml").write_text(manifest_yaml, encoding="utf-8")
+            (root / "apm.lock.yaml").write_text(lock_yaml, encoding="utf-8")
+            with (
+                patch.object(scan_skills, "_read_lock_and_manifest", return_value=(manifest, lock)),
+                patch.object(
+                    scan_skills.subprocess,
+                    "run",
+                    return_value=SimpleNamespace(returncode=0, stdout=f"{COMMIT}\n", stderr=""),
+                ),
+                patch.object(
+                    scan_skills,
+                    "_git",
+                    return_value=b"skills/jira-cloud-formatting/SKILL.md\0",
+                ),
+            ):
+                plan = scan_skills._make_plan("base", root)
+
+        self.assertEqual(len(plan["dependencies"]), 1)
+        selected = plan["dependencies"][0]
+        self.assertEqual(selected["name"], "jira-cloud-formatting")
+        self.assertEqual(selected["change"], "changed")
+        self.assertEqual(selected["repo_url"], "junghoon-vans/nix-config")
+        self.assertEqual(selected["resolved_commit"], COMMIT)
+        self.assertEqual(selected["resolved_ref"], COMMIT)
+        self.assertEqual(selected["virtual_path"], "skills/jira-cloud-formatting")
 
 
 class DependencyValidationTests(unittest.TestCase):

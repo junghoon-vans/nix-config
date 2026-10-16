@@ -1,6 +1,12 @@
 lockfile_version: '1'
 apm_version: 0.33.0
 dependencies:
+- repo_url: _local/jira-cloud-formatting
+  name: jira-cloud-formatting
+  version: unknown
+  package_type: claude_skill
+  source: local
+  local_path: ./skills/jira-cloud-formatting
 - repo_url: anthropics/knowledge-work-plugins
   name: documentation
   host: github.com
@@ -154,16 +160,6 @@ dependencies:
   is_virtual: true
   package_type: claude_skill
   content_hash: sha256:ef3cbb31aa8b1f8a3f9b6a042c230dc9312019e84cdc6337f60890f177fd5764
-- repo_url: netresearch/jira-skill
-  name: jira-syntax
-  host: github.com
-  resolved_commit: 7ce57b7a60ab0173aed2c1808d2375a438204937
-  resolved_ref: 7ce57b7a60ab0173aed2c1808d2375a438204937
-  version: unknown
-  virtual_path: skills/jira-syntax
-  is_virtual: true
-  package_type: claude_skill
-  content_hash: sha256:caeae96c8c0793645f08183c43e1ffe5ee2c4d4234729f674eee0d707e042145
 - repo_url: nextlevelbuilder/ui-ux-pro-max-skill
   name: ui-ux-pro-max
   host: github.com
@@ -175,6 +171,7 @@ dependencies:
   package_type: claude_skill
   content_hash: sha256:0ce2a01517e16cd88b2d7c55b264aacfdb3f7e7feb968a4ce05399142591a0a3
 - repo_url: nvidia/skillspector
+  materialization_repo_url: NVIDIA/SkillSpector
   name: skill-inspector
   host: github.com
   resolved_commit: 69d7d059da38160296b2311320ed4c72a9c3fdb6
