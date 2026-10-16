@@ -24,10 +24,11 @@ in
   homebrew = {
     enable = true;
     taps = builtins.attrNames config.nix-homebrew.taps;
+    greedyCasks = true;
     onActivation = {
-      autoUpdate = false;
-      upgrade = false;
-      cleanup = "none";
+      autoUpdate = true;
+      upgrade = true;
+      cleanup = "uninstall";
     };
 
     brews = [
