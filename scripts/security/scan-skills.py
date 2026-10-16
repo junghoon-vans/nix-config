@@ -24,6 +24,7 @@ COMMIT_RE = re.compile(r"[0-9a-fA-F]{40}\Z")
 REF_RE = re.compile(r"[A-Za-z0-9._/-]+\Z")
 PATH_PART_RE = re.compile(r"[A-Za-z0-9_.@+-]+\Z")
 NAME_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}\Z")
+_LOCAL_REPOSITORY = "junghoon-vans/nix-config"
 VALID_SEVERITIES = {"LOW", "MEDIUM", "HIGH", "CRITICAL"}
 VALID_RECOMMENDATIONS = {"SAFE", "CAUTION", "DO_NOT_INSTALL"}
 GIT_TIMEOUT_SECONDS = 300
@@ -127,6 +128,38 @@ def _validate_virtual_path(value: Any) -> str:
     return PurePosixPath(*parts).as_posix()
 
 
+def _validate_local_skill_path(value: Any) -> tuple[str, str]:
+    if not isinstance(value, str) or not value.startswith("./skills/"):
+        raise ValueError("local_path must be ./skills/<safe-name>")
+    name = value.removeprefix("./skills/")
+    if not NAME_RE.fullmatch(name):
+        raise ValueError("local_path must be ./skills/<safe-name>")
+    return value, name
+
+
+def _validate_local_dependency(entry: dict[str, Any]) -> tuple[str, str]:
+    name = entry.get("name")
+    if not isinstance(name, str) or not NAME_RE.fullmatch(name):
+        raise ValueError("local dependency has a missing or unsafe name")
+    alias = entry.get("alias")
+    if alias is not None and (not isinstance(alias, str) or not NAME_RE.fullmatch(alias)):
+        raise ValueError("local dependency alias is unsafe")
+    local_path, path_name = _validate_local_skill_path(entry.get("local_path"))
+    if entry.get("source") != "local":
+        raise ValueError("local dependency source must be local")
+    if entry.get("repo_url") != f"_local/{path_name}":
+        raise ValueError("local dependency repository identity does not match its path")
+    if alias is not None and name != alias:
+        raise ValueError("local dependency name does not match its alias")
+    if entry.get("package_type") != "claude_skill":
+        raise ValueError("local dependency must be a Claude skill")
+    if any(field in entry for field in (
+        "host", "materialization_repo_url", "resolved_commit", "resolved_ref", "virtual_path",
+    )):
+        raise ValueError("local dependency must not contain remote source metadata")
+    return local_path, path_name
+
+
 def validate_dependency(entry: dict) -> None:
     """Raise ValueError unless the lock entry identifies a safe pinned GitHub path."""
     if not isinstance(entry, dict):
@@ -183,7 +216,26 @@ def _manifest_dependencies(manifest: dict[str, Any]) -> list[dict[str, Any]]:
         unknown = set(row) - {"git", "path", "ref", "alias", "skills"}
         if unknown:
             raise ScanError(f"unsupported APM dependency fields: {', '.join(sorted(map(str, unknown)))}")
-        if not {"git", "ref"}.issubset(row):
+        alias = row.get("alias")
+        if alias is not None and (not isinstance(alias, str) or not NAME_RE.fullmatch(alias)):
+            raise ScanError("manifest dependency alias is missing or unsafe")
+        if "git" not in row:
+            if set(row) - {"path", "alias"} or "path" not in row:
+                raise ScanError("local APM dependencies require only a path and optional alias")
+            try:
+                local_path, path_name = _validate_local_skill_path(row["path"])
+            except ValueError as error:
+                raise ScanError(f"unsafe local manifest dependency: {error}") from error
+            normalized.append({
+                "source": "local",
+                "repo_url": f"_local/{path_name}",
+                "name": alias or path_name,
+                "local_path": local_path,
+                "alias": alias,
+                "virtual_path": f"skills/{path_name}",
+            })
+            continue
+        if "ref" not in row:
             raise ScanError("manifest APM dependencies require git and ref")
         try:
             repo = _git_repo_from_manifest(row["git"])
@@ -191,9 +243,6 @@ def _manifest_dependencies(manifest: dict[str, Any]) -> list[dict[str, Any]]:
             ref = _validate_ref(row["ref"])
         except ValueError as error:
             raise ScanError(f"unsafe manifest dependency: {error}") from error
-        alias = row.get("alias")
-        if alias is not None and (not isinstance(alias, str) or not NAME_RE.fullmatch(alias)):
-            raise ScanError("manifest dependency alias is missing or unsafe")
         skills = row.get("skills")
         if skills is not None and (
             not isinstance(skills, list) or not skills
@@ -205,7 +254,6 @@ def _manifest_dependencies(manifest: dict[str, Any]) -> list[dict[str, Any]]:
             "repo_url": repo, "virtual_path": path, "resolved_ref": ref,
             "alias": alias, "skills": skills,
         })
-
     return normalized
 
 
@@ -215,15 +263,25 @@ def _assert_manifest_lock_consistent(manifest: dict[str, Any], lock: dict[str, A
     except ValueError as error:
         raise ScanError(f"{label} lockfile is invalid: {error}") from error
 
+    local_sources: set[tuple[str, str]] = set()
     for entry in rows_by_name.values():
         try:
-            validate_dependency(entry)
+            if entry.get("source") == "local":
+                local_path, _ = _validate_local_dependency(entry)
+                local_key = (entry["repo_url"], local_path)
+                if local_key in local_sources:
+                    raise ValueError("lockfile contains duplicate local source/path entries")
+                local_sources.add(local_key)
+            else:
+                validate_dependency(entry)
         except ValueError as error:
             raise ScanError(f"{label} lock entry {entry.get('name', '<unnamed>')!r} is unsafe: {error}") from error
 
     manifest_rows = _manifest_dependencies(manifest)
     lock_keys: dict[tuple[str, str, str], dict[str, Any]] = {}
     for entry in rows_by_name.values():
+        if entry.get("source") == "local":
+            continue
         key = (
             _parse_github_repo(entry["repo_url"], "repo_url").casefold(),
             _validate_virtual_path(entry.get("virtual_path", ".")),
@@ -235,6 +293,21 @@ def _assert_manifest_lock_consistent(manifest: dict[str, Any], lock: dict[str, A
 
     matched: set[str] = set()
     for manifest_entry in manifest_rows:
+        if manifest_entry.get("source") == "local":
+            name = manifest_entry["name"]
+            locked = rows_by_name.get(name)
+            if (
+                locked is None
+                or locked.get("source") != "local"
+                or locked.get("repo_url") != manifest_entry["repo_url"]
+                or locked.get("local_path") != manifest_entry["local_path"]
+                or locked.get("alias") != manifest_entry["alias"]
+            ):
+                raise ScanError(f"{label} manifest/lock local source, path, or name drift for {name}")
+            if name in matched:
+                raise ScanError(f"{label} manifest maps multiple dependencies to lock entry {name}")
+            matched.add(name)
+            continue
         key = (
             manifest_entry["repo_url"].casefold(),
             manifest_entry["virtual_path"],
@@ -668,14 +741,40 @@ def _make_plan(base_ref: str, root: Path) -> dict[str, Any]:
     )
     if head_ref.returncode:
         raise ScanError(f"could not resolve HEAD: {head_ref.stderr.strip()[:1000]}")
+    head_commit = head_ref.stdout.strip()
+    if not COMMIT_RE.fullmatch(head_commit):
+        raise ScanError("HEAD did not resolve to a full 40-character commit")
     head_manifest = _load_yaml_document((root / "apm.yml").read_text(encoding="utf-8"), "head apm.yml")
     head_lock = _load_yaml_document((root / "apm.lock.yaml").read_text(encoding="utf-8"), "head apm.lock.yaml")
     _assert_manifest_lock_consistent(head_manifest, head_lock, "head")
     selected = changed_dependencies(base_lock, head_lock)
     old_by_name = _lock_dependencies(base_lock)
+    local_manifest_rows = [
+        entry for entry in _manifest_dependencies(head_manifest)
+        if entry.get("source") == "local"
+    ]
+    selected_local_names = {
+        entry["name"] for entry in selected if entry.get("source") == "local"
+    }
+    if local_manifest_rows:
+        changed_paths = {
+            os.fsdecode(path)
+            for path in _git(
+                ["diff", "--name-only", "-z", f"{base_ref}..{head_commit}", "--"],
+                cwd=root,
+            ).split(b"\0")
+            if path
+        }
+        selected_local_names.update(
+            entry["name"]
+            for entry in local_manifest_rows
+            if any(_path_overlaps(entry["virtual_path"], path) for path in changed_paths)
+        )
 
     changes = []
     for entry in selected:
+        if entry.get("source") == "local":
+            continue
         try:
             validate_dependency(entry)
         except ValueError as error:
@@ -691,9 +790,35 @@ def _make_plan(base_ref: str, root: Path) -> dict[str, Any]:
             "virtual_path": _validate_virtual_path(entry.get("virtual_path", ".")),
             "entry": entry,
         })
+    for manifest_entry in local_manifest_rows:
+        name = manifest_entry["name"]
+        if name not in selected_local_names:
+            continue
+        entry = {
+            "repo_url": _LOCAL_REPOSITORY,
+            "name": name,
+            "host": "github.com",
+            "resolved_commit": head_commit.lower(),
+            "resolved_ref": head_commit.lower(),
+            "virtual_path": manifest_entry["virtual_path"],
+        }
+        try:
+            validate_dependency(entry)
+        except ValueError as error:
+            raise ScanError(f"unsafe selected local dependency {name!r}: {error}") from error
+        changes.append({
+            "name": name,
+            "change": "added" if name not in old_by_name else "changed",
+            "repo_url": _LOCAL_REPOSITORY,
+            "materialization_repo_url": None,
+            "resolved_commit": head_commit.lower(),
+            "resolved_ref": head_commit.lower(),
+            "virtual_path": manifest_entry["virtual_path"],
+            "entry": entry,
+        })
     return {
         "base_ref": base_ref,
-        "head_ref": head_ref.stdout.strip(),
+        "head_ref": head_commit,
         "dependencies": changes,
     }
 
