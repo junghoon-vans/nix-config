@@ -66,12 +66,18 @@ jobs:
           fetch-depth: 0
           token: ${{ steps.app-token.outputs.token }}
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Install manifest parser
+        run: python -m pip install --disable-pip-version-check -r scripts/security/requirements.txt
       - name: Update tagged APM skills
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
           apm_store="$(nix build --no-link --print-out-paths .#apm)"
           python3 scripts/updates/update-tagged-skills.py --apm "$apm_store/bin/apm"
+          make skills
       - name: Open skill update pull request
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
@@ -81,7 +87,8 @@ jobs:
             "chore(deps): update tagged APM skills" \
             "Automated update of APM dependencies whose upstream repositories publish stable tags. Commit-only dependencies remain pinned for manual review." \
             apm.yml \
-            apm.lock.yaml
+            apm.lock.yaml \
+            docs/skills.md
 
   npm-mcps:
     runs-on: ubuntu-latest
