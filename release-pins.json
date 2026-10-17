@@ -11,11 +11,6 @@
     "version": "0.12.1",
     "hash": "sha256-H+TTtUYdgRDXWTFEFK/3buqzuYgiIY/R9ezt5ZUfqpY="
   },
-  "hermes": {
-    "version": "0.22.0",
-    "url": "https://hermes-assets.nousresearch.com/releases/tag/rc.3-v0.22.0/HermesBundled-0.22.0-mac-arm64.zip",
-    "hash": "sha512-/yJW3pbB9+1By97TUSY2xgv0S2O56QMQeoxs5v+8Z17MiVV5XWFVsTfd8RND7D9rFnQ1Eha8ThUWSOC1F9SF4Q=="
-  },
   "officecli": {
     "version": "1.0.155",
     "hash": "sha256-a4PKxVEgmVAZ8pm2MtmnyeiSaPOCtybh2tEjhk47V6o=",
