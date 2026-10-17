@@ -16,6 +16,42 @@ in
   ];
 
   nixpkgs.hostPlatform = "aarch64-darwin";
+  # Home Manager docs include declaration paths from Nixpkgs modules. Link
+  # those paths to the pinned source instead of serializing store paths.
+  nixpkgs.overlays = [
+    (final: prev: {
+      nixosOptionsDoc =
+        args:
+        prev.nixosOptionsDoc (
+          args
+          // {
+            transformOptions =
+              option:
+              let
+                transformed = (args.transformOptions or final.lib.id) option;
+                nixpkgsPath = "${toString inputs.nixpkgs.outPath}/";
+              in
+              transformed
+              // {
+                declarations = map (
+                  declaration:
+                  if final.lib.isAttrs declaration || !(final.lib.hasPrefix nixpkgsPath (toString declaration)) then
+                    declaration
+                  else
+                    let
+                      subpath = final.lib.removePrefix nixpkgsPath (toString declaration);
+                    in
+                    {
+                      url = "https://github.com/NixOS/nixpkgs/blob/${inputs.nixpkgs.rev}/${subpath}";
+                      name = "<nixpkgs/${subpath}>";
+                    }
+                ) transformed.declarations;
+              };
+          }
+        );
+    })
+  ];
+
   nix.enable = false;
 
   security.pam.services.sudo_local.touchIdAuth = true;
