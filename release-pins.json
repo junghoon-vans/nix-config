@@ -17,8 +17,8 @@
     "skillHash": "sha256-yVDShc5gAhcStHU/stn1kjCNViK6t3YikGHf7LHOVdQ="
   },
   "omp": {
-    "version": "18.11.2",
-    "hash": "sha256-379S6eyWbjBm5dj23zGCnbtIgsp02CsvtRG2WQF/acw="
+    "version": "18.12.0",
+    "hash": "sha256-J1IPqO3F2cmLIgSoFB9KtJC/td2/NZLnD8eLPdCqsbs="
   },
   "paseo": {
     "version": "0.11.4",
