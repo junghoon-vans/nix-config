@@ -34,7 +34,7 @@ in
 
   nix-homebrew = {
     enable = true;
-    enableRosetta = true;
+    enableRosetta = false;
     autoMigrate = true;
     user = user.username;
     mutableTaps = true;
