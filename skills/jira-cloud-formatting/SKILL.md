@@ -1,7 +1,7 @@
 ---
 name: jira-cloud-formatting
 description: >-
-  Draft and convert Jira Cloud rich-text content for editor paste, direct REST API v3 ADF fields, or a specifically supplied MCP tool schema. Use whenever someone asks to format a Jira issue/comment, convert Jira Wiki Markup, prepare a Jira payload, or make content paste-ready; Korean triggers include Jira 내용 포맷, 이슈 본문 작성, Jira에 붙여넣기, 위키 마크업 변환, and ADF로 변환. Do not assume Jira Server/Data Center behavior or that an MCP tool accepts ADF.
+  Draft and convert Jira Cloud rich-text content for editor paste, direct REST API v3 ADF fields, or a specifically supplied MCP tool schema. Use whenever someone asks to format a Jira issue/comment, write an issue description, convert Jira Wiki Markup, prepare a Jira payload, or make content paste-ready, regardless of the language of the request. Do not assume Jira Server/Data Center behavior or that an MCP tool accepts ADF.
 ---
 
 # Jira Cloud formatting
@@ -16,12 +16,15 @@ If the user has not specified a destination, default to **Jira Cloud editor past
 
 - Return the body in the user's language as copy-ready Markdown using only the editor's documented subset: headings, emphasis, strike-through, inline/fenced code, links, lists, quotes, and horizontal rules. Do not wrap the paste-ready body in a code fence in the final answer; use headings or a brief label to separate it from explanatory notes.
 - Jira Cloud's rich-text editor converts supported Markdown as you type or paste. The editor is the conversion surface; inspect the result where exact structure matters. Do not emit Jira Wiki Markup as if it were Cloud editor syntax.
+- For task items, the documented interactive shortcut is `[]` followed by Space. Do not promise that GitHub-style `- [ ]` checkboxes will convert on paste; preserve the task text and checked state, and inspect the editor result or guide the user to create the task items there.
+- For nested lists, use Tab to indent and Shift+Tab to outdent in the editor. Do not use repeated Wiki-style markers such as `**` to imply nesting; they do not convert to nested lists. Preserve the intended hierarchy and verify it after paste.
 - Do not promise that Markdown tables or panel-like text will become Jira tables or panels on paste. For a real table or panel, tell the user to insert one with the editor toolbar or `/` slash-command menu, then provide the exact cell values or panel text to place into it. Preserve every heading, row, cell, and callout detail; do not silently flatten or discard content.
 - Keep links and code literal where appropriate. Leave unsupported or ambiguous formatting readable rather than inventing behavior.
 
 ### Direct Jira REST API v3
 
 - For a rich-text field that the specific endpoint supports as ADF, create an Atlassian Document Format (ADF) document object, not a Markdown string. ADF documents have a versioned `doc` root and ordered block/inline nodes. Match the endpoint and field schema; do not assume every Jira field or node accepts the same content.
+- REST API v3 supports ADF in issue `description` and `environment`, comment `body`, worklog `comment`, and `textarea` custom fields (multi-line text). Single-line custom fields (`textfield`) accept strings, not ADF. Check the specific endpoint before constructing its request envelope; these field names are not interchangeable.
 - Return only the requested payload or field fragment. Do not fabricate project keys, issue IDs, account IDs, or other values the user did not provide.
 
 Minimal field-fragment example (not a complete create-issue request):
@@ -42,6 +45,12 @@ Minimal field-fragment example (not a complete create-issue request):
 ```
 
 Use table or panel ADF nodes only when the target endpoint and field support them; schema presence alone is not proof of endpoint support.
+
+Before returning an ADF payload:
+
+1. Validate the document against the [official ADF JSON Schema](http://go.atlassian.com/adf-json-schema) when a validator is available. Check the ADF document itself, not the surrounding REST request or a serialized MCP string; decode that string first. If validation cannot be run, state that it was not performed rather than claiming a validated payload.
+2. Separately check that the target endpoint and field support the selected nodes and marks. Passing JSON Schema validation proves document structure, not Jira endpoint compatibility.
+3. For `codeBlock`, use only unmarked `text` nodes in `content`, preserving the code and its line breaks exactly. Put syntax highlighting in `attrs.language`, not in text marks; unsupported language values render as plain monospaced text.
 
 ### MCP tool
 
@@ -82,3 +91,6 @@ The page displays `HTTP 500`.
 
 - [Markdown and keyboard shortcuts — Jira Cloud](https://support.atlassian.com/jira-software-cloud/docs/markdown-and-keyboard-shortcuts/)
 - [Atlassian Document Format: document structure](https://developer.atlassian.com/cloud/jira/platform/apis/document/structure/)
+- [Jira Cloud REST API v3: version and ADF field support](https://developer.atlassian.com/cloud/jira/platform/rest/v3/intro/#version)
+- [ADF JSON Schema](http://go.atlassian.com/adf-json-schema)
+- [ADF codeBlock node](https://developer.atlassian.com/cloud/jira/platform/apis/document/nodes/codeBlock/)
