@@ -67,7 +67,10 @@
       pkgs = nixpkgs.legacyPackages.${system};
     in
     {
-      packages.${system}.apm = pkgs.callPackage ./packages/apm.nix { };
+      packages.${system} = {
+        apm = pkgs.callPackage ./packages/apm.nix { };
+        hermes = pkgs.callPackage ./packages/hermes.nix { };
+      };
       formatter.${system} = pkgs.writeShellApplication {
         name = "nixfmt-all";
         runtimeInputs = [
@@ -85,7 +88,7 @@
         packages = with pkgs; [
           deadnix
           nixfmt
-          python3
+          (python3.withPackages (ps: [ ps.pyyaml ]))
           shellcheck
           statix
         ];

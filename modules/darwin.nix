@@ -17,6 +17,7 @@ in
 {
   environment.systemPackages = [
     (pkgs.callPackage ../packages/apm.nix { })
+    (pkgs.callPackage ../packages/hermes.nix { })
     (pkgs.callPackage ../packages/paseo.nix { })
   ];
   home-manager.backupCommand = homeManagerBackup;
@@ -45,7 +46,6 @@ in
       "delve"
       "go-task"
       "tmux"
-      "hermes-agent"
       "cmake"
       "pkgconf"
       "marksman"
