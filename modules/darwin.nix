@@ -26,8 +26,8 @@ in
     taps = builtins.attrNames config.nix-homebrew.taps;
     greedyCasks = true;
     onActivation = {
-      autoUpdate = true;
-      upgrade = true;
+      autoUpdate = false;
+      upgrade = false;
       cleanup = "none";
     };
 
