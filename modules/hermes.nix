@@ -59,7 +59,6 @@ let
     model = {
       provider = "openai-codex";
       default = cfg.model;
-      openai_runtime = "codex_app_server";
     };
     agent = {
       max_turns = 30;
@@ -121,7 +120,7 @@ in
     };
     model = lib.mkOption {
       type = lib.types.str;
-      default = "openai/gpt-5.5";
+      default = "openai/gpt-6.1-sol";
       description = "Hermes intake model; OMP retains its own model role configuration.";
     };
     repositoryRoots = lib.mkOption {
