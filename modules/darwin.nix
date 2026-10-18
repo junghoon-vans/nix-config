@@ -17,7 +17,6 @@ in
 {
   environment.systemPackages = [
     (pkgs.callPackage ../packages/apm.nix { })
-    (pkgs.callPackage ../packages/hermes.nix { })
     (pkgs.callPackage ../packages/paseo.nix { })
   ];
   home-manager.backupCommand = homeManagerBackup;
@@ -27,8 +26,8 @@ in
     taps = builtins.attrNames config.nix-homebrew.taps;
     greedyCasks = true;
     onActivation = {
-      autoUpdate = true;
-      upgrade = true;
+      autoUpdate = false;
+      upgrade = false;
       cleanup = "none";
     };
 
@@ -46,6 +45,7 @@ in
       "delve"
       "go-task"
       "tmux"
+      "hermes-agent"
       "cmake"
       "pkgconf"
       "marksman"
