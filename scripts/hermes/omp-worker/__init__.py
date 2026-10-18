@@ -36,6 +36,93 @@ def _conversation(session_id):
             session_id = row[0]
     raise RuntimeError("Invalid or excessive Hermes compression lineage.")
 
+def _required_string(value, name):
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"Missing or malformed {name}.")
+    return value
+
+
+def _canonical_directory(value, name):
+    value = _required_string(value, name)
+    path = Path(value)
+    if not path.is_absolute():
+        raise ValueError(f"Malformed {name}.")
+    path = path.resolve(strict=True)
+    if not path.is_dir():
+        raise ValueError(f"Malformed {name}.")
+    return path
+
+
+def _normalize_action_input(value, worktree_paths, ancestors=None):
+    if isinstance(value, (dict, list)):
+        ancestors = ancestors if ancestors is not None else set()
+        marker = id(value)
+        if marker in ancestors:
+            raise ValueError("Malformed OMP action input.")
+        ancestors.add(marker)
+        try:
+            if isinstance(value, dict):
+                normalized = {}
+                for key, item in value.items():
+                    if not isinstance(key, str):
+                        raise ValueError("Malformed OMP action input.")
+                    if key in ("path", "cwd"):
+                        if not isinstance(item, str) or not item.strip() or "\0" in item:
+                            raise ValueError("Malformed OMP action path.")
+                        path = Path(item)
+                        if not path.is_absolute():
+                            path = worktree_paths[0] / path
+                        lexical = Path(os.path.normpath(str(path)))
+                        resolved = lexical.resolve(strict=False)
+                        root = next((root for root in worktree_paths if lexical.is_relative_to(root)), None)
+                        if root is not None and resolved.is_relative_to(worktree_paths[0]):
+                            relative = lexical.relative_to(root).as_posix() or "."
+                            # This tagged value cannot collide with a literal
+                            # path input: path/cwd fields must contain strings.
+                            normalized[key] = {"$omp:v2:path": relative}
+                        else:
+                            normalized[key] = item
+                    else:
+                        normalized[key] = _normalize_action_input(item, worktree_paths, ancestors)
+                return normalized
+            return [_normalize_action_input(item, worktree_paths, ancestors) for item in value]
+        finally:
+            ancestors.remove(marker)
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    raise ValueError("Malformed OMP action input.")
+
+
+def _approval_identity(tool_call, get_session_env):
+    workspace = _required_string(get_session_env("HERMES_SESSION_SCOPE_ID"), "Slack workspace identity")
+    user = _required_string(get_session_env("HERMES_SESSION_USER_ID"), "Slack user identity")
+    if not isinstance(tool_call, dict):
+        raise ValueError("Missing OMP action.")
+    kind = _required_string(tool_call.get("kind"), "OMP operation kind")
+    if not isinstance(tool_call.get("rawInput"), dict) or not tool_call["rawInput"]:
+        raise ValueError("Missing or malformed complete OMP action input.")
+    worker = tool_call.get("hermes_worker")
+    if not isinstance(worker, dict):
+        raise ValueError("Missing trusted OMP worker identity.")
+    repository = _canonical_directory(worker.get("repository"), "canonical repository")
+    worktree = _canonical_directory(worker.get("worktree"), "OMP worktree")
+    if worktree == repository:
+        raise ValueError("Malformed OMP worktree.")
+
+    identity = {
+        "platform": "slack",
+        "workspace": workspace,
+        "user": user,
+        "repository": str(repository),
+        "kind": kind,
+        "rawInput": _normalize_action_input(
+            tool_call["rawInput"], (worktree, Path(os.path.abspath(worker["worktree"])))
+        ),
+    }
+    encoded = json.dumps(identity, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False)
+    rule_key = f"omp:v2:{hashlib.sha256(encoded.encode('utf-8')).hexdigest()}"
+    return identity, rule_key
+
 
 def _approve(params):
     from gateway.session_context import get_session_env
@@ -43,22 +130,44 @@ def _approve(params):
     from tools.approval import get_current_session_key, is_approval_bypass_active_for_session, request_tool_approval
     from tools.interrupt import is_interrupted
 
-    if is_approval_bypass_active_for_session(get_current_session_key()) or is_interrupted():
+    if not isinstance(params, dict):
         return False
-    if get_session_env("HERMES_SESSION_PLATFORM") != "slack":
+    session_key = get_current_session_key(default="")
+    if not isinstance(session_key, str) or not session_key.strip():
         return False
-    channel = get_session_env("HERMES_SESSION_CHAT_ID")
-    thread = get_session_env("HERMES_SESSION_THREAD_ID")
-    if not channel:
+    if is_approval_bypass_active_for_session(session_key) or is_interrupted():
         return False
-    detail = json.dumps(params.get("toolCall") or {}, ensure_ascii=False, indent=2)
+    try:
+        if get_session_env("HERMES_SESSION_PLATFORM") != "slack":
+            return False
+        channel = get_session_env("HERMES_SESSION_CHAT_ID")
+        thread = get_session_env("HERMES_SESSION_THREAD_ID")
+        if not isinstance(channel, str) or not channel.strip() or (thread is not None and not isinstance(thread, str)):
+            return False
+        tool_call = params.get("toolCall")
+        identity, rule_key = _approval_identity(tool_call, get_session_env)
+    except (KeyError, LookupError, OSError, RuntimeError, TypeError, ValueError):
+        return False
+    detail_data = {
+        "scope": {
+            "platform": identity["platform"],
+            "workspace": identity["workspace"],
+            "user": identity["user"],
+            "repository": identity["repository"],
+        },
+        "toolCall": tool_call,
+    }
+    try:
+        detail = json.dumps(detail_data, ensure_ascii=False, indent=2, allow_nan=False)
+    except (TypeError, ValueError):
+        return False
     if len(detail) > 60000:
         return False
     digest = hashlib.sha256(detail.encode()).hexdigest()
     nonce = uuid.uuid4().hex
     # The native approval card truncates its reason to 500 characters. Post
-    # the complete action as non-markup text first, then bind the card to its
-    # digest. Do not silently approve an operation the user could not inspect.
+    # the complete action as non-markup text first; the nonce and digest are
+    # audit labels only and do not identify the native approval rule.
     try:
         slack = WebClient(token=os.environ["SLACK_BOT_TOKEN"], timeout=15)
         chunks = [detail[offset:offset + 2800] for offset in range(0, len(detail), 2800)]
@@ -76,13 +185,20 @@ def _approve(params):
             )
     except Exception as error:
         raise RuntimeError("Cannot deliver complete OMP approval details to Slack; no action authorized.") from error
+    if is_interrupted():
+        return False
     reason = (
-        f"Approve only OMP action {nonce}, displayed above. SHA-256 {digest}. "
-        "Session/Always choices do not authorize later OMP actions."
+        f"OMP request {nonce}; audit SHA-256 {digest}. "
+        "Allow once approves this request only. "
+        "Session/Always grant this exact operation kind and complete raw input for the same Slack workspace, "
+        "user, and canonical repository shown above; changed inputs or scope require approval."
     )
-    decision = request_tool_approval("omp_task", reason, rule_key=f"omp:{nonce}")
-    return not is_interrupted() and decision.get("approved") is True
-
+    decision = request_tool_approval("omp_task", reason, rule_key=rule_key)
+    return (
+        not is_interrupted()
+        and isinstance(decision, dict)
+        and decision.get("approved") is True
+    )
 
 def _handle(args, *, session_id=None, status=False, **_):
     from tools.interrupt import is_interrupted

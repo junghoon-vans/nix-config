@@ -40,7 +40,7 @@ let
       expected_version = cfg.version;
       home = "${home}/.hermes";
       environment_file = "${home}/.hermes/.env";
-      managed_config = "${hermesConfig}";
+      config_defaults = "${hermesConfig}";
       plugin_source = "${../scripts/hermes/omp-worker}";
     }
   );
@@ -55,7 +55,7 @@ let
     export PYTHONDONTWRITEBYTECODE=1
     exec ${cfg.installPrefix}/libexec/bin/python ${../scripts/hermes/gateway.py} ${gatewayConfig} "$@"
   '';
-  hermesConfig = yaml.generate "hermes-config.yaml" {
+  hermesConfig = yaml.generate "hermes-config.nix.yaml" {
     model = {
       provider = "openai-codex";
       default = cfg.model;
@@ -145,10 +145,7 @@ in
     home-manager.users.${user} = { lib, ... }: {
       home = {
         file = {
-          ".hermes/config.yaml" = {
-            source = hermesConfig;
-            force = true;
-          };
+          ".hermes/config.nix.yaml".source = hermesConfig;
           ".hermes/plugins/omp-worker".source = ../scripts/hermes/omp-worker;
         };
         activation = {
