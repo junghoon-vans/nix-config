@@ -43,6 +43,7 @@ jobs:
       - name: Open focused update pull request
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
         run: |
           scripts/updates/open-update-pr.sh \
             "automation/update-${{ matrix.package }}" \
@@ -81,6 +82,7 @@ jobs:
       - name: Open skill update pull request
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
         run: |
           scripts/updates/open-update-pr.sh \
             automation/update-apm-skills \
@@ -116,6 +118,7 @@ jobs:
       - name: Open MCP version update pull request
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
         run: |
           scripts/updates/open-update-pr.sh \
             automation/update-npm-mcps \

@@ -17,8 +17,10 @@ if git diff --quiet -- "${paths[@]}"; then
   exit 0
 fi
 
-git config user.name github-actions[bot]
-git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+bot_login="${GH_APP_SLUG:?GH_APP_SLUG must identify the PR GitHub App}[bot]"
+bot_id="$(gh api "users/$bot_login" --jq '.id')"
+git config user.name "$bot_login"
+git config user.email "${bot_id}+${bot_login}@users.noreply.github.com"
 git switch -C "$branch"
 git add --all -- "${paths[@]}"
 git commit -m "$title"
