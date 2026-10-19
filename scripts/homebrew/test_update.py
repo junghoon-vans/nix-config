@@ -42,27 +42,27 @@ esac''')
             capture_output=True, text=True, check=False,
         )
 
-    def test_missing_or_unsupported_host_cannot_change_pins_or_activate(self):
-        for host in (None, "unsupported-host"):
-            with self.subTest(host=host):
-                arguments = ["brew-update"] + ([f"HOST={host}"] if host else [])
-                self.assertNotEqual(self.run_make(*arguments).returncode, 0)
-                self.assertFalse((self.root / "lock-updated").exists())
-                self.assertFalse((self.root / "activated").exists())
-                self.assertFalse((self.root / "previewed").exists())
+    def test_pin_update_needs_no_host_and_never_activates_or_runs_homebrew(self):
+        result = self.run_make("brew-update", FAIL_ACTIVATION="1")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertTrue((self.root / "lock-updated").exists())
+        self.assertFalse((self.root / "activated").exists())
+        self.assertFalse((self.root / "previewed").exists())
+        self.assertFalse((self.root / "upgraded").exists())
 
     def test_failed_pin_update_prevents_activation_and_homebrew(self):
-        result = self.run_make("brew-update", "HOST=junghoonui-MacBookAir", FAIL_NIX="5")
+        result = self.run_make("brew-update", FAIL_NIX="5")
         self.assertNotEqual(result.returncode, 0)
         self.assertFalse((self.root / "activated").exists())
         self.assertFalse((self.root / "previewed").exists())
         self.assertFalse((self.root / "upgraded").exists())
 
-    def test_failed_activation_prevents_homebrew(self):
-        result = self.run_make("brew-update", "HOST=junghoonui-MacBookPro", FAIL_ACTIVATION="1")
-        self.assertNotEqual(result.returncode, 0)
-        self.assertTrue((self.root / "lock-updated").exists())
-        self.assertFalse((self.root / "previewed").exists())
+    def test_outdated_never_changes_pins_activates_or_upgrades(self):
+        result = self.run_make("brew-outdated", FAIL_NIX="5", FAIL_ACTIVATION="1")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertTrue((self.root / "previewed").exists())
+        self.assertFalse((self.root / "lock-updated").exists())
+        self.assertFalse((self.root / "activated").exists())
         self.assertFalse((self.root / "upgraded").exists())
 
     def test_explicit_upgrade_does_not_change_pins_or_activate(self):

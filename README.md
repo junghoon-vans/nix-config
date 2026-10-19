@@ -37,13 +37,17 @@ make switch HOST=junghoonui-MacBookAir
 
 Supported host values: `junghoonui-MacBookAir` and `junghoonui-MacBookPro`.
 
-Update the pinned Homebrew taps, activate the host, and review available package upgrades:
+Update the pinned Homebrew taps, then explicitly activate the host and inspect upgrades:
 
 ```sh
-make brew-update HOST=junghoonui-MacBookAir
+make brew-update
+make switch HOST=junghoonui-MacBookAir
+make brew-outdated
 ```
 
-After reviewing the output, run `make brew-upgrade` for all eligible packages or
+`brew-update` only changes the tap pins in `flake.lock`; it requires no `HOST` and
+does not run a switch. Review and commit the lockfile changes before sharing them.
+After reviewing `brew-outdated`, run `make brew-upgrade` for all eligible packages or
 `make brew-upgrade PACKAGE=hermes-agent` for one package. See the
 [Homebrew guide](docs/homebrew.md) for lockfile sharing and the manual equivalent.
 

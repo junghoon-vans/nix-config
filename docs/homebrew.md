@@ -16,17 +16,31 @@ the same change. `make check` verifies synchronization in CI.
 
 ## Updating and reviewing upgrades
 
-From the repository root:
+Update the tap pins from the repository root, without activating the host:
 
 ```sh
-make brew-update HOST=junghoonui-MacBookAir
+make brew-update
 ```
 
-Use `HOST=junghoonui-MacBookPro` on the Pro. The command updates only the two Homebrew
-tap inputs in `flake.lock`, runs `darwin-rebuild switch` with sudo, then lists outdated
-packages with Homebrew auto-update disabled. It does not upgrade installed packages or
-run `setup-apm`. If updating the pins or activating the host fails, it stops before
-running Homebrew.
+This changes only the `homebrew-core` and `homebrew-cask` inputs in `flake.lock`.
+It requires no `HOST`, does not invoke sudo, and does not run Homebrew or activate
+any system or Home Manager configuration. If the pin update fails, the command fails.
+
+Review and commit `flake.lock`, then explicitly activate the host and inspect upgrades:
+
+```sh
+make switch HOST=junghoonui-MacBookAir
+make brew-outdated
+```
+
+Use `HOST=junghoonui-MacBookPro` on the Pro. `make switch` applies the entire host
+configuration, including Home Manager and services, and installs the locked agent
+skills. It is intentionally separate from Homebrew pin updates. If activation fails,
+resolve that error before proceeding to package upgrades.
+
+`make brew-outdated` only lists upgrades using the currently activated tap definitions.
+It disables automatic tap updates and does not change `flake.lock`, activate the
+host, or upgrade packages. Running it before activation still uses the old tap definitions.
 
 Review the list, then explicitly upgrade all eligible installed packages or one named
 formula/cask:
@@ -37,15 +51,14 @@ make brew-upgrade
 make brew-upgrade PACKAGE=hermes-agent
 ```
 
-These targets never run `brew update`. The upgrade target uses the already-activated
+The Homebrew targets never run `brew update`. The upgrade target uses the already-activated
 tap definitions and disables automatic tap updates. It does not update the lockfile
 or activate the host. Homebrew's usual pinning and cask upgrade rules still apply;
 self-updating and `version :latest` casks are normally skipped without `--greedy`.
 
-Review and commit the changed `flake.lock` so both machines use the same tap revisions.
-On the other machine, pull that commit and run `darwin-rebuild switch` for its host
-before `make brew-upgrade`; do not run `make brew-update` again unless you intend to
-advance the pins further.
+On the other machine, pull the committed lockfile and run `make switch HOST=<host>`,
+then `make brew-outdated` and a reviewed upgrade. Do not run `make brew-update` again
+unless you intend to advance the pins further.
 
 ### Manual equivalent
 
