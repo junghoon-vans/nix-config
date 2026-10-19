@@ -6,16 +6,11 @@ cd "$(dirname "${BASH_SOURCE[0]}")/../.."
 
 case "${1:-}" in
   update)
-    host="${2:-}"
-    case "$host" in
-      junghoonui-MacBookAir|junghoonui-MacBookPro) ;;
-      *) printf 'Set HOST to junghoonui-MacBookAir or junghoonui-MacBookPro.\n' >&2; exit 2 ;;
-    esac
-
     nix flake update homebrew-core homebrew-cask
-    sudo -H darwin-rebuild switch --flake ".#$host"
+    printf '\nReview and commit flake.lock, activate with make switch HOST=<host>, then run make brew-outdated.\n'
+    ;;
+  outdated)
     HOMEBREW_NO_AUTO_UPDATE=1 brew outdated
-    printf '\nReview the list, then run make brew-upgrade or make brew-upgrade PACKAGE=<name>.\n'
     ;;
   upgrade)
     package="${2:-}"
@@ -31,7 +26,7 @@ case "${1:-}" in
     fi
     ;;
   *)
-    printf 'Usage: %s update <host> | upgrade [package]\n' "$0" >&2
+    printf 'Usage: %s update | outdated | upgrade [package]\n' "$0" >&2
     exit 2
     ;;
 esac

@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help check inventory inventory-check skills skills-check bootstrap switch home-manager-backups-cleanup brew-update brew-upgrade
+.PHONY: help check inventory inventory-check skills skills-check bootstrap switch home-manager-backups-cleanup brew-update brew-outdated brew-upgrade
 
 help:
 	@printf '%s\n' \
@@ -11,7 +11,8 @@ help:
 	  'make skills-check                               Check skill inventory synchronization without writing' \
 	  'make bootstrap HOST=<host>                      Bootstrap, activate, and install locked agent skills' \
 	  'make switch HOST=<host>                         Activate and install locked agent skills' \
-	  'make brew-update HOST=<host>                    Update tap pins, activate the host, and list upgrades' \
+	  'make brew-update                                Update only the Homebrew tap pins in flake.lock' \
+	  'make brew-outdated                              List upgrades using the currently activated taps' \
 	  'make brew-upgrade                               Upgrade eligible installed Homebrew packages' \
 	  'make brew-upgrade PACKAGE=hermes-agent          Upgrade one formula or cask without updating taps' \
 	  'make home-manager-backups-cleanup               List backups older than 30 days' \
@@ -47,7 +48,10 @@ switch:
 	./scripts/apm/setup-apm.sh "$(CURDIR)"
 
 brew-update:
-	./scripts/homebrew/update.sh update "$(HOST)"
+	./scripts/homebrew/update.sh update
+
+brew-outdated:
+	./scripts/homebrew/update.sh outdated
 
 brew-upgrade:
 	./scripts/homebrew/update.sh upgrade "$(PACKAGE)"
