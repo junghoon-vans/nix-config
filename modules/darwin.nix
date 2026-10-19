@@ -45,7 +45,6 @@ in
       "delve"
       "go-task"
       "tmux"
-      "hermes-agent"
       "cmake"
       "pkgconf"
       "marksman"

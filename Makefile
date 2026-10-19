@@ -14,7 +14,7 @@ help:
 	  'make brew-update                                Update only the Homebrew tap pins in flake.lock' \
 	  'make brew-outdated                              List upgrades using the currently activated taps' \
 	  'make brew-upgrade                               Upgrade eligible installed Homebrew packages' \
-	  'make brew-upgrade PACKAGE=hermes-agent          Upgrade one formula or cask without updating taps' \
+	  'make brew-upgrade PACKAGE=neovim                Upgrade one formula or cask without updating taps' \
 	  'make home-manager-backups-cleanup               List backups older than 30 days' \
 	  'make home-manager-backups-cleanup CONFIRM=1     Delete listed backups' \
 	  'make home-manager-backups-cleanup KEEP_DAYS=90  Set the retention period'
