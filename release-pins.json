@@ -8,8 +8,8 @@
     "hash": "sha256-Uftisgp9eiF+1BD9GytNBrILECSHgkrl5yQI/KjxUUA="
   },
   "gnomcp": {
-    "version": "0.12.1",
-    "hash": "sha256-H+TTtUYdgRDXWTFEFK/3buqzuYgiIY/R9ezt5ZUfqpY="
+    "version": "0.12.3",
+    "hash": "sha256-EGI/U19OYb1RzEcZy3+ZWGDfrzcWPR9PqTaVLTu1Azw="
   },
   "officecli": {
     "version": "1.0.155",
