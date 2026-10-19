@@ -8,6 +8,7 @@
     home-manager.url = "github:nix-community/home-manager/master";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     nix-homebrew.url = "github:zhaofengli/nix-homebrew";
+    hermes-agent.url = "github:NousResearch/hermes-agent/v0.22.0";
     protobuf36 = {
       url = "github:protocolbuffers/protobuf/v36.2";
       flake = false;

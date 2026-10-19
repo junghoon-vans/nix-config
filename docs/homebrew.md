@@ -47,8 +47,8 @@ formula/cask:
 
 ```sh
 make brew-upgrade
-# Or upgrade only Hermes:
-make brew-upgrade PACKAGE=hermes-agent
+# Or upgrade only Neovim:
+make brew-upgrade PACKAGE=neovim
 ```
 
 The Homebrew targets never run `brew update`. The upgrade target uses the already-activated
@@ -68,7 +68,7 @@ sudo -H darwin-rebuild switch --flake .#junghoonui-MacBookAir
 HOMEBREW_NO_AUTO_UPDATE=1 brew outdated
 # After review:
 HOMEBREW_NO_AUTO_UPDATE=1 brew upgrade
-# Or: HOMEBREW_NO_AUTO_UPDATE=1 brew upgrade hermes-agent
+# Or: HOMEBREW_NO_AUTO_UPDATE=1 brew upgrade neovim
 ```
 
 If activation fails after the lockfile update, the new pins remain in `flake.lock`.
@@ -76,15 +76,8 @@ Resolve the activation error and retry the switch before upgrading packages.
 These commands update formula/cask definitions and packages, not the Homebrew executable;
 the latter is pinned separately by the `nix-homebrew` input.
 
-When upgrading Hermes, wait for coding tasks to finish. After the upgrade, restart
-its user LaunchAgent and confirm a Slack request works:
-
-```sh
-launchctl kickstart -k "gui/$(id -u)/ai.hermes.gateway"
-```
-
-The gateway checks required Hermes APIs at startup; a successful upgrade alone does not
-prove the updated runtime is compatible.
+Hermes is managed by its upstream Nix `messaging` package, not Homebrew. See
+[Nix toolchain](nix-toolchain.md#hermes) for its pin, update procedure, and Slack verification.
 
 Homebrew versions are mutable local state. Move a version-sensitive runtime to a Nix language
 profile when every supported host must use the same version.

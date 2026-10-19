@@ -48,7 +48,7 @@ make brew-outdated
 `brew-update` only changes the tap pins in `flake.lock`; it requires no `HOST` and
 does not run a switch. Review and commit the lockfile changes before sharing them.
 After reviewing `brew-outdated`, run `make brew-upgrade` for all eligible packages or
-`make brew-upgrade PACKAGE=hermes-agent` for one package. See the
+`make brew-upgrade PACKAGE=neovim` for one package. See the
 [Homebrew guide](docs/homebrew.md) for lockfile sharing and the manual equivalent.
 
 List every available command:

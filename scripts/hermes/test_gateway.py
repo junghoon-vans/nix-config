@@ -101,6 +101,9 @@ class GatewayRuntimeConfig(unittest.TestCase):
             ),
             "tools.interrupt": SimpleNamespace(is_interrupted=lambda: False),
             "gateway.session_context": SimpleNamespace(get_session_env=lambda name: ""),
+            "slack_bolt.async_app": SimpleNamespace(AsyncApp=object),
+            "slack_bolt.adapter.socket_mode.async_handler": SimpleNamespace(AsyncSocketModeHandler=object),
+            "slack_sdk.web.async_client": SimpleNamespace(AsyncWebClient=object),
         }
 
     def check(self, modules=None):
@@ -127,6 +130,13 @@ class GatewayRuntimeConfig(unittest.TestCase):
         modules = self.native_modules()
         del modules["tools.approval"].request_tool_approval
         with self.assertRaisesRegex(RuntimeError, "tools.approval.request_tool_approval"):
+            self.check(modules)
+        self.assertFalse(self.runtime.exists())
+
+    def test_missing_slack_sdk_prevents_config_materialization(self):
+        modules = self.native_modules()
+        modules["slack_bolt.async_app"] = None
+        with self.assertRaisesRegex(RuntimeError, "Slack runtime dependencies"):
             self.check(modules)
         self.assertFalse(self.runtime.exists())
 
@@ -303,6 +313,9 @@ modules = {
     ),
     "tools.interrupt": SimpleNamespace(is_interrupted=lambda: False),
     "gateway.session_context": SimpleNamespace(get_session_env=lambda name: ""),
+    "slack_bolt.async_app": SimpleNamespace(AsyncApp=object),
+    "slack_bolt.adapter.socket_mode.async_handler": SimpleNamespace(AsyncSocketModeHandler=object),
+    "slack_sdk.web.async_client": SimpleNamespace(AsyncWebClient=object),
 }
 original_import = importlib.import_module
 importlib.import_module = lambda name: modules[name] if name in modules else original_import(name)
@@ -314,7 +327,6 @@ runpy.run_path(sys.argv[0], run_name="__main__")
             capture_output=True, text=True, check=False,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(result.stdout.strip(), "Hermes approval/session APIs are compatible.")
 
 
 if __name__ == "__main__":

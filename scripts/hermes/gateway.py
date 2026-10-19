@@ -76,12 +76,21 @@ def validate_runtime():
                     raise TypeError("explicit rule_key support is required for scoped approvals")
         except (ImportError, AttributeError, TypeError, ValueError) as error:
             raise RuntimeError(f"Incompatible Hermes API {module_name}.{name}: {error}") from error
+    for module_name, name in (
+        ("slack_bolt.async_app", "AsyncApp"),
+        ("slack_bolt.adapter.socket_mode.async_handler", "AsyncSocketModeHandler"),
+        ("slack_sdk.web.async_client", "AsyncWebClient"),
+    ):
+        try:
+            getattr(importlib.import_module(module_name), name)
+        except (ImportError, AttributeError) as error:
+            raise RuntimeError(f"Slack runtime dependencies unavailable: {module_name}.{name}: {error}") from error
 
 
 def check_runtime(config):
     result = subprocess.run([config["runtime_python"], __file__, "--runtime-check"], check=False)
     if result.returncode:
-        raise RuntimeError("Hermes approval/session API preflight failed; see the runtime error above.")
+        raise RuntimeError("Hermes runtime preflight failed; see the runtime error above.")
 
 
 def _signature(info):
@@ -256,7 +265,7 @@ def check(config):
 def main():
     if sys.argv[1:] == ["--runtime-check"]:
         validate_runtime()
-        print("Hermes approval/session APIs are compatible.")
+        print("Hermes approval/session APIs and Slack dependencies are compatible.")
         return
     config = json.loads(Path(sys.argv[1]).read_text())
     check(config)

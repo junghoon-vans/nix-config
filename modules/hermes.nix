@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  inputs,
   pkgs,
   ...
 }:
@@ -41,8 +42,8 @@ let
   );
   gatewayConfig = pkgs.writeText "hermes-gateway.json" (
     builtins.toJSON {
-      hermes = "${cfg.installPrefix}/bin/hermes";
-      runtime_python = "${cfg.installPrefix}/libexec/bin/python";
+      hermes = lib.getExe cfg.package;
+      runtime_python = "${cfg.package.hermesVenv}/bin/python3";
       home = "${home}/.hermes";
       environment_file = "${home}/.hermes/.env";
       config_defaults = "${hermesConfig}";
@@ -54,6 +55,7 @@ let
       lib.makeBinPath [
         pkgs.git
         config.workstation.omp.package
+        cfg.package
       ]
     }:/run/current-system/sw/bin:/etc/profiles/per-user/${user}/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin
     export OMP_WORKER_CONFIG=${workerConfig}
@@ -113,10 +115,10 @@ in
 {
   options.workstation.hermes = {
     enable = lib.mkEnableOption "the local Slack to OMP ACP gateway";
-    installPrefix = lib.mkOption {
-      type = lib.types.str;
-      default = "/opt/homebrew/opt/hermes-agent";
-      description = "Nix-declared Homebrew Hermes installation.";
+    package = lib.mkOption {
+      type = lib.types.package;
+      default = inputs.hermes-agent.packages.${pkgs.stdenv.hostPlatform.system}.messaging;
+      description = "Upstream Hermes messaging package, including the Slack runtime.";
     };
     model = lib.mkOption {
       type = lib.types.str;
@@ -131,6 +133,7 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    environment.systemPackages = [ cfg.package ];
     assertions = [
       {
         assertion = config.workstation.omp.enable && cfg.repositoryRoots != [ ];

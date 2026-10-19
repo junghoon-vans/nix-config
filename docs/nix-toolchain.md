@@ -12,6 +12,7 @@ updates the input graph; review every lockfile change as a dependency update.
 | `home-manager` | Home-directory configuration |
 | `nix-homebrew` | Declarative Homebrew taps and inventory |
 | `protobuf36` | Flake-pinned Protobuf source |
+| `hermes-agent` | Upstream Hermes `messaging` package with Slack dependencies |
 | `oh-my-zsh`, `spaceship-prompt`, `zsh-*` | Shell framework, theme, and plugins |
 | `zed-gno` | Zed Gno extension source |
 | `homebrew-core`, `homebrew-cask` | Homebrew repositories and taps |
@@ -32,10 +33,34 @@ keep compatibility-sensitive revisions and dependency hashes in their Nix module
 | gnopls | `gnoplsRev` | `modules/languages/gno.nix` | Source build with pinned Go dependencies |
 | Zed Gno WASI adapter | Release URL and hash | `modules/home-manager.nix` | Architecture-independent WebAssembly |
 | gnomcp | `release-pins.json` | `modules/mcp/gnomcp.nix` | Local stdio MCP server |
+| Hermes | Tagged `hermes-agent` flake input and `flake.lock` | `flake.nix`, `modules/hermes.nix` | Official upstream `messaging` package; Apple Silicon macOS |
 
 Gno tools are built from a pinned commit rather than mutable `chain/mainnet` assets. The dependency
 cache uses `proxyVendor` to retain the C sources needed for gnokey Ledger support. Installed
 binaries report their source commit.
+
+### Hermes
+
+Hermes itself and its messaging dependencies come from the upstream
+[`messaging` package](https://github.com/NousResearch/hermes-agent/blob/main/nix/packages.nix).
+This repository owns only the OMP worker plugin, its sidecar, and the service connection;
+it does not inject Python dependencies or modify Hermes's runtime.
+The upstream Nix integration supports Apple Silicon macOS but is Tier 2.
+
+To upgrade Hermes, select a reviewed release tag in the `hermes-agent` input URL,
+run `nix flake update hermes-agent`, and build both hosts before activation. Updating
+the lock without changing the tagged URL does not select a newer release.
+`make brew-update` and `make brew-upgrade` do not manage Hermes.
+
+Wait for active coding tasks to finish before switching. Existing local credentials,
+sessions, and native approval entries remain in `~/.hermes`; the worker plugin remains
+a separate Nix resource. Homebrew cleanup stays disabled, so a previously installed
+Homebrew Hermes is not automatically uninstalled.
+
+The gateway preflight checks the native approval/session APIs and Slack SDK imports.
+After activation, confirm Slack authentication and `Socket Mode connected` in the gateway
+logs, then exercise a Slack request through `omp-worker`. A successful preflight or a
+running launchd process alone does not prove the messaging connection is working.
 
 ## Language profiles
 
