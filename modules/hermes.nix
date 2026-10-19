@@ -10,6 +10,10 @@ let
   user = config.system.primaryUser;
   home = config.users.users.${user}.home;
   yaml = pkgs.formats.yaml { };
+  supportPython = pkgs.python3.withPackages (ps: [
+    ps.pyyaml
+    ps.python-dotenv
+  ]);
   workerConfig = pkgs.writeText "hermes-omp-worker.json" (
     builtins.toJSON {
       command = lib.getExe (
@@ -37,6 +41,7 @@ let
   gatewayConfig = pkgs.writeText "hermes-gateway.json" (
     builtins.toJSON {
       hermes = "${cfg.installPrefix}/bin/hermes";
+      runtime_python = "${cfg.installPrefix}/libexec/bin/python";
       home = "${home}/.hermes";
       environment_file = "${home}/.hermes/.env";
       config_defaults = "${hermesConfig}";
@@ -52,7 +57,7 @@ let
     }:/run/current-system/sw/bin:/etc/profiles/per-user/${user}/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin
     export OMP_WORKER_CONFIG=${workerConfig}
     export PYTHONDONTWRITEBYTECODE=1
-    exec ${cfg.installPrefix}/libexec/bin/python ${../scripts/hermes/gateway.py} ${gatewayConfig} "$@"
+    exec ${supportPython}/bin/python3 ${../scripts/hermes/gateway.py} ${gatewayConfig} "$@"
   '';
   hermesConfig = yaml.generate "hermes-config.nix.yaml" {
     model = {
@@ -146,7 +151,7 @@ in
           prepareHermes =
             lib.hm.dag.entryBetween [ "linkGeneration" "setupLaunchAgents" ] [ "writeBoundary" ]
               ''
-                run ${cfg.installPrefix}/libexec/bin/python ${../scripts/hermes/migrate.py} ${lib.escapeShellArg home}
+                run ${supportPython}/bin/python3 ${../scripts/hermes/migrate.py} ${lib.escapeShellArg home}
               '';
           hermesResourcesReady = lib.hm.dag.entryBetween [ "setupLaunchAgents" ] [ "linkGeneration" ] ''
             run ${gateway} --check

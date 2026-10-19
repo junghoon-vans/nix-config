@@ -7,10 +7,10 @@ import json
 import os
 from pathlib import Path
 import stat
+import subprocess
 import sys
 import tempfile
 
-import yaml
 
 
 NIX_STORE_ROOT = Path("/nix/store")
@@ -76,6 +76,12 @@ def validate_runtime():
                     raise TypeError("explicit rule_key support is required for scoped approvals")
         except (ImportError, AttributeError, TypeError, ValueError) as error:
             raise RuntimeError(f"Incompatible Hermes API {module_name}.{name}: {error}") from error
+
+
+def check_runtime(config):
+    result = subprocess.run([config["runtime_python"], __file__, "--runtime-check"], check=False)
+    if result.returncode:
+        raise RuntimeError("Hermes approval/session API preflight failed; see the runtime error above.")
 
 
 def _signature(info):
@@ -154,6 +160,8 @@ def _read_runtime_config(path):
 
 
 def _load_config(content, description):
+    import yaml
+
     try:
         value = yaml.safe_load(content.decode("utf-8")) if content is not None else {}
     except (UnicodeDecodeError, yaml.YAMLError) as error:
@@ -199,6 +207,8 @@ def _replace_runtime_config(path, content, prior_state):
 
 
 def prepare_runtime_config(home, defaults_path):
+    import yaml
+
     runtime_path = Path(home) / RUNTIME_CONFIG_NAME
     state, previous_content, previous_mode = _read_runtime_config(runtime_path)
     defaults_path = Path(defaults_path)
@@ -229,7 +239,7 @@ def check(config):
     ):
         raise RuntimeError("The Hermes home must be a user-owned directory not writable by others.")
     validate_environment(config)
-    validate_runtime()
+    check_runtime(config)
     defaults = Path(config["config_defaults"])
     resources = {
         MANAGED_CONFIG_NAME: defaults,
@@ -244,6 +254,10 @@ def check(config):
 
 
 def main():
+    if sys.argv[1:] == ["--runtime-check"]:
+        validate_runtime()
+        print("Hermes approval/session APIs are compatible.")
+        return
     config = json.loads(Path(sys.argv[1]).read_text())
     check(config)
     if sys.argv[2:] == ["--check"]:

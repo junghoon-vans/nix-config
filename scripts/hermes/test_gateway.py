@@ -2,6 +2,7 @@ import importlib.util
 import os
 from pathlib import Path
 import stat
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -104,7 +105,9 @@ class GatewayRuntimeConfig(unittest.TestCase):
 
     def check(self, modules=None):
         with patch.dict(sys.modules, self.native_modules() if modules is None else modules):
-            with patch.object(MODULE, "validate_environment"):
+            with patch.object(MODULE, "validate_environment"), patch.object(
+                MODULE, "check_runtime", side_effect=lambda _: MODULE.validate_runtime()
+            ):
                 MODULE.check(self.config)
 
     def test_compatible_updated_runtime_can_start_without_a_version_pin(self):
@@ -114,7 +117,9 @@ class GatewayRuntimeConfig(unittest.TestCase):
         )
         environment.chmod(0o600)
         self.addCleanup(os.umask, os.umask(0o077))
-        with patch.dict(os.environ, {}, clear=True), patch.dict(sys.modules, self.native_modules()):
+        with patch.dict(os.environ, {}, clear=True), patch.dict(sys.modules, self.native_modules()), patch.object(
+            MODULE, "check_runtime", side_effect=lambda _: MODULE.validate_runtime()
+        ):
             MODULE.check(self.config)
         self.assertEqual(yaml.safe_load(self.runtime.read_text()), self.defaults)
 
@@ -281,6 +286,35 @@ class GatewayRuntimeConfig(unittest.TestCase):
             self.check()
 
         self.assertFalse(self.runtime.exists())
+
+
+class RuntimeDependencyIsolation(unittest.TestCase):
+    def test_native_preflight_does_not_require_support_python_packages(self):
+        runner = """
+import importlib, importlib.util, runpy, sys
+from types import SimpleNamespace
+assert importlib.util.find_spec("yaml") is None
+assert importlib.util.find_spec("dotenv") is None
+modules = {
+    "tools.approval": SimpleNamespace(
+        get_current_session_key=lambda default="": default,
+        is_approval_bypass_active_for_session=lambda session: False,
+        request_tool_approval=lambda tool, reason, *, rule_key: {"approved": False},
+    ),
+    "tools.interrupt": SimpleNamespace(is_interrupted=lambda: False),
+    "gateway.session_context": SimpleNamespace(get_session_env=lambda name: ""),
+}
+original_import = importlib.import_module
+importlib.import_module = lambda name: modules[name] if name in modules else original_import(name)
+sys.argv = [sys.argv[1], "--runtime-check"]
+runpy.run_path(sys.argv[0], run_name="__main__")
+"""
+        result = subprocess.run(
+            [sys.executable, "-S", "-c", runner, str(Path(__file__).with_name("gateway.py"))],
+            capture_output=True, text=True, check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.strip(), "Hermes approval/session APIs are compatible.")
 
 
 if __name__ == "__main__":
