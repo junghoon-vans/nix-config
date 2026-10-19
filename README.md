@@ -37,6 +37,16 @@ make switch HOST=junghoonui-MacBookAir
 
 Supported host values: `junghoonui-MacBookAir` and `junghoonui-MacBookPro`.
 
+Update the pinned Homebrew taps, activate the host, and review available package upgrades:
+
+```sh
+make brew-update HOST=junghoonui-MacBookAir
+```
+
+After reviewing the output, run `make brew-upgrade` for all eligible packages or
+`make brew-upgrade PACKAGE=hermes-agent` for one package. See the
+[Homebrew guide](docs/homebrew.md) for lockfile sharing and the manual equivalent.
+
 List every available command:
 
 ```sh
