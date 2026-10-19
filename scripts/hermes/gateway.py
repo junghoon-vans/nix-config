@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Launch the Nix-owned gateway without putting credentials in a derivation."""
 
+import importlib
+import inspect
 import json
 import os
 from pathlib import Path
@@ -16,14 +18,9 @@ RUNTIME_CONFIG_NAME = "config.yaml"
 MANAGED_CONFIG_NAME = "config.nix.yaml"
 
 
-def validate_environment(config, version):
+def validate_environment(config):
     from dotenv import load_dotenv
 
-    if version != config["expected_version"]:
-        raise RuntimeError(
-            f"Hermes {version} does not match the declared API version "
-            f"{config['expected_version']}; reconcile the Nix pin before starting."
-        )
     path = Path(config["environment_file"])
     if path.resolve() != (Path(config["home"]) / ".env").resolve():
         raise RuntimeError("Validate the same .env file that Hermes loads at startup.")
@@ -48,6 +45,37 @@ def validate_environment(config, version):
     os.environ["HERMES_HOME"] = config["home"]
     os.umask(0o077)
     Path(config["home"], "logs").mkdir(parents=True, exist_ok=True)
+
+
+def validate_runtime():
+    # Bind the calls the worker actually makes; do not prompt or mutate native
+    # approval state during preflight. **kwargs alone cannot prove scoped grants.
+    for module_name, name, args, kwargs in (
+        ("tools.approval", "get_current_session_key", (), {"default": ""}),
+        ("tools.approval", "is_approval_bypass_active_for_session", ("session",), {}),
+        ("tools.approval", "request_tool_approval", ("omp_task", "reason"), {"rule_key": "scope"}),
+        ("tools.interrupt", "is_interrupted", (), {}),
+        ("gateway.session_context", "get_session_env", ("HERMES_SESSION_USER_ID",), {}),
+    ):
+        try:
+            function = getattr(importlib.import_module(module_name), name)
+            if (
+                not callable(function)
+                or inspect.iscoroutinefunction(function)
+                or inspect.isasyncgenfunction(function)
+            ):
+                raise TypeError("a synchronous callable is required")
+            signature = inspect.signature(function)
+            signature.bind(*args, **kwargs)
+            if name == "request_tool_approval":
+                rule_key = signature.parameters.get("rule_key")
+                if rule_key is None or rule_key.kind not in (
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    inspect.Parameter.KEYWORD_ONLY,
+                ):
+                    raise TypeError("explicit rule_key support is required for scoped approvals")
+        except (ImportError, AttributeError, TypeError, ValueError) as error:
+            raise RuntimeError(f"Incompatible Hermes API {module_name}.{name}: {error}") from error
 
 
 def _signature(info):
@@ -192,8 +220,6 @@ def prepare_runtime_config(home, defaults_path):
 
 
 def check(config):
-    from hermes_cli import __version__
-
     home = Path(config["home"])
     home_info = home.lstat()
     if (
@@ -202,7 +228,8 @@ def check(config):
         or stat.S_IMODE(home_info.st_mode) & 0o022
     ):
         raise RuntimeError("The Hermes home must be a user-owned directory not writable by others.")
-    validate_environment(config, __version__)
+    validate_environment(config)
+    validate_runtime()
     defaults = Path(config["config_defaults"])
     resources = {
         MANAGED_CONFIG_NAME: defaults,
@@ -220,7 +247,7 @@ def main():
     config = json.loads(Path(sys.argv[1]).read_text())
     check(config)
     if sys.argv[2:] == ["--check"]:
-        print("Hermes version and private Slack configuration are ready.")
+        print("Hermes approval/session APIs and private Slack configuration are ready.")
         return
     if sys.argv[2:]:
         raise RuntimeError("Only --check is supported.")

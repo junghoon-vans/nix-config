@@ -22,7 +22,7 @@ class GatewayEnvironment(unittest.TestCase):
         self.addCleanup(temporary.cleanup)
         self.home = Path(temporary.name)
         self.path = self.home / ".env"
-        self.config = {"home": str(self.home), "environment_file": str(self.path), "expected_version": "0.21.0"}
+        self.config = {"home": str(self.home), "environment_file": str(self.path)}
         self.addCleanup(os.umask, os.umask(0o077))
         self.environment = patch.dict(os.environ, {}, clear=True)
         self.environment.start()
@@ -36,24 +36,24 @@ class GatewayEnvironment(unittest.TestCase):
         os.environ["SLACK_ALLOW_ALL_USERS"] = "false"
         self.settings(extra="SLACK_ALLOW_ALL_USERS=true\n")
         with self.assertRaisesRegex(RuntimeError, "not permitted"):
-            MODULE.validate_environment(self.config, "0.21.0")
+            MODULE.validate_environment(self.config)
 
     def test_whitespace_allowlist_does_not_pass_a_comma_only_consumer(self):
         self.settings(users="U123 U456")
         with self.assertRaisesRegex(RuntimeError, "comma-separated"):
-            MODULE.validate_environment(self.config, "0.21.0")
+            MODULE.validate_environment(self.config)
 
     def test_managed_worker_policy_cannot_be_overridden_by_private_env(self):
         os.environ["OMP_WORKER_CONFIG"] = "/nix/store/declared-worker.json"
         self.settings(extra="OMP_WORKER_CONFIG=/tmp/old-experiment.json\n")
         with self.assertRaisesRegex(RuntimeError, "Nix-owned OMP_WORKER_CONFIG"):
-            MODULE.validate_environment(self.config, "0.21.0")
+            MODULE.validate_environment(self.config)
 
     def test_private_file_is_the_runtime_token_and_allowlist_source(self):
         os.environ["SLACK_BOT_TOKEN"] = "old-test-bot"
         os.environ["SLACK_ALLOWED_USERS"] = "U999"
         self.settings()
-        MODULE.validate_environment(self.config, "0.21.0")
+        MODULE.validate_environment(self.config)
         self.assertEqual(os.environ["SLACK_BOT_TOKEN"], "private-test-bot")
         self.assertEqual(os.environ["SLACK_ALLOWED_USERS"], "U123,U456")
         self.assertEqual(os.environ["HERMES_HOME"], str(self.home))
@@ -86,17 +86,67 @@ class GatewayRuntimeConfig(unittest.TestCase):
         self.config = {
             "home": str(self.home),
             "environment_file": str(self.home / ".env"),
-            "expected_version": "0.21.0",
             "config_defaults": str(self.defaults_path),
             "plugin_source": str(self.plugin_source),
         }
 
-    def check(self):
-        with patch.dict(
-            sys.modules, {"hermes_cli": SimpleNamespace(__version__="0.21.0")}
-        ):
+    def native_modules(self):
+        return {
+            "hermes_cli": SimpleNamespace(__version__="99.0.0"),
+            "tools.approval": SimpleNamespace(
+                get_current_session_key=lambda default="": default,
+                is_approval_bypass_active_for_session=lambda session_key: False,
+                request_tool_approval=lambda tool_name, reason, *, rule_key: {"approved": False},
+            ),
+            "tools.interrupt": SimpleNamespace(is_interrupted=lambda: False),
+            "gateway.session_context": SimpleNamespace(get_session_env=lambda name: ""),
+        }
+
+    def check(self, modules=None):
+        with patch.dict(sys.modules, self.native_modules() if modules is None else modules):
             with patch.object(MODULE, "validate_environment"):
                 MODULE.check(self.config)
+
+    def test_compatible_updated_runtime_can_start_without_a_version_pin(self):
+        environment = self.home / ".env"
+        environment.write_text(
+            "SLACK_BOT_TOKEN=private-test-bot\nSLACK_APP_TOKEN=private-test-app\nSLACK_ALLOWED_USERS=U123\n"
+        )
+        environment.chmod(0o600)
+        self.addCleanup(os.umask, os.umask(0o077))
+        with patch.dict(os.environ, {}, clear=True), patch.dict(sys.modules, self.native_modules()):
+            MODULE.check(self.config)
+        self.assertEqual(yaml.safe_load(self.runtime.read_text()), self.defaults)
+
+    def test_missing_native_approval_api_prevents_config_materialization(self):
+        modules = self.native_modules()
+        del modules["tools.approval"].request_tool_approval
+        with self.assertRaisesRegex(RuntimeError, "tools.approval.request_tool_approval"):
+            self.check(modules)
+        self.assertFalse(self.runtime.exists())
+
+    def test_approval_api_without_explicit_scoped_rule_key_is_rejected(self):
+        modules = self.native_modules()
+        for approval in (
+            lambda tool_name, reason: {"approved": True},
+            lambda tool_name, reason, **kwargs: {"approved": True},
+            lambda tool_name, reason, **rule_key: {"approved": True},
+        ):
+            with self.subTest(approval=approval):
+                modules["tools.approval"].request_tool_approval = approval
+                with self.assertRaisesRegex(RuntimeError, "tools.approval.request_tool_approval"):
+                    self.check(modules)
+                self.assertFalse(self.runtime.exists())
+
+    def test_async_approval_api_is_rejected_before_startup(self):
+        async def approval(tool_name, reason, *, rule_key):
+            return {"approved": True}
+
+        modules = self.native_modules()
+        modules["tools.approval"].request_tool_approval = approval
+        with self.assertRaisesRegex(RuntimeError, "tools.approval.request_tool_approval"):
+            self.check(modules)
+        self.assertFalse(self.runtime.exists())
 
     def write_defaults(self, path, values):
         path.parent.mkdir(parents=True, exist_ok=True)

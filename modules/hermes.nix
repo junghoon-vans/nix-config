@@ -37,7 +37,6 @@ let
   gatewayConfig = pkgs.writeText "hermes-gateway.json" (
     builtins.toJSON {
       hermes = "${cfg.installPrefix}/bin/hermes";
-      expected_version = cfg.version;
       home = "${home}/.hermes";
       environment_file = "${home}/.hermes/.env";
       config_defaults = "${hermesConfig}";
@@ -112,11 +111,6 @@ in
       type = lib.types.str;
       default = "/opt/homebrew/opt/hermes-agent";
       description = "Nix-declared Homebrew Hermes installation.";
-    };
-    version = lib.mkOption {
-      type = lib.types.str;
-      default = "0.21.0";
-      description = "Required Hermes API version; refuse an incompatible Homebrew runtime.";
     };
     model = lib.mkOption {
       type = lib.types.str;
