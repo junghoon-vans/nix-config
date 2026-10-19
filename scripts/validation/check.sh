@@ -12,6 +12,7 @@ bash_scripts=(
   scripts/apm/install.sh
   scripts/apm/setup-apm.sh
   scripts/dock/update-stacks.sh
+  scripts/homebrew/update.sh
   scripts/nix/bootstrap.sh
   scripts/nix/home-manager-backups-cleanup.sh
   scripts/updates/open-update-pr.sh
@@ -31,6 +32,7 @@ python3 -B -m unittest discover -s scripts/dock -p 'test_*.py'
 python3 -B -m unittest discover -s scripts/maintenance -p 'test_*.py'
 python3 -B -m unittest discover -s scripts/updates -p 'test_*.py'
 python3 -B -m unittest discover -s scripts/hermes -p 'test_*.py'
+python3 -B -m unittest discover -s scripts/homebrew -p 'test_*.py'
 python3 -B scripts/validation/check-doc-version-drift.py
 python3 -B scripts/validation/check-release-pins.py
 python3 -B scripts/docs/update-inventory.py --check
