@@ -10,6 +10,7 @@ let
   user = config.system.primaryUser;
   home = config.users.users.${user}.home;
   yaml = pkgs.formats.yaml { };
+  pluginSource = "${../scripts/hermes/omp-worker}";
   supportPython = pkgs.python3.withPackages (ps: [
     ps.pyyaml
     ps.python-dotenv
@@ -45,7 +46,7 @@ let
       home = "${home}/.hermes";
       environment_file = "${home}/.hermes/.env";
       config_defaults = "${hermesConfig}";
-      plugin_source = "${../scripts/hermes/omp-worker}";
+      plugin_source = pluginSource;
     }
   );
   gateway = pkgs.writeShellScript "hermes-slack-gateway" ''
@@ -145,7 +146,7 @@ in
       home = {
         file = {
           ".hermes/config.nix.yaml".source = hermesConfig;
-          ".hermes/plugins/omp-worker".source = ../scripts/hermes/omp-worker;
+          ".hermes/plugins/omp-worker".source = pluginSource;
         };
         activation = {
           prepareHermes =
