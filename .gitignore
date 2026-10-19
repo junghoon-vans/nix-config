@@ -3,3 +3,7 @@
 
 # Local Git worktrees
 .worktrees/
+
+# Local SDK and Python development artifacts
+node_modules/
+__pycache__/

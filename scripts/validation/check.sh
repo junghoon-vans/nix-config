@@ -30,6 +30,7 @@ python3 -B -m unittest discover -s scripts/aside -p 'test_*.py'
 python3 -B -m unittest discover -s scripts/dock -p 'test_*.py'
 python3 -B -m unittest discover -s scripts/maintenance -p 'test_*.py'
 python3 -B -m unittest discover -s scripts/updates -p 'test_*.py'
+python3 -B -m unittest discover -s scripts/hermes -p 'test_*.py'
 python3 -B scripts/validation/check-doc-version-drift.py
 python3 -B scripts/validation/check-release-pins.py
 python3 -B scripts/docs/update-inventory.py --check

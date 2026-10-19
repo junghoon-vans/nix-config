@@ -85,7 +85,10 @@
         packages = with pkgs; [
           deadnix
           nixfmt
-          python3
+          (python3.withPackages (ps: [
+            ps.pyyaml
+            ps.python-dotenv
+          ]))
           shellcheck
           statix
         ];

@@ -1,7 +1,12 @@
 { ... }:
 
 {
-  imports = [ ../common.nix ];
+  imports = [
+    ../common.nix
+    ../../modules/hermes.nix
+  ];
+
+  workstation.hermes.enable = true;
 
   workstation.languages = {
     gno.enable = true;

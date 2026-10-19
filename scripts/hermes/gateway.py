@@ -1,0 +1,262 @@
+#!/usr/bin/env python3
+"""Launch the Nix-owned gateway without putting credentials in a derivation."""
+
+import importlib
+import inspect
+import json
+import os
+from pathlib import Path
+import stat
+import sys
+import tempfile
+
+import yaml
+
+
+NIX_STORE_ROOT = Path("/nix/store")
+RUNTIME_CONFIG_NAME = "config.yaml"
+MANAGED_CONFIG_NAME = "config.nix.yaml"
+
+
+def validate_environment(config):
+    from dotenv import load_dotenv
+
+    path = Path(config["environment_file"])
+    if path.resolve() != (Path(config["home"]) / ".env").resolve():
+        raise RuntimeError("Validate the same .env file that Hermes loads at startup.")
+    info = path.stat()
+    if info.st_uid != os.getuid() or stat.S_IMODE(info.st_mode) & 0o077:
+        raise RuntimeError("The Hermes environment file must be user-owned and mode 0600.")
+    managed = {key: os.environ.get(key) for key in ("OMP_WORKER_CONFIG", "HERMES_HOME")}
+    load_dotenv(path, override=True)
+    for key, expected in managed.items():
+        if key == "HERMES_HOME":
+            expected = config["home"]
+        if os.environ.get(key) not in (None, expected):
+            raise RuntimeError(f"The private .env must not override Nix-owned {key}.")
+    for key in ("SLACK_BOT_TOKEN", "SLACK_APP_TOKEN", "SLACK_ALLOWED_USERS"):
+        if not os.environ.get(key, "").strip():
+            raise RuntimeError(f"Missing private runtime setting: {key}")
+    allowed = [value.strip() for value in os.environ["SLACK_ALLOWED_USERS"].split(",")]
+    if not allowed or any(not value or value[0] not in "UW" or not value.isalnum() for value in allowed):
+        raise RuntimeError("SLACK_ALLOWED_USERS must be comma-separated explicit Slack user IDs.")
+    if os.environ.get("SLACK_ALLOW_ALL_USERS", "").lower() in ("1", "true", "yes"):
+        raise RuntimeError("SLACK_ALLOW_ALL_USERS is not permitted for the coding gateway.")
+    os.environ["HERMES_HOME"] = config["home"]
+    os.umask(0o077)
+    Path(config["home"], "logs").mkdir(parents=True, exist_ok=True)
+
+
+def validate_runtime():
+    # Bind the calls the worker actually makes; do not prompt or mutate native
+    # approval state during preflight. **kwargs alone cannot prove scoped grants.
+    for module_name, name, args, kwargs in (
+        ("tools.approval", "get_current_session_key", (), {"default": ""}),
+        ("tools.approval", "is_approval_bypass_active_for_session", ("session",), {}),
+        ("tools.approval", "request_tool_approval", ("omp_task", "reason"), {"rule_key": "scope"}),
+        ("tools.interrupt", "is_interrupted", (), {}),
+        ("gateway.session_context", "get_session_env", ("HERMES_SESSION_USER_ID",), {}),
+    ):
+        try:
+            function = getattr(importlib.import_module(module_name), name)
+            if (
+                not callable(function)
+                or inspect.iscoroutinefunction(function)
+                or inspect.isasyncgenfunction(function)
+            ):
+                raise TypeError("a synchronous callable is required")
+            signature = inspect.signature(function)
+            signature.bind(*args, **kwargs)
+            if name == "request_tool_approval":
+                rule_key = signature.parameters.get("rule_key")
+                if rule_key is None or rule_key.kind not in (
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    inspect.Parameter.KEYWORD_ONLY,
+                ):
+                    raise TypeError("explicit rule_key support is required for scoped approvals")
+        except (ImportError, AttributeError, TypeError, ValueError) as error:
+            raise RuntimeError(f"Incompatible Hermes API {module_name}.{name}: {error}") from error
+
+
+def _signature(info):
+    return (
+        info.st_dev,
+        info.st_ino,
+        info.st_mode,
+        info.st_uid,
+        info.st_size,
+        info.st_mtime_ns,
+        info.st_ctime_ns,
+    )
+
+
+def _legacy_store_target(path, target):
+    destination = Path(target)
+    if not destination.is_absolute():
+        destination = path.parent / destination
+    lexical_store = Path(os.path.abspath(NIX_STORE_ROOT))
+    lexical_destination = Path(os.path.abspath(destination))
+    if lexical_destination == lexical_store or not lexical_destination.is_relative_to(lexical_store):
+        return False
+    try:
+        store = NIX_STORE_ROOT.resolve()
+        resolved = destination.resolve()
+    except OSError:
+        return False
+    return resolved != store and resolved.is_relative_to(store)
+
+
+def _runtime_state(path):
+    try:
+        info = path.lstat()
+    except FileNotFoundError:
+        return None
+    target = os.readlink(path) if stat.S_ISLNK(info.st_mode) else None
+    return (_signature(info), target)
+
+
+def _read_runtime_config(path):
+    state = _runtime_state(path)
+    if state is None:
+        return state, None, None
+
+    info = path.lstat()
+    if _signature(info) != state[0]:
+        raise RuntimeError("The Hermes runtime config changed while it was being inspected.")
+    if stat.S_ISLNK(info.st_mode):
+        if os.readlink(path) != state[1]:
+            raise RuntimeError("The Hermes runtime config changed while it was being inspected.")
+        if info.st_uid != os.getuid():
+            raise RuntimeError("The Hermes runtime config symlink must be user-owned.")
+        if not _legacy_store_target(path, state[1]):
+            raise RuntimeError("Refusing to replace a runtime config symlink outside the Nix store.")
+        return state, None, None
+    if not stat.S_ISREG(info.st_mode):
+        raise RuntimeError("The Hermes runtime config must be a regular file or legacy Nix-store symlink.")
+    if info.st_uid != os.getuid():
+        raise RuntimeError("The Hermes runtime config must be user-owned.")
+    mode = stat.S_IMODE(info.st_mode)
+    if mode & 0o077 or mode & 0o7000:
+        raise RuntimeError("The Hermes runtime config must not be accessible by group or other users.")
+
+    descriptor = os.open(path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
+    try:
+        opened = os.fstat(descriptor)
+        if not stat.S_ISREG(opened.st_mode) or _signature(opened) != state[0]:
+            raise RuntimeError("The Hermes runtime config changed while it was being read.")
+        with os.fdopen(descriptor, "rb") as stream:
+            descriptor = -1
+            content = stream.read()
+    finally:
+        if descriptor >= 0:
+            os.close(descriptor)
+    return state, content, mode
+
+
+def _load_config(content, description):
+    try:
+        value = yaml.safe_load(content.decode("utf-8")) if content is not None else {}
+    except (UnicodeDecodeError, yaml.YAMLError) as error:
+        raise RuntimeError(f"Could not parse {description}: {error}") from error
+    if value is None:
+        return {}
+    if not isinstance(value, dict):
+        raise RuntimeError(f"{description} must contain a YAML mapping.")
+    return value
+
+
+def _preserved_allowlist(previous):
+    if "command_allowlist" not in previous:
+        return None
+    allowlist = previous["command_allowlist"]
+    if not isinstance(allowlist, list) or any(
+        not isinstance(pattern, str) or not pattern.strip() for pattern in allowlist
+    ):
+        raise RuntimeError("The runtime command_allowlist must be a list of non-empty strings.")
+    return allowlist
+
+
+def _replace_runtime_config(path, content, prior_state):
+    if _runtime_state(path) != prior_state:
+        raise RuntimeError("The Hermes runtime config changed while it was being prepared.")
+    descriptor, temporary = tempfile.mkstemp(prefix=".config.yaml.", dir=path.parent)
+    try:
+        os.fchmod(descriptor, 0o600)
+        with os.fdopen(descriptor, "wb") as stream:
+            descriptor = -1
+            stream.write(content)
+            stream.flush()
+            os.fsync(stream.fileno())
+        if _runtime_state(path) != prior_state:
+            raise RuntimeError("The Hermes runtime config changed while it was being prepared.")
+        os.replace(temporary, path)
+        temporary = None
+    finally:
+        if descriptor >= 0:
+            os.close(descriptor)
+        if temporary is not None:
+            os.unlink(temporary)
+
+
+def prepare_runtime_config(home, defaults_path):
+    runtime_path = Path(home) / RUNTIME_CONFIG_NAME
+    state, previous_content, previous_mode = _read_runtime_config(runtime_path)
+    defaults_path = Path(defaults_path)
+    if not defaults_path.is_file():
+        raise RuntimeError("The declared Nix Hermes config defaults are unavailable.")
+    defaults = _load_config(defaults_path.read_bytes(), "the declared Nix Hermes config defaults")
+    previous = _load_config(previous_content, "the existing Hermes runtime config")
+    allowlist = _preserved_allowlist(previous)
+    result = dict(defaults)
+    if allowlist is not None:
+        result["command_allowlist"] = allowlist
+    content = yaml.safe_dump(result, sort_keys=False, allow_unicode=True).encode("utf-8")
+    if previous_content == content and previous_mode == 0o600:
+        if _runtime_state(runtime_path) != state:
+            raise RuntimeError("The Hermes runtime config changed while it was being prepared.")
+        return runtime_path
+    _replace_runtime_config(runtime_path, content, state)
+    return runtime_path
+
+
+def check(config):
+    home = Path(config["home"])
+    home_info = home.lstat()
+    if (
+        not stat.S_ISDIR(home_info.st_mode)
+        or home_info.st_uid != os.getuid()
+        or stat.S_IMODE(home_info.st_mode) & 0o022
+    ):
+        raise RuntimeError("The Hermes home must be a user-owned directory not writable by others.")
+    validate_environment(config)
+    validate_runtime()
+    defaults = Path(config["config_defaults"])
+    resources = {
+        MANAGED_CONFIG_NAME: defaults,
+        "plugins/omp-worker": Path(config["plugin_source"]),
+    }
+    for relative, source in resources.items():
+        target = home / relative
+        if not source.exists() or target.resolve() != source.resolve():
+            raise RuntimeError(f"{relative} is not the declared Nix resource; apply the Nix configuration.")
+    prepare_runtime_config(home, defaults)
+    return None
+
+
+def main():
+    config = json.loads(Path(sys.argv[1]).read_text())
+    check(config)
+    if sys.argv[2:] == ["--check"]:
+        print("Hermes approval/session APIs and private Slack configuration are ready.")
+        return
+    if sys.argv[2:]:
+        raise RuntimeError("Only --check is supported.")
+    os.execv(config["hermes"], [config["hermes"], "gateway", "run", "--external-supervisor"])
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except (OSError, ValueError, RuntimeError) as error:
+        print(f"Hermes gateway: {error}", file=sys.stderr)
+        sys.exit(1)

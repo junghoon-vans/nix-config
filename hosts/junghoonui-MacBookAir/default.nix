@@ -4,7 +4,10 @@
   imports = [
     ../common.nix
     ./presentations.nix
+    ../../modules/hermes.nix
   ];
+
+  workstation.hermes.enable = true;
 
   workstation.languages = {
     gno.enable = true;
