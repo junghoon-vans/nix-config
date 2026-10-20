@@ -9,7 +9,7 @@ Names use explicit skill selectors, then aliases, then the final path component.
 Source links use the declared ref and package path; selectors identify package exports,
 not inferred repository directories. See [APM management](apm.md) for deployment and updates.
 
-Declared skills: 33.
+Declared skills: 34.
 
 | Skill | Repository | Package path | Ref | Skill selector | Source |
 | --- | --- | --- | --- | --- | --- |
@@ -31,6 +31,7 @@ Declared skills: 33.
 | `mysql` | https://github.com/planetscale/database-skills | `skills/mysql` | `73b20b7eb64716d8c7100c054f0677c0c6e77e30` | — | [upstream](https://github.com/planetscale/database-skills/tree/73b20b7eb64716d8c7100c054f0677c0c6e77e30/skills/mysql) |
 | `notion-research-documentation` | https://github.com/openai/skills | `skills/.curated/notion-research-documentation` | `49f948faa9258a0c61caceaf225e179651397431` | — | [upstream](https://github.com/openai/skills/tree/49f948faa9258a0c61caceaf225e179651397431/skills/.curated/notion-research-documentation) |
 | `principle-type-system-discipline` | https://github.com/cursor/plugins | `pstack/skills/principle-type-system-discipline` | `c1c0a32802223f4be824112dd83d33ad29a8b26c` | — | [upstream](https://github.com/cursor/plugins/tree/c1c0a32802223f4be824112dd83d33ad29a8b26c/pstack/skills/principle-type-system-discipline) |
+| `security-audit` | https://github.com/cloudflare/security-audit-skill | `skills/security-audit` | `c1c8a8c1471069fb0e188eeaff69b8e8db6564a8` | — | [upstream](https://github.com/cloudflare/security-audit-skill/tree/c1c8a8c1471069fb0e188eeaff69b8e8db6564a8/skills/security-audit) |
 | `security-best-practices` | https://github.com/openai/skills | `skills/.curated/security-best-practices` | `49f948faa9258a0c61caceaf225e179651397431` | — | [upstream](https://github.com/openai/skills/tree/49f948faa9258a0c61caceaf225e179651397431/skills/.curated/security-best-practices) |
 | `skill-creator` | https://github.com/anthropics/skills | `skills/skill-creator` | `34040c9c568585f6929bedeaad110ad08f079624` | — | [upstream](https://github.com/anthropics/skills/tree/34040c9c568585f6929bedeaad110ad08f079624/skills/skill-creator) |
 | `skill-inspector` | https://github.com/NVIDIA/SkillSpector | `skills/skill-inspector` | `69d7d059da38160296b2311320ed4c72a9c3fdb6` | — | [upstream](https://github.com/NVIDIA/SkillSpector/tree/69d7d059da38160296b2311320ed4c72a9c3fdb6/skills/skill-inspector) |

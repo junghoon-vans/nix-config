@@ -78,6 +78,16 @@ dependencies:
   skill_subset:
   - humanizer
   declared_license: MIT
+- repo_url: cloudflare/security-audit-skill
+  name: security-audit
+  host: github.com
+  resolved_commit: c1c8a8c1471069fb0e188eeaff69b8e8db6564a8
+  resolved_ref: c1c8a8c1471069fb0e188eeaff69b8e8db6564a8
+  version: unknown
+  virtual_path: skills/security-audit
+  is_virtual: true
+  package_type: claude_skill
+  content_hash: sha256:ac796659de231c3ab76f6ee012836072bdc82928fb019199925c9062800e16c1
 - repo_url: cursor/plugins
   name: principle-type-system-discipline
   host: github.com
