@@ -1,5 +1,5 @@
 lockfile_version: '1'
-apm_version: 0.33.0
+apm_version: 0.34.0
 dependencies:
 - repo_url: _local/jira-cloud-formatting
   name: jira-cloud-formatting
@@ -194,8 +194,8 @@ dependencies:
 - repo_url: obra/superpowers
   name: using-git-worktrees
   host: github.com
-  resolved_commit: bb92a77741419a4ab5f06e711a283343f1ada0c3
-  resolved_ref: v7.0.0
+  resolved_commit: 2ce8aa15d05bd57213e6f746f953aafb7ded7a8b
+  resolved_ref: v7.0.1
   version: unknown
   virtual_path: skills/using-git-worktrees
   is_virtual: true
