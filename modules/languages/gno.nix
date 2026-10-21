@@ -6,14 +6,18 @@
 }:
 
 let
-  gnoRev = "1bf7282dd85ec089a2e9079132b1505a6d80a159";
-  gnoplsRev = "543a5cb1face8aeb9d947dc557995a8e4d4c311d";
+  gnoRev = "07e44776c26187830b7dcbd2454991b5a1960378";
+  gnoplsRev = "c06cbb3d2dc5dc986647340b97478ff176ab25e5";
+  gnoHash = "sha256-k+OLBHhUbDQNWt6hRgeMJxZxnhBiZcwAdAzfNt0u0Uk=";
+  gnoVendorHash = "sha256-e1g2y3igU88Z6wkBC7+ab/cxj2Wx2Q2izz8ZDJWzuOQ=";
+  gnoplsHash = "sha256-x8xEgj6YNnEpviw2vG5fQMh6wZw/JZKVNnkGI0XsAMg=";
+  gnoplsVendorHash = "sha256-BD5lx+iTrj4GInH1gIyjj6B+DLPv3VGs5OpnvM0jFok=";
 
   gnoSource = pkgs.fetchFromGitHub {
     owner = "gnolang";
     repo = "gno";
     rev = gnoRev;
-    hash = "sha256-u3TTvVKN1cgupHxgMu8/n8vM1rJVG29OcNpqJGHvv+s=";
+    hash = gnoHash;
   };
   gnoToolchain = pkgs.buildGoModule {
     pname = "gno-toolchain";
@@ -21,7 +25,7 @@ let
     src = gnoSource;
     # Preserve the HID C sources used by gnokey's Ledger support.
     proxyVendor = true;
-    vendorHash = "sha256-e1g2y3igU88Z6wkBC7+ab/cxj2Wx2Q2izz8ZDJWzuOQ=";
+    vendorHash = gnoVendorHash;
     subPackages = [
       "gnovm/cmd/gno"
       "gno.land/cmd/gnokey"
@@ -41,9 +45,9 @@ let
       owner = "gnoverse";
       repo = "gnopls";
       rev = gnoplsRev;
-      hash = "sha256-wFGv+UDI20XDwqjjYPLzvyZPSqziqXggpKRDYfpkM0M=";
+      hash = gnoplsHash;
     };
-    vendorHash = "sha256-BD5lx+iTrj4GInH1gIyjj6B+DLPv3VGs5OpnvM0jFok=";
+    vendorHash = gnoplsVendorHash;
     subPackages = [ "." ];
     nativeBuildInputs = [ pkgs.makeWrapper ];
     postFixup = ''

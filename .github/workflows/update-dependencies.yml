@@ -83,6 +83,44 @@ jobs:
             "Automated fixed-release update. Release-pin-only validation checks manifest structure and SHA-256 hash syntax; full host builds are skipped. Activation remains manual." \
             release-pins.json
 
+  gno:
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - name: Create repository-scoped update token
+        id: app-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: ${{ vars.DEPENDENCY_UPDATES_APP_CLIENT_ID }}
+          private-key: ${{ secrets.DEPENDENCY_UPDATES_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token }}
+      - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
+      - name: Test Gno release updates
+        run: python3 -B -m unittest discover -s scripts/updates -p 'test_update_gno.py'
+      - id: update
+        name: Resolve latest stable Gno releases, hash, build, and smoke
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          version="$(python3 -B scripts/updates/update-gno.py)"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - name: Open Gno toolchain update pull request
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+          VERSION: ${{ steps.update.outputs.version }}
+        run: |
+          scripts/updates/open-update-pr.sh \
+            automation/update-gno \
+            "chore(deps): update $VERSION" \
+            "Automated latest stable GitHub release update for Gno and gnopls. Pins release commits and recalculates source and Go dependency hashes. Builds and smoke-checks gno, gnokey, and gnopls against the shared GNOROOT before opening this PR. Normal PR validation evaluates and builds both Darwin hosts. Review and activation remain manual." \
+            modules/languages/gno.nix
+
   hermes:
     runs-on: macos-15
     timeout-minutes: 30
