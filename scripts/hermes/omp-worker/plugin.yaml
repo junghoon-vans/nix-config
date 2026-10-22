@@ -1,7 +1,0 @@
-name: omp-worker
-version: 1.0.0
-kind: standalone
-description: Local OMP ACP coding worker with retained worktrees and gateway approvals.
-provides_tools:
-  - omp_task
-  - omp_status

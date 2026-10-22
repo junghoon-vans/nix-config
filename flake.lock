@@ -63,6 +63,23 @@
         "type": "github"
       }
     },
+    "hermes-omp-plugin": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1792630800,
+        "narHash": "sha256-MwwLh7glseRTthlw+jAfZKzWX1PZAukzRSPlREtugTw=",
+        "ref": "refs/heads/main",
+        "rev": "34e278f82aac3a88014a83d599a33e7ed57ef35e",
+        "revCount": 7,
+        "type": "git",
+        "url": "ssh://git@github.com/junghoon-vans/hermes-omp-plugin"
+      },
+      "original": {
+        "rev": "34e278f82aac3a88014a83d599a33e7ed57ef35e",
+        "type": "git",
+        "url": "ssh://git@github.com/junghoon-vans/hermes-omp-plugin"
+      }
+    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -315,6 +332,7 @@
     "root": {
       "inputs": {
         "hermes-agent": "hermes-agent",
+        "hermes-omp-plugin": "hermes-omp-plugin",
         "home-manager": "home-manager_2",
         "homebrew-cask": "homebrew-cask",
         "homebrew-core": "homebrew-core",

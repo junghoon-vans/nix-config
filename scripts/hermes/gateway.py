@@ -2,7 +2,6 @@
 """Launch the Nix-owned gateway without putting credentials in a derivation."""
 
 import importlib
-import inspect
 import json
 import os
 from pathlib import Path
@@ -27,13 +26,9 @@ def validate_environment(config):
     info = path.stat()
     if info.st_uid != os.getuid() or stat.S_IMODE(info.st_mode) & 0o077:
         raise RuntimeError("The Hermes environment file must be user-owned and mode 0600.")
-    managed = {key: os.environ.get(key) for key in ("OMP_WORKER_CONFIG", "HERMES_HOME")}
     load_dotenv(path, override=True)
-    for key, expected in managed.items():
-        if key == "HERMES_HOME":
-            expected = config["home"]
-        if os.environ.get(key) not in (None, expected):
-            raise RuntimeError(f"The private .env must not override Nix-owned {key}.")
+    if os.environ.get("HERMES_HOME") not in (None, config["home"]):
+        raise RuntimeError("The private .env must not override Nix-owned HERMES_HOME.")
     for key in ("SLACK_BOT_TOKEN", "SLACK_APP_TOKEN", "SLACK_ALLOWED_USERS"):
         if not os.environ.get(key, "").strip():
             raise RuntimeError(f"Missing private runtime setting: {key}")
@@ -48,34 +43,10 @@ def validate_environment(config):
 
 
 def validate_runtime():
-    # Bind the calls the worker actually makes; do not prompt or mutate native
-    # approval state during preflight. **kwargs alone cannot prove scoped grants.
-    for module_name, name, args, kwargs in (
-        ("tools.approval", "get_current_session_key", (), {"default": ""}),
-        ("tools.approval", "is_approval_bypass_active_for_session", ("session",), {}),
-        ("tools.approval", "request_tool_approval", ("omp_task", "reason"), {"rule_key": "scope"}),
-        ("tools.interrupt", "is_interrupted", (), {}),
-        ("gateway.session_context", "get_session_env", ("HERMES_SESSION_USER_ID",), {}),
-    ):
-        try:
-            function = getattr(importlib.import_module(module_name), name)
-            if (
-                not callable(function)
-                or inspect.iscoroutinefunction(function)
-                or inspect.isasyncgenfunction(function)
-            ):
-                raise TypeError("a synchronous callable is required")
-            signature = inspect.signature(function)
-            signature.bind(*args, **kwargs)
-            if name == "request_tool_approval":
-                rule_key = signature.parameters.get("rule_key")
-                if rule_key is None or rule_key.kind not in (
-                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                    inspect.Parameter.KEYWORD_ONLY,
-                ):
-                    raise TypeError("explicit rule_key support is required for scoped approvals")
-        except (ImportError, AttributeError, TypeError, ValueError) as error:
-            raise RuntimeError(f"Incompatible Hermes API {module_name}.{name}: {error}") from error
+    try:
+        getattr(importlib.import_module("acp.client"), "ClientSideConnection")
+    except (ImportError, AttributeError) as error:
+        raise RuntimeError(f"Official ACP SDK unavailable: {error}") from error
     for module_name, name in (
         ("slack_bolt.async_app", "AsyncApp"),
         ("slack_bolt.adapter.socket_mode.async_handler", "AsyncSocketModeHandler"),
@@ -91,6 +62,12 @@ def check_runtime(config):
     result = subprocess.run([config["runtime_python"], __file__, "--runtime-check"], check=False)
     if result.returncode:
         raise RuntimeError("Hermes runtime preflight failed; see the runtime error above.")
+    result = subprocess.run(
+        [config["hermes"], "plugins", "doctor", config["plugin_source"], "--ci"],
+        check=False,
+    )
+    if result.returncode:
+        raise RuntimeError("Hermes plugin compatibility preflight failed.")
 
 
 def _signature(info):
@@ -265,12 +242,12 @@ def check(config):
 def main():
     if sys.argv[1:] == ["--runtime-check"]:
         validate_runtime()
-        print("Hermes approval/session APIs and Slack dependencies are compatible.")
+        print("Official ACP SDK and Slack dependencies are available.")
         return
     config = json.loads(Path(sys.argv[1]).read_text())
     check(config)
     if sys.argv[2:] == ["--check"]:
-        print("Hermes approval/session APIs and private Slack configuration are ready.")
+        print("Hermes plugin compatibility and private Slack configuration are ready.")
         return
     if sys.argv[2:]:
         raise RuntimeError("Only --check is supported.")
