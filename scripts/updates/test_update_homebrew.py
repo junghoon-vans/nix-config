@@ -17,37 +17,96 @@ def lock(rev):
     }}
 
 
-class HomebrewSummaryTests(unittest.TestCase):
-    def test_reports_definition_changes_additions_and_removals_not_directory_moves(self):
-        with tempfile.TemporaryDirectory() as directory:
-            old = Path(directory) / "old"
-            new = Path(directory) / "new"
-            for root in (old, new):
-                for subdir in updater.TAPS.values():
-                    (root / subdir / "a").mkdir(parents=True)
-            for subdir in updater.TAPS.values():
-                (old / subdir / "a" / "changed.rb").write_text('version "1.0"\nrevision 1\n')
-                (new / subdir / "a" / "changed.rb").write_text('version "1.0"\nrevision 2\n')
-                (old / subdir / "a" / "removed.rb").write_text("removed")
-                (new / subdir / "a" / "added.rb").write_text("added")
-                (old / subdir / "a" / "moved.rb").write_text("same definition")
-                (new / subdir / "moved.rb").write_text("same definition")
-                (new / subdir / "README.md").write_text("not a package")
-            with patch.object(updater, "prefetch", side_effect=lambda node: old if node["rev"] == "old" else new):
-                body = updater.summarize(lock("old"), lock("new"))
-            for tap in updater.TAPS:
-                self.assertIn(f"https://github.com/homebrew/{tap}/compare/old...new", body)
-            self.assertEqual(body.count("**Changed (1)**: `changed`"), 2)
-            self.assertEqual(body.count("**Added (1)**: `added`"), 2)
-            self.assertEqual(body.count("**Removed (1)**: `removed`"), 2)
-            self.assertNotIn("`moved`", body)
-            self.assertNotIn("`README`", body)
+def formula(version, revision=0, description="Example"):
+    return f'''class Example < Formula
+  desc "{description}"
+  homepage "https://example.com"
+  url "https://example.com/example-{version}.tar.gz"
+  sha256 "{'a' * 64}"
+  revision {revision}
+end
+'''
 
-    def test_unchanged_taps_report_no_changes_without_fetching(self):
+
+def cask(version):
+    return f'''cask "example" do
+  on_arm do
+    version "{version}"
+    sha256 "{'b' * 64}"
+  end
+  on_intel do
+    version "9.9.9"
+    sha256 "{'c' * 64}"
+  end
+  url "https://example.com/example-#{{version}}.dmg"
+  name "Example"
+  homepage "https://example.com"
+  app "Example.app"
+end
+'''
+
+
+class HomebrewSummaryTests(unittest.TestCase):
+    def setUp(self):
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        self.old = Path(temporary.name) / "old"
+        self.new = Path(temporary.name) / "new"
+        for root in (self.old, self.new):
+            for subdir in updater.TAPS.values():
+                (root / subdir / "e").mkdir(parents=True)
+        self.declared = {tap: ["example"] for tap in updater.TAPS}
+
+    def definition(self, root, tap, text, name="example"):
+        (root / updater.TAPS[tap] / "e" / f"{name}.rb").write_text(text)
+
+    def summary(self):
+        with patch.object(updater, "prefetch", side_effect=lambda node: self.old if node["rev"] == "old" else self.new):
+            return updater.summarize(lock("old"), lock("new"), self.declared)
+
+    def test_declared_versions_use_formula_url_revision_and_apple_silicon_cask(self):
+        self.definition(self.old, "homebrew-core", formula("1.2.0", 1))
+        self.definition(self.new, "homebrew-core", formula("1.3.0", 2))
+        self.definition(self.old, "homebrew-cask", cask("2.0.0"))
+        self.definition(self.new, "homebrew-cask", cask("2.1.0"))
+        self.definition(self.new, "homebrew-core", "invalid Ruby", "unrelated")
+        body = self.summary()
+        self.assertIn("| `example` | `1.2.0_1` | `1.3.0_2` | Version / revision |", body)
+        self.assertIn("| `example` | `2.0.0` | `2.1.0` | Version / revision |", body)
+        self.assertNotIn("unrelated", body)
+        self.assertNotIn("9.9.9", body)
+
+    def test_revision_only_and_definition_only_changes_are_distinguished(self):
+        for tap in updater.TAPS:
+            self.declared[tap] = []
+        self.declared["homebrew-core"] = ["example"]
+        self.definition(self.old, "homebrew-core", formula("1.0", 1))
+        self.definition(self.new, "homebrew-core", formula("1.0", 2))
+        self.assertIn("| `example` | `1.0_1` | `1.0_2` | Version / revision |", self.summary())
+        self.definition(self.new, "homebrew-core", formula("1.0", 1, "New description"))
+        self.assertIn("| `example` | `1.0_1` | `1.0_1` | Definition only (version unchanged) |", self.summary())
+
+    def test_declared_additions_removals_and_unchanged_packages(self):
+        self.declared["homebrew-cask"] = []
+        self.definition(self.new, "homebrew-core", formula("1.0"))
+        self.assertIn("| `example` | — | `1.0` | Added |", self.summary())
+        self.definition(self.old, "homebrew-core", formula("1.0"))
+        self.assertNotIn("| `example`", self.summary())
+        (self.new / "Formula/e/example.rb").unlink()
+        self.assertIn("| `example` | `1.0` | — | Removed |", self.summary())
+
+    def test_unchanged_taps_do_not_fetch(self):
         with patch.object(updater, "prefetch", side_effect=AssertionError("unchanged tap fetched")):
-            body = updater.summarize(lock("same"), lock("same"))
-        self.assertEqual(body.count("No changes."), 2)
-        self.assertNotIn("**Changed", body)
+            body = updater.summarize(lock("same"), lock("same"), self.declared)
+        self.assertNotIn("| `example`", body)
+
+    def test_declaration_missing_from_both_pins_is_not_reported_as_added(self):
+        self.declared["homebrew-cask"] = []
+        self.assertIn(
+            "| `example` | — | — | Unavailable in both pinned taps |",
+            self.summary(),
+        )
+
 
 
 if __name__ == "__main__":
