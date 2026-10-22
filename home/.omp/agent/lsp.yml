@@ -1,0 +1,16 @@
+servers:
+  gnopls:
+    command: gnopls
+    args: [serve]
+    fileTypes: [.gno]
+    languageId: gno
+    rootMarkers: [gnomod.toml, .git]
+  lemminx:
+    command: lemminx
+    args: []
+    fileTypes: [.xml, .xsd, .xsl, .xslt]
+    languageId: xml
+    rootMarkers: [pom.xml, build.gradle, build.gradle.kts, .git]
+  kotlin-lsp:
+    command: kotlin-language-server
+    args: []

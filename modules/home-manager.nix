@@ -87,6 +87,7 @@ in
     ".gitignore_global".source = ../home/.gitignore_global;
     ".paseo/config.json".source = ../home/.paseo/config.json;
     ".omp/agent/config.yml".source = ../home/.omp/agent/config.yml;
+    ".omp/agent/lsp.yml".source = ../home/.omp/agent/lsp.yml;
     ".omp/agent/RULES.md".source = ../home/.omp/agent/RULES.md;
     ".omp/agent/agents/frontend.md".source = ../home/.omp/agent/agents/frontend.md;
     ".omp/agent/agents/frontend-deep.md".source = ../home/.omp/agent/agents/frontend-deep.md;
