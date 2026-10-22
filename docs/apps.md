@@ -60,7 +60,6 @@ Managed by: Homebrew formula.
 | `actionlint` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `ast-grep` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `awscli` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
-| `bash-language-server` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `bat` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `cmake` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `delve` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
@@ -79,7 +78,6 @@ Managed by: Homebrew formula.
 | `kubernetes-cli` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `lazygit` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `libpq` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
-| `marksman` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `mole` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `mysql-client` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `neovim` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
@@ -89,10 +87,8 @@ Managed by: Homebrew formula.
 | `shellcheck` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `shfmt` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `terraform` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
-| `terraform-ls` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `tldr` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `tmux` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
-| `yaml-language-server` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `yamlfmt` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `zoxide` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 
@@ -117,7 +113,6 @@ Managed by: Nix system.
 | `golangci-lint` | Fast linters Runner for Go | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/languages/go.nix`](../modules/languages/go.nix) |
 | `gopls` | Official language server for the Go language | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/languages/go.nix`](../modules/languages/go.nix) |
 | `hermes-agent` | AI agent with advanced tool-calling capabilities | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/hermes.nix`](../modules/hermes.nix) |
-| `jdt-language-server` | Java language server | `junghoonui-MacBookAir` | [`modules/languages/java.nix`](../modules/languages/java.nix) |
 | `kotlin` | General purpose programming language | `junghoonui-MacBookAir` | [`modules/languages/kotlin.nix`](../modules/languages/kotlin.nix) |
 | `kotlin-language-server` | Kotlin language server | `junghoonui-MacBookAir` | [`modules/languages/kotlin.nix`](../modules/languages/kotlin.nix) |
 | `lemminx` | XML Language Server | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/languages/xml.nix`](../modules/languages/xml.nix) |

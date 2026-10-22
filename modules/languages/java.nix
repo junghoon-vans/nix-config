@@ -14,7 +14,6 @@ in
   config = lib.mkIf cfg.enable {
     environment.systemPackages = with pkgs; [
       temurin-bin-25
-      jdt-language-server
     ];
   };
 }
