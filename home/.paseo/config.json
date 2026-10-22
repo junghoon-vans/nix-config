@@ -57,9 +57,9 @@
       },
       {
         "id": "agent_profile_omp_ui",
-        "name": "UI · Claude Sonnet 5 · high",
+        "name": "UI · Claude Sonnet 5.5 · high",
         "provider": "omp",
-        "model": "anthropic/claude-sonnet-5",
+        "model": "anthropic/claude-sonnet-5-5",
         "modeId": "full",
         "thinkingOptionId": "high"
       },

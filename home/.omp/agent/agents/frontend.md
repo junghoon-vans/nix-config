@@ -1,6 +1,6 @@
 ---
 name: frontend
-description: Claude Sonnet 5 specialist for frontend implementation, visual verification, and UI polish
+description: Claude Sonnet 5.5 specialist for frontend implementation, visual verification, and UI polish
 spawns: "*"
 model:
   - "@frontend"
