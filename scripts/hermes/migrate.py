@@ -10,8 +10,6 @@ import shutil
 import subprocess
 import uuid
 
-import yaml
-
 
 NIX_STORE = Path("/nix/store")
 
@@ -62,22 +60,10 @@ class Migration:
 
     def clean(self, *, cleanup_only=False):
         config = self.home / ".hermes/config.yaml"
-        if config.exists() and not (config.is_symlink() and str(config.resolve()).startswith("/nix/store/")):
-            data = yaml.safe_load(config.read_text()) or {}
-            plugins = data.get("plugins", {})
-            enabled = plugins.get("enabled", [])
-            has_orca = isinstance(enabled, list) and "orca-status" in enabled
-            if not cleanup_only or has_orca:
-                self.archive(config)
-            if has_orca:
-                plugins["enabled"] = [name for name in enabled if name != "orca-status"]
-                config.write_text(yaml.safe_dump(data, sort_keys=False, allow_unicode=True))
-                config.chmod(0o600)
-                print("Disabled the Orca lifecycle hook.")
-
-        plugin = self.home / ".hermes/plugins/orca-status"
-        if plugin.exists() or plugin.is_symlink():
-            self.archive(plugin, move=True)
+        if not cleanup_only and config.exists() and not (
+            config.is_symlink() and str(config.resolve()).startswith("/nix/store/")
+        ):
+            self.archive(config)
 
         legacy_plugin = self.home / ".hermes/plugins/omp-worker"
         if not cleanup_only and _is_nix_store_plugin_link(legacy_plugin, self.home):
@@ -103,12 +89,6 @@ class Migration:
             if not any("/nix/store/" in str(arg) for arg in data.get("ProgramArguments", [])):
                 self.archive(legacy_plist)
 
-        orca = self.home / "orca"
-        if not orca.is_symlink():
-            for path in (orca / "workspaces", orca):
-                if path.is_dir() and not path.is_symlink() and not any(path.iterdir()):
-                    path.rmdir()
-                    print(f"Removed empty experiment directory {path.relative_to(self.home)}")
         (self.home / ".hermes/logs").mkdir(parents=True, mode=0o700, exist_ok=True)
 
 
