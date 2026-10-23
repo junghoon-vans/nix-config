@@ -78,9 +78,10 @@ Keep the archive private: it includes credentials. The source history and memory
 available for rollback; the old service and its Slack tokens are retired so only the new
 profile owns the bot. Import preserves history data but does not rename default-profile
 session identities, so existing channel threads must not be assumed to continue the same
-session. Activation creates the profile if needed and installs the managed links; gateway
-startup validates the private `.env` and credentials. The former default-profile cleanup
-activation is no longer run.
+session. Activation creates the profile if needed, installs the managed links, and overlays
+Nix-owned settings onto its writable configuration while preserving unrelated user settings.
+The gateway launches through the native Hermes CLI, which loads the profile's private `.env`;
+the former custom launch wrapper and default-profile cleanup activation are no longer used.
 
 Existing `~/.hermes/omp-worker` legacy task data is not automatically reattached to the
 delegator. Additional ACP permission requests are denied, not relayed to Slack; permitted tools
