@@ -29,14 +29,9 @@ def validate_environment(config):
     load_dotenv(path, override=True)
     if os.environ.get("HERMES_HOME") not in (None, config["home"]):
         raise RuntimeError("The private .env must not override Nix-owned HERMES_HOME.")
-    for key in ("SLACK_BOT_TOKEN", "SLACK_APP_TOKEN", "SLACK_ALLOWED_USERS"):
+    for key in ("SLACK_BOT_TOKEN", "SLACK_APP_TOKEN"):
         if not os.environ.get(key, "").strip():
             raise RuntimeError(f"Missing private runtime setting: {key}")
-    allowed = [value.strip() for value in os.environ["SLACK_ALLOWED_USERS"].split(",")]
-    if not allowed or any(not value or value[0] not in "UW" or not value.isalnum() for value in allowed):
-        raise RuntimeError("SLACK_ALLOWED_USERS must be comma-separated explicit Slack user IDs.")
-    if os.environ.get("SLACK_ALLOW_ALL_USERS", "").lower() in ("1", "true", "yes"):
-        raise RuntimeError("SLACK_ALLOW_ALL_USERS is not permitted for the coding gateway.")
     os.environ["HERMES_HOME"] = config["home"]
     os.umask(0o077)
     Path(config["home"], "logs").mkdir(parents=True, exist_ok=True)

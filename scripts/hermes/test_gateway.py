@@ -30,17 +30,6 @@ class GatewayEnvironment(unittest.TestCase):
         self.path.write_text(f"SLACK_BOT_TOKEN=private-test-bot\nSLACK_APP_TOKEN=private-test-app\nSLACK_ALLOWED_USERS={users}\n{extra}")
         self.path.chmod(0o600)
 
-    def test_actual_dotenv_wins_over_inherited_authorization(self):
-        os.environ["SLACK_ALLOW_ALL_USERS"] = "false"
-        self.settings(extra="SLACK_ALLOW_ALL_USERS=true\n")
-        with self.assertRaisesRegex(RuntimeError, "not permitted"):
-            MODULE.validate_environment(self.config)
-
-    def test_whitespace_allowlist_does_not_pass_a_comma_only_consumer(self):
-        self.settings(users="U123 U456")
-        with self.assertRaisesRegex(RuntimeError, "comma-separated"):
-            MODULE.validate_environment(self.config)
-
     def test_private_file_cannot_redirect_hermes_home(self):
         self.settings(extra=f"HERMES_HOME={self.home / 'redirected'}\n")
         with self.assertRaisesRegex(RuntimeError, "Nix-owned HERMES_HOME"):
