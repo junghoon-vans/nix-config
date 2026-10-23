@@ -9,6 +9,7 @@ bash_scripts=(
   .github/scripts/detect-nix-config-changes
   .github/scripts/require-nix-validation
   home/.local/bin/weekly-disk-maintenance
+  scripts/apm/check.sh
   scripts/apm/install.sh
   scripts/apm/setup-apm.sh
   scripts/dock/update-stacks.sh

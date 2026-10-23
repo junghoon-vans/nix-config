@@ -2,8 +2,8 @@
 
 set -euo pipefail
 
-# Use the activated Nix package even when older local installations shadow PATH.
-apm=/run/current-system/sw/bin/apm
+# Default to the activated Nix package; validation can pass a freshly built one.
+apm="${2:-/run/current-system/sw/bin/apm}"
 # Git remains Homebrew-managed; the invoking shell may predate first activation.
 export PATH="$PATH:/opt/homebrew/bin"
 

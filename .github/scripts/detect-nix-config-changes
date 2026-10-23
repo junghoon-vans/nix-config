@@ -11,6 +11,9 @@ if ! git diff --quiet "$base_sha" "$head_sha" -- release-pins.json; then
 fi
 
 if git diff --quiet "$base_sha" "$head_sha" -- \
+  .github/workflows/validate.yml \
+  .github/scripts/detect-nix-config-changes \
+  .github/scripts/require-nix-validation \
   apm.yml \
   apm.lock.yaml \
   Makefile \
