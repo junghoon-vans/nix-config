@@ -153,7 +153,7 @@ jobs:
           scripts/updates/open-update-pr.sh \
             automation/update-hermes \
             "chore(deps): update Hermes to ${{ steps.update.outputs.version }}" \
-            "Automated stable Hermes release update. Updates the tagged flake input and its lockfile graph; normal PR validation evaluates and builds both Darwin hosts. Review and activation remain manual." \
+            "Automated stable Hermes release update. Updates the tagged flake input and its lockfile graph; package version metadata follows the locked release tag automatically. Normal PR validation builds both Darwin hosts and verifies OMP tool exposure in the packaged Hermes runtime. Review and activation remain manual." \
             flake.nix \
             flake.lock
 

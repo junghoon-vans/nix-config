@@ -139,6 +139,8 @@ jobs:
         run: nix eval .#darwinConfigurations.${{ matrix.host }}.config.system.build.toplevel.drvPath
       - name: Build Darwin configuration
         run: nix build .#darwinConfigurations.${{ matrix.host }}.system
+      - name: Verify packaged Hermes version and OMP tool exposure
+        run: nix build .#darwinConfigurations.${{ matrix.host }}.config.system.build.hermesRuntimeCheck --no-link
 
   validate:
     if: always()
