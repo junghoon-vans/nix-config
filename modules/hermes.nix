@@ -90,6 +90,8 @@ in
     package = lib.mkOption {
       type = lib.types.package;
       default = inputs.hermes-agent.packages.${pkgs.stdenv.hostPlatform.system}.messaging.override {
+        version = lib.removePrefix "v" (builtins.fromJSON (builtins.readFile ../flake.lock))
+        .nodes.hermes-agent.original.ref;
         extraDependencyGroups = [
           "messaging"
           "acp"
@@ -119,6 +121,18 @@ in
     ];
     system.build = {
       inherit hermesConfig;
+      hermesRuntimeCheck =
+        pkgs.runCommand "hermes-runtime-check"
+          {
+            HERMES_INSTALL_ROOT = "${cfg.package}/share/hermes-agent";
+            HERMES_BUNDLED_PLUGINS = "${cfg.package}/share/hermes-agent/plugins";
+            PYTHONDONTWRITEBYTECODE = "1";
+          }
+          ''
+            ${cfg.package.hermesVenv}/bin/python3 ${../scripts/hermes/check-runtime.py} \
+              ${hermesConfig} ${pluginSource} ${lib.escapeShellArg cfg.package.version}
+            touch "$out"
+          '';
     };
 
     home-manager.users.${user} = { lib, ... }: {
