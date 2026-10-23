@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Prepare the writable Hermes configuration from Nix-owned defaults."""
+"""Overlay Nix-owned settings onto the writable Hermes configuration."""
 
 import os
 from pathlib import Path
@@ -102,15 +102,14 @@ def _load_config(content, description):
     return value
 
 
-def _preserved_allowlist(previous):
-    if "command_allowlist" not in previous:
-        return None
-    allowlist = previous["command_allowlist"]
-    if not isinstance(allowlist, list) or any(
-        not isinstance(pattern, str) or not pattern.strip() for pattern in allowlist
-    ):
-        raise RuntimeError("The runtime command_allowlist must be a list of non-empty strings.")
-    return allowlist
+def _overlay_config(previous, overrides):
+    result = dict(previous) if isinstance(previous, dict) else {}
+    for key, value in overrides.items():
+        if isinstance(value, dict):
+            result[key] = _overlay_config(result.get(key), value)
+        else:
+            result[key] = value
+    return result
 
 
 def _replace_runtime_config(path, content, prior_state):
@@ -145,10 +144,7 @@ def prepare_runtime_config(home, defaults_path):
         raise RuntimeError("The declared Nix Hermes config defaults are unavailable.")
     defaults = _load_config(defaults_path.read_bytes(), "the declared Nix Hermes config defaults")
     previous = _load_config(previous_content, "the existing Hermes runtime config")
-    allowlist = _preserved_allowlist(previous)
-    result = dict(defaults)
-    if allowlist is not None:
-        result["command_allowlist"] = allowlist
+    result = _overlay_config(previous, defaults)
     content = yaml.safe_dump(result, sort_keys=False, allow_unicode=True).encode("utf-8")
     if previous_content == content and previous_mode == 0o600:
         if _runtime_state(runtime_path) != state:

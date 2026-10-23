@@ -39,12 +39,17 @@ class HermesRuntimeConfig(unittest.TestCase):
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(yaml.safe_dump(values, sort_keys=False))
 
-    def test_preparation_converts_private_config_and_preserves_only_native_allowlist(self):
+    def test_nix_overrides_declared_values_and_preserves_hermes_settings(self):
         source_content = self.defaults_path.read_bytes()
-        self.runtime.write_text(
-            "model:\n  provider: stale-provider\napi_key: private-old-secret\n"
-            "command_allowlist:\n  - 'rm -rf *'\n  - 'git clean *'\n"
-        )
+        self.runtime.write_text(yaml.safe_dump({
+            "model": {"provider": "stale-provider", "temperature": 0.7},
+            "plugins": {
+                "enabled": ["local-plugin"],
+                "entries": {"local-plugin": {"enabled": True}},
+            },
+            "api_key": "private-test-secret",
+            "command_allowlist": ["git status"],
+        }))
         self.runtime.chmod(0o600)
 
         self.check()
@@ -56,13 +61,18 @@ class HermesRuntimeConfig(unittest.TestCase):
             yaml.safe_load(self.runtime.read_text()),
             {
                 **self.defaults,
-                "command_allowlist": ["rm -rf *", "git clean *"],
+                "model": {**self.defaults["model"], "temperature": 0.7},
+                "plugins": {
+                    "enabled": ["omp-acp-delegator"],
+                    "entries": {"local-plugin": {"enabled": True}},
+                },
+                "api_key": "private-test-secret",
+                "command_allowlist": ["git status"],
             },
         )
-        self.assertNotIn("api_key", yaml.safe_load(self.runtime.read_text()))
         self.assertEqual(self.defaults_path.read_bytes(), source_content)
 
-    def test_allowlist_survives_repeated_checks_and_changed_defaults(self):
+    def test_hermes_edits_survive_repeated_activation_and_changed_nix_values(self):
         self.runtime.write_text("command_allowlist:\n  - 'git status'\n")
         self.runtime.chmod(0o600)
         self.check()
@@ -73,6 +83,10 @@ class HermesRuntimeConfig(unittest.TestCase):
         repeated = self.runtime.stat()
         self.assertEqual(repeated.st_ino, first.st_ino)
         self.assertEqual(repeated.st_mtime_ns, first.st_mtime_ns)
+
+        edited = yaml.safe_load(self.runtime.read_text())
+        edited["model"].update(default="temporary-local-model", temperature=0.3)
+        self.runtime.write_text(yaml.safe_dump(edited, sort_keys=False))
 
         next_defaults_path = self.store / "next-generation" / "hermes-config.yaml"
         next_defaults = {
@@ -86,8 +100,36 @@ class HermesRuntimeConfig(unittest.TestCase):
 
         self.assertEqual(
             yaml.safe_load(self.runtime.read_text()),
-            {**next_defaults, "command_allowlist": ["git status"]},
+            {
+                **next_defaults,
+                "model": {**next_defaults["model"], "temperature": 0.3},
+                "command_allowlist": ["git status"],
+            },
         )
+
+    def test_empty_and_scalar_overrides_preserve_unowned_mapping_keys(self):
+        self.runtime.write_text(yaml.safe_dump({
+            "model": "legacy-model",
+            "compression": {"enabled": True, "summary_model": "local-model"},
+            "mcp_servers": {"local": {"command": "local-mcp"}},
+            "command_allowlist": ["git status"],
+        }))
+        self.runtime.chmod(0o600)
+        self.write_defaults(self.defaults_path, {
+            "model": {"default": "nix-model", "base_url": None},
+            "compression": {"enabled": False},
+            "mcp_servers": {},
+            "command_allowlist": [],
+        })
+
+        self.check()
+
+        self.assertEqual(yaml.safe_load(self.runtime.read_text()), {
+            "model": {"default": "nix-model", "base_url": None},
+            "compression": {"enabled": False, "summary_model": "local-model"},
+            "mcp_servers": {"local": {"command": "local-mcp"}},
+            "command_allowlist": [],
+        })
 
     def test_legacy_nix_store_symlink_is_replaced_without_touching_target(self):
         legacy_path = self.store / "previous-config.yaml"
@@ -126,16 +168,6 @@ class HermesRuntimeConfig(unittest.TestCase):
 
         self.assertTrue(self.runtime.is_symlink())
         self.assertEqual(legacy.read_text(), "command_allowlist: []\n")
-
-    def test_malformed_native_allowlist_fails_closed(self):
-        original = "command_allowlist:\n  - 'valid entry'\n  - {pattern: '*'}\n"
-        self.runtime.write_text(original)
-        self.runtime.chmod(0o600)
-
-        with self.assertRaisesRegex(RuntimeError, "list of non-empty strings"):
-            self.check()
-
-        self.assertEqual(self.runtime.read_text(), original)
 
     def test_world_readable_runtime_config_is_refused(self):
         self.runtime.write_text("command_allowlist: []\n")
