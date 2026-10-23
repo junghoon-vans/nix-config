@@ -12,7 +12,7 @@ let
   home = config.users.users.${user}.home;
   profileName = "omp-worker";
   profilePath = ".hermes/profiles/${profileName}";
-  hermesHome = "${home}/${profilePath}";
+  profileHome = "${home}/${profilePath}";
   yaml = pkgs.formats.yaml { };
   pluginSource = "${inputs.hermes-omp-acp}/delegator";
   supportPython = pkgs.python3.withPackages (ps: [
@@ -23,8 +23,8 @@ let
     builtins.toJSON {
       hermes = lib.getExe cfg.package;
       runtime_python = "${cfg.package.hermesVenv}/bin/python3";
-      home = hermesHome;
-      environment_file = "${hermesHome}/.env";
+      home = profileHome;
+      environment_file = "${profileHome}/.env";
       config_defaults = "${hermesConfig}";
       plugin_source = pluginSource;
     }
@@ -144,9 +144,12 @@ in
           "${profilePath}/plugins/omp-acp-delegator".source = pluginSource;
         };
         activation = {
-          hermesResourcesReady = lib.hm.dag.entryBetween [ "setupLaunchAgents" ] [ "linkGeneration" ] ''
-            run ${gateway} --check
-          '';
+          prepareHermes =
+            lib.hm.dag.entryBetween [ "linkGeneration" "setupLaunchAgents" ] [ "writeBoundary" ]
+              ''
+                run ${pkgs.bash}/bin/bash ${../scripts/hermes/prepare-profile.sh} \
+                  ${lib.getExe cfg.package} ${lib.escapeShellArg "${home}/.hermes"} ${lib.escapeShellArg profileName}
+              '';
         };
       };
       launchd.agents.hermes = {
@@ -158,8 +161,8 @@ in
           KeepAlive.SuccessfulExit = false;
           ThrottleInterval = 30;
           WorkingDirectory = home;
-          StandardOutPath = "${hermesHome}/logs/gateway.log";
-          StandardErrorPath = "${hermesHome}/logs/gateway.error.log";
+          StandardOutPath = "${profileHome}/logs/gateway.log";
+          StandardErrorPath = "${profileHome}/logs/gateway.error.log";
           ProcessType = "Background";
           ExitTimeOut = 30;
         };
