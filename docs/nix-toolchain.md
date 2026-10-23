@@ -74,13 +74,15 @@ manual step after review.
 
 ## Language profiles
 
-These versions follow the locked Nixpkgs revision.
+Nixpkgs packages follow `flake.lock`; Bun, Gno tools, and Protobuf use the separate pins
+listed above. The table names Nix package attributes, except where it names bundled binaries.
 
 | Area | Packages | Enabled hosts |
 | --- | --- | --- |
 | Go | `go_1_26`, `gopls`, `golangci-lint`, `gofumpt`, Protobuf | Air, Pro |
 | Gno | `gno`, `gnokey`, `gnopls` | Air, Pro |
 | Node / TypeScript | `nodejs_24`, `corepack`, `pnpm`, `typescript`, `typescript-language-server`, `biome` | Air, Pro |
+| Bun | `bun` (pinned release) | Air, Pro |
 | Python | `python313`, `uv`, `pyright`, `ruff` | Air, Pro |
 | Rust | `cargo`, `rustc`, `rustfmt`, `clippy`, `rust-analyzer`, `cargo-nextest` | Air, Pro |
 | XML | `lemminx` | Air, Pro |
@@ -89,6 +91,31 @@ These versions follow the locked Nixpkgs revision.
 
 Host enablement lives in `hosts/*/default.nix`. Profiles under `modules/languages/` are opt-in;
 `mise` remains available for repository-local `mise.toml` overrides.
+
+### OMP language servers
+
+OMP includes server definitions, not the language-server executables. The enabled language
+profiles install the executables on `PATH`; OMP starts them when the corresponding files
+and project root markers match. Node and Bun projects use the JavaScript/TypeScript server.
+
+| Language | Installed package | OMP command | Registration |
+| --- | --- | --- | --- |
+| Go | `gopls` | `gopls serve` | Built-in |
+| Gno | `gnopls` | `gnopls serve` | `home/.omp/agent/lsp.yml` |
+| JavaScript / TypeScript | `typescript-language-server` | `typescript-language-server --stdio` | Built-in |
+| Python | `pyright`, `ruff` | `pyright-langserver --stdio`, `ruff server` | Built-in |
+| Rust | `rust-analyzer` | `rust-analyzer` | Built-in |
+| Java | `jdt-language-server` | `jdtls` | Built-in |
+| Kotlin | `kotlin-language-server` | `kotlin-language-server` | Built-in `kotlin-lsp` definition with command/args overridden in `home/.omp/agent/lsp.yml` |
+| XML | `lemminx` | `lemminx` | `home/.omp/agent/lsp.yml` |
+
+`jdt-language-server` is the Nix package attribute; its executable and OMP server ID are
+`jdtls`. The Nix package supplies its own pinned JDK launcher; `temurin-bin-25` remains the
+Java development runtime. Java and Kotlin profiles are enabled only on Air.
+
+The generated [package inventory](apps.md) uses package metadata names, so entries such as
+`go`, `nodejs`, `python3`, and `temurin-bin` differ from the versioned Nix attributes above.
+The `gno-toolchain` package supplies both `gno` and `gnokey`.
 
 ## Updating
 
