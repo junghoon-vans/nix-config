@@ -13,6 +13,32 @@ import uuid
 import yaml
 
 
+NIX_STORE = Path("/nix/store")
+
+
+def _is_nix_store_plugin_link(path, home):
+    if not path.is_symlink():
+        return False
+    for parent in path.parents:
+        if parent == home:
+            break
+        if parent.is_symlink():
+            return False
+    try:
+        target = Path(os.readlink(path))
+    except OSError:
+        return False
+    if not target.is_absolute():
+        return False
+    store = Path(os.path.abspath(NIX_STORE))
+    target = Path(os.path.abspath(target))
+    try:
+        relative_target = target.relative_to(store)
+    except ValueError:
+        return False
+    return bool(relative_target.parts)
+
+
 class Migration:
     def __init__(self, home):
         self.home = Path(home).resolve()
@@ -52,6 +78,10 @@ class Migration:
         plugin = self.home / ".hermes/plugins/orca-status"
         if plugin.exists() or plugin.is_symlink():
             self.archive(plugin, move=True)
+
+        legacy_plugin = self.home / ".hermes/plugins/omp-worker"
+        if not cleanup_only and _is_nix_store_plugin_link(legacy_plugin, self.home):
+            self.archive(legacy_plugin, move=True)
 
         agents = self.home / "Library/LaunchAgents"
         # Only this known Hermes deployment is retired. Other Fleetra projects

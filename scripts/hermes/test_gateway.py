@@ -2,11 +2,8 @@ import importlib.util
 import os
 from pathlib import Path
 import stat
-import subprocess
-import sys
 import tempfile
 import unittest
-from types import SimpleNamespace
 from unittest.mock import patch
 
 import yaml
@@ -44,10 +41,9 @@ class GatewayEnvironment(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "comma-separated"):
             MODULE.validate_environment(self.config)
 
-    def test_managed_worker_policy_cannot_be_overridden_by_private_env(self):
-        os.environ["OMP_WORKER_CONFIG"] = "/nix/store/declared-worker.json"
-        self.settings(extra="OMP_WORKER_CONFIG=/tmp/old-experiment.json\n")
-        with self.assertRaisesRegex(RuntimeError, "Nix-owned OMP_WORKER_CONFIG"):
+    def test_private_file_cannot_redirect_hermes_home(self):
+        self.settings(extra=f"HERMES_HOME={self.home / 'redirected'}\n")
+        with self.assertRaisesRegex(RuntimeError, "Nix-owned HERMES_HOME"):
             MODULE.validate_environment(self.config)
 
     def test_private_file_is_the_runtime_token_and_allowlist_source(self):
@@ -73,14 +69,14 @@ class GatewayRuntimeConfig(unittest.TestCase):
         self.defaults = {
             "model": {"provider": "openai-codex", "default": "openai/gpt-6.1-sol"},
             "approvals": {"mode": "manual", "unattended_mode": "deny"},
-            "plugins": {"enabled": ["omp-worker"]},
+            "plugins": {"enabled": ["omp-acp-delegator"]},
         }
         self.defaults_path.write_text(yaml.safe_dump(self.defaults, sort_keys=False))
         self.managed_config = self.home / "config.nix.yaml"
         self.managed_config.symlink_to(self.defaults_path)
-        self.plugin_source = self.root / "omp-worker"
+        self.plugin_source = self.root / "omp-acp-delegator"
         self.plugin_source.mkdir()
-        plugin_link = self.home / "plugins" / "omp-worker"
+        plugin_link = self.home / "plugins" / "omp-acp-delegator"
         plugin_link.parent.mkdir()
         plugin_link.symlink_to(self.plugin_source, target_is_directory=True)
         self.runtime = self.home / "config.yaml"
@@ -91,76 +87,22 @@ class GatewayRuntimeConfig(unittest.TestCase):
             "plugin_source": str(self.plugin_source),
         }
 
-    def native_modules(self):
-        return {
-            "hermes_cli": SimpleNamespace(__version__="99.0.0"),
-            "tools.approval": SimpleNamespace(
-                get_current_session_key=lambda default="": default,
-                is_approval_bypass_active_for_session=lambda session_key: False,
-                request_tool_approval=lambda tool_name, reason, *, rule_key: {"approved": False},
-            ),
-            "tools.interrupt": SimpleNamespace(is_interrupted=lambda: False),
-            "gateway.session_context": SimpleNamespace(get_session_env=lambda name: ""),
-            "slack_bolt.async_app": SimpleNamespace(AsyncApp=object),
-            "slack_bolt.adapter.socket_mode.async_handler": SimpleNamespace(AsyncSocketModeHandler=object),
-            "slack_sdk.web.async_client": SimpleNamespace(AsyncWebClient=object),
-        }
+    def check(self):
+        with patch.object(MODULE, "validate_environment"), patch.object(MODULE, "check_runtime"):
+            MODULE.check(self.config)
 
-    def check(self, modules=None):
-        with patch.dict(sys.modules, self.native_modules() if modules is None else modules):
-            with patch.object(MODULE, "validate_environment"), patch.object(
-                MODULE, "check_runtime", side_effect=lambda _: MODULE.validate_runtime()
+    def test_missing_acp_sdk_prevents_config_materialization(self):
+        with patch.object(MODULE, "validate_environment"), patch.object(
+            MODULE, "check_runtime", side_effect=lambda _: MODULE.validate_runtime()
+        ), patch.object(
+            MODULE.importlib,
+            "import_module",
+            side_effect=ModuleNotFoundError("No module named 'acp'"),
+        ):
+            with self.assertRaisesRegex(
+                RuntimeError, "ACP SDK runtime dependency unavailable: acp.client.ClientSideConnection"
             ):
                 MODULE.check(self.config)
-
-    def test_compatible_updated_runtime_can_start_without_a_version_pin(self):
-        environment = self.home / ".env"
-        environment.write_text(
-            "SLACK_BOT_TOKEN=private-test-bot\nSLACK_APP_TOKEN=private-test-app\nSLACK_ALLOWED_USERS=U123\n"
-        )
-        environment.chmod(0o600)
-        self.addCleanup(os.umask, os.umask(0o077))
-        with patch.dict(os.environ, {}, clear=True), patch.dict(sys.modules, self.native_modules()), patch.object(
-            MODULE, "check_runtime", side_effect=lambda _: MODULE.validate_runtime()
-        ):
-            MODULE.check(self.config)
-        self.assertEqual(yaml.safe_load(self.runtime.read_text()), self.defaults)
-
-    def test_missing_native_approval_api_prevents_config_materialization(self):
-        modules = self.native_modules()
-        del modules["tools.approval"].request_tool_approval
-        with self.assertRaisesRegex(RuntimeError, "tools.approval.request_tool_approval"):
-            self.check(modules)
-        self.assertFalse(self.runtime.exists())
-
-    def test_missing_slack_sdk_prevents_config_materialization(self):
-        modules = self.native_modules()
-        modules["slack_bolt.async_app"] = None
-        with self.assertRaisesRegex(RuntimeError, "Slack runtime dependencies"):
-            self.check(modules)
-        self.assertFalse(self.runtime.exists())
-
-    def test_approval_api_without_explicit_scoped_rule_key_is_rejected(self):
-        modules = self.native_modules()
-        for approval in (
-            lambda tool_name, reason: {"approved": True},
-            lambda tool_name, reason, **kwargs: {"approved": True},
-            lambda tool_name, reason, **rule_key: {"approved": True},
-        ):
-            with self.subTest(approval=approval):
-                modules["tools.approval"].request_tool_approval = approval
-                with self.assertRaisesRegex(RuntimeError, "tools.approval.request_tool_approval"):
-                    self.check(modules)
-                self.assertFalse(self.runtime.exists())
-
-    def test_async_approval_api_is_rejected_before_startup(self):
-        async def approval(tool_name, reason, *, rule_key):
-            return {"approved": True}
-
-        modules = self.native_modules()
-        modules["tools.approval"].request_tool_approval = approval
-        with self.assertRaisesRegex(RuntimeError, "tools.approval.request_tool_approval"):
-            self.check(modules)
         self.assertFalse(self.runtime.exists())
 
     def write_defaults(self, path, values):
@@ -206,7 +148,7 @@ class GatewayRuntimeConfig(unittest.TestCase):
         next_defaults = {
             "model": {"provider": "new-provider", "default": "new-model"},
             "approvals": {"mode": "manual", "unattended_mode": "deny"},
-            "plugins": {"enabled": ["omp-worker"]},
+            "plugins": {"enabled": ["omp-acp-delegator"]},
         }
         self.write_defaults(next_defaults_path, next_defaults)
         self.managed_config.unlink()
@@ -291,42 +233,10 @@ class GatewayRuntimeConfig(unittest.TestCase):
         self.config["plugin_source"] = str(other_plugin)
 
         with self.assertRaisesRegex(
-            RuntimeError, "plugins/omp-worker is not the declared Nix resource"
+            RuntimeError, "plugins/omp-acp-delegator is not the declared Nix resource"
         ):
             self.check()
-
         self.assertFalse(self.runtime.exists())
-
-
-class RuntimeDependencyIsolation(unittest.TestCase):
-    def test_native_preflight_does_not_require_support_python_packages(self):
-        runner = """
-import importlib, importlib.util, runpy, sys
-from types import SimpleNamespace
-assert importlib.util.find_spec("yaml") is None
-assert importlib.util.find_spec("dotenv") is None
-modules = {
-    "tools.approval": SimpleNamespace(
-        get_current_session_key=lambda default="": default,
-        is_approval_bypass_active_for_session=lambda session: False,
-        request_tool_approval=lambda tool, reason, *, rule_key: {"approved": False},
-    ),
-    "tools.interrupt": SimpleNamespace(is_interrupted=lambda: False),
-    "gateway.session_context": SimpleNamespace(get_session_env=lambda name: ""),
-    "slack_bolt.async_app": SimpleNamespace(AsyncApp=object),
-    "slack_bolt.adapter.socket_mode.async_handler": SimpleNamespace(AsyncSocketModeHandler=object),
-    "slack_sdk.web.async_client": SimpleNamespace(AsyncWebClient=object),
-}
-original_import = importlib.import_module
-importlib.import_module = lambda name: modules[name] if name in modules else original_import(name)
-sys.argv = [sys.argv[1], "--runtime-check"]
-runpy.run_path(sys.argv[0], run_name="__main__")
-"""
-        result = subprocess.run(
-            [sys.executable, "-S", "-c", runner, str(Path(__file__).with_name("gateway.py"))],
-            capture_output=True, text=True, check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
 
 
 if __name__ == "__main__":

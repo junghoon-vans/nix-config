@@ -1,9 +1,0 @@
-{
-  "name": "hermes-omp-acp",
-  "private": true,
-  "version": "1.0.0",
-  "type": "module",
-  "dependencies": {
-    "@oh-my-pi/pi-coding-agent": "18.10.4"
-  }
-}

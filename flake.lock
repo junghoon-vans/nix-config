@@ -63,6 +63,23 @@
         "type": "github"
       }
     },
+    "hermes-omp-acp": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1792715167,
+        "narHash": "sha256-PT+q48e4pDR3q5NDJf4e8uO4F4bT0kn6OP+QiquUOwc=",
+        "owner": "junghoon-vans",
+        "repo": "hermes-omp-acp",
+        "rev": "1d79a01187ea3d7398e6ae746968db20202ab78d",
+        "type": "github"
+      },
+      "original": {
+        "owner": "junghoon-vans",
+        "repo": "hermes-omp-acp",
+        "rev": "1d79a01187ea3d7398e6ae746968db20202ab78d",
+        "type": "github"
+      }
+    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -315,6 +332,7 @@
     "root": {
       "inputs": {
         "hermes-agent": "hermes-agent",
+        "hermes-omp-acp": "hermes-omp-acp",
         "home-manager": "home-manager_2",
         "homebrew-cask": "homebrew-cask",
         "homebrew-core": "homebrew-core",
