@@ -10,6 +10,9 @@ let
   cfg = config.workstation.hermes;
   user = config.system.primaryUser;
   home = config.users.users.${user}.home;
+  profileName = "omp-worker";
+  profilePath = ".hermes/profiles/${profileName}";
+  hermesHome = "${home}/${profilePath}";
   yaml = pkgs.formats.yaml { };
   pluginSource = "${inputs.hermes-omp-acp}/delegator";
   supportPython = pkgs.python3.withPackages (ps: [
@@ -20,8 +23,8 @@ let
     builtins.toJSON {
       hermes = lib.getExe cfg.package;
       runtime_python = "${cfg.package.hermesVenv}/bin/python3";
-      home = "${home}/.hermes";
-      environment_file = "${home}/.hermes/.env";
+      home = hermesHome;
+      environment_file = "${hermesHome}/.env";
       config_defaults = "${hermesConfig}";
       plugin_source = pluginSource;
     }
@@ -137,15 +140,10 @@ in
     home-manager.users.${user} = { lib, ... }: {
       home = {
         file = {
-          ".hermes/config.nix.yaml".source = hermesConfig;
-          ".hermes/plugins/omp-acp-delegator".source = pluginSource;
+          "${profilePath}/config.nix.yaml".source = hermesConfig;
+          "${profilePath}/plugins/omp-acp-delegator".source = pluginSource;
         };
         activation = {
-          prepareHermes =
-            lib.hm.dag.entryBetween [ "linkGeneration" "setupLaunchAgents" ] [ "writeBoundary" ]
-              ''
-                run ${supportPython}/bin/python3 ${../scripts/hermes/migrate.py} ${lib.escapeShellArg home}
-              '';
           hermesResourcesReady = lib.hm.dag.entryBetween [ "setupLaunchAgents" ] [ "linkGeneration" ] ''
             run ${gateway} --check
           '';
@@ -154,14 +152,14 @@ in
       launchd.agents.hermes = {
         enable = true;
         config = {
-          Label = "ai.hermes.gateway";
+          Label = "ai.hermes.gateway-${profileName}";
           ProgramArguments = [ "${gateway}" ];
           RunAtLoad = true;
           KeepAlive.SuccessfulExit = false;
           ThrottleInterval = 30;
           WorkingDirectory = home;
-          StandardOutPath = "${home}/.hermes/logs/gateway.log";
-          StandardErrorPath = "${home}/.hermes/logs/gateway.error.log";
+          StandardOutPath = "${hermesHome}/logs/gateway.log";
+          StandardErrorPath = "${hermesHome}/logs/gateway.error.log";
           ProcessType = "Background";
           ExitTimeOut = 30;
         };

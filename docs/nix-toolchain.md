@@ -50,18 +50,41 @@ The upstream package extension uses
 official ACP SDK into the real Hermes virtual environment without custom `PYTHONPATH`
 injection. Upstream Hermes supports Apple Silicon macOS as a Tier 2 platform.
 
-The configured plugin ID and toolset ID are both `omp-acp-delegator`, installed at
-`~/.hermes/plugins/omp-acp-delegator`. This replaces the old managed
-`~/.hermes/plugins/omp-worker` path; the existing Home Manager backup behavior is unchanged.
-During normal migration, only the old path's direct symlink to a Nix-store path (including a
-dangling store path) is moved to a recoverable backup under
-`~/.local/state/hermes-migration/<timestamp>-<suffix>/.hermes/plugins/omp-worker`. User
-clones and external symlinks at the old path are left untouched.
+The gateway uses the named `omp-worker` profile at `~/.hermes/profiles/omp-worker`, not the
+default profile. `omp-worker` is a profile name; the plugin and toolset IDs remain
+`omp-acp-delegator`. Home Manager owns the profile's `config.nix.yaml` and
+`plugins/omp-acp-delegator` links. The private `.env`, authentication, sessions, and memories
+remain user-managed. Logs also live under this profile. The launchd label follows Hermes's
+official profile convention: `ai.hermes.gateway-omp-worker`.
 
-Existing `~/.hermes/omp-worker` task history stays on disk and is not migrated or reattached.
-`.env`, authentication/session state, and unrelated Hermes data remain untouched. The
-delegator does not relay Slack approvals: additional ACP requests are denied, while permitted
-tools retain their declared capabilities and may still write.
+Before moving an existing default profile, stop its gateway and use the official full
+backup/import commands. `profile create --clone-all` deliberately excludes session history
+and cron jobs, and profile export excludes credentials, so neither is a full-state migration:
+
+```sh
+hermes -p default gateway stop
+backup="$HOME/.local/state/hermes-migration/default-$(date +%Y%m%dT%H%M%S).zip"
+mkdir -p "$(dirname "$backup")"
+(umask 077; hermes backup --output "$backup" --keep 0)
+hermes profile create omp-worker --no-alias
+hermes -p omp-worker import "$backup" --force
+hermes -p default gateway uninstall
+hermes -p default config set SLACK_BOT_TOKEN ''
+hermes -p default config set SLACK_APP_TOKEN ''
+hermes profile use omp-worker
+```
+
+Keep the archive private: it includes credentials. The source history and memory remain
+available for rollback; the old service and its Slack tokens are retired so only the new
+profile owns the bot. Import preserves
+history data but does not rename default-profile session identities, so existing channel
+threads must not be assumed to continue the same session. Apply Nix only after the destination
+profile has its private `.env`; activation checks the credentials and installs the managed links.
+The former default-profile cleanup activation is no longer run.
+
+Existing `~/.hermes/omp-worker` legacy task data is not automatically reattached to the
+delegator. Additional ACP permission requests are denied, not relayed to Slack; permitted tools
+retain their declared capabilities and may still write.
 
 To upgrade Hermes, select a reviewed release tag in the `hermes-agent` input URL, run
 `nix flake update hermes-agent`, and build both hosts before activation. Updating the lock
