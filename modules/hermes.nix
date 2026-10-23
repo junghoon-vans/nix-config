@@ -11,35 +11,11 @@ let
   user = config.system.primaryUser;
   home = config.users.users.${user}.home;
   yaml = pkgs.formats.yaml { };
-  pluginSource = "${../scripts/hermes/omp-worker}";
+  pluginSource = "${inputs.hermes-omp-acp}/delegator";
   supportPython = pkgs.python3.withPackages (ps: [
     ps.pyyaml
     ps.python-dotenv
   ]);
-  workerConfig = pkgs.writeText "hermes-omp-worker.json" (
-    builtins.toJSON {
-      command = lib.getExe (
-        pkgs.callPackage ../packages/omp-acp.nix {
-          bun = config.workstation.languages.bun.package;
-        }
-      );
-      approval_config = yaml.generate "hermes-omp-approval.yaml" {
-        tools = {
-          approvalMode = "always-ask";
-          approval = {
-            bash = "prompt";
-            edit = "prompt";
-            write = "prompt";
-            lsp = "prompt";
-          };
-        };
-      };
-      git = lib.getExe pkgs.git;
-      allowed_roots = cfg.repositoryRoots;
-      state_dir = "${home}/.hermes/omp-worker";
-      timeout = 1800;
-    }
-  );
   gatewayConfig = pkgs.writeText "hermes-gateway.json" (
     builtins.toJSON {
       hermes = lib.getExe cfg.package;
@@ -58,7 +34,6 @@ let
         cfg.package
       ]
     }:/run/current-system/sw/bin:/etc/profiles/per-user/${user}/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin
-    export OMP_WORKER_CONFIG=${workerConfig}
     export PYTHONDONTWRITEBYTECODE=1
     exec ${supportPython}/bin/python3 ${../scripts/hermes/gateway.py} ${gatewayConfig} "$@"
   '';
@@ -78,11 +53,13 @@ let
         Report the worktree, actual verification and failures faithfully. Never
         claim a task succeeded from a summary without the worker's evidence.
         Push, deployment and permission changes require explicit user approval.
+        Additional OMP permission requests are denied, not relayed to Slack.
+        Report permission_required and ask how to proceed; do not escalate permissions.
       '';
     };
     platform_toolsets = {
-      slack = [ "omp-worker" ];
-      cli = [ "omp-worker" ];
+      slack = [ "omp-acp-delegator" ];
+      cli = [ "omp-acp-delegator" ];
     };
     platforms.slack = {
       enabled = true;
@@ -92,7 +69,14 @@ let
         reply_broadcast = false;
       };
     };
-    plugins.enabled = [ "omp-worker" ];
+    plugins = {
+      enabled = [ "omp-acp-delegator" ];
+      entries.omp-acp-delegator.settings = {
+        allowed_roots = cfg.repositoryRoots;
+        timeout = 1800;
+        omp_command = lib.getExe config.workstation.omp.package;
+      };
+    };
     approvals = {
       mode = "manual";
       timeout = 300;
@@ -117,8 +101,13 @@ in
     enable = lib.mkEnableOption "the local Slack to OMP ACP gateway";
     package = lib.mkOption {
       type = lib.types.package;
-      default = inputs.hermes-agent.packages.${pkgs.stdenv.hostPlatform.system}.messaging;
-      description = "Upstream Hermes messaging package, including the Slack runtime.";
+      default = inputs.hermes-agent.packages.${pkgs.stdenv.hostPlatform.system}.messaging.override {
+        extraDependencyGroups = [
+          "messaging"
+          "acp"
+        ];
+      };
+      description = "Upstream Hermes messaging package with the official ACP SDK dependency.";
     };
     model = lib.mkOption {
       type = lib.types.str;
@@ -149,7 +138,7 @@ in
       home = {
         file = {
           ".hermes/config.nix.yaml".source = hermesConfig;
-          ".hermes/plugins/omp-worker".source = pluginSource;
+          ".hermes/plugins/omp-acp-delegator".source = pluginSource;
         };
         activation = {
           prepareHermes =

@@ -9,6 +9,10 @@
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     nix-homebrew.url = "github:zhaofengli/nix-homebrew";
     hermes-agent.url = "github:NousResearch/hermes-agent/v0.22.4";
+    hermes-omp-acp = {
+      url = "github:junghoon-vans/hermes-omp-acp/1d79a01187ea3d7398e6ae746968db20202ab78d";
+      flake = false;
+    };
     protobuf36 = {
       url = "github:protocolbuffers/protobuf/v36.2";
       flake = false;
