@@ -9,43 +9,12 @@ from unittest.mock import patch
 import yaml
 
 
-SPEC = importlib.util.spec_from_file_location("hermes_gateway", Path(__file__).with_name("gateway.py"))
+SPEC = importlib.util.spec_from_file_location("hermes_config", Path(__file__).with_name("prepare-config.py"))
 MODULE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(MODULE)
 
 
-class GatewayEnvironment(unittest.TestCase):
-    def setUp(self):
-        temporary = tempfile.TemporaryDirectory()
-        self.addCleanup(temporary.cleanup)
-        self.home = Path(temporary.name)
-        self.path = self.home / ".env"
-        self.config = {"home": str(self.home), "environment_file": str(self.path)}
-        self.addCleanup(os.umask, os.umask(0o077))
-        self.environment = patch.dict(os.environ, {}, clear=True)
-        self.environment.start()
-        self.addCleanup(self.environment.stop)
-
-    def settings(self, users="U123,U456", extra=""):
-        self.path.write_text(f"SLACK_BOT_TOKEN=private-test-bot\nSLACK_APP_TOKEN=private-test-app\nSLACK_ALLOWED_USERS={users}\n{extra}")
-        self.path.chmod(0o600)
-
-    def test_private_file_cannot_redirect_hermes_home(self):
-        self.settings(extra=f"HERMES_HOME={self.home / 'redirected'}\n")
-        with self.assertRaisesRegex(RuntimeError, "Nix-owned HERMES_HOME"):
-            MODULE.validate_environment(self.config)
-
-    def test_private_file_is_the_runtime_token_and_allowlist_source(self):
-        os.environ["SLACK_BOT_TOKEN"] = "old-test-bot"
-        os.environ["SLACK_ALLOWED_USERS"] = "U999"
-        self.settings()
-        MODULE.validate_environment(self.config)
-        self.assertEqual(os.environ["SLACK_BOT_TOKEN"], "private-test-bot")
-        self.assertEqual(os.environ["SLACK_ALLOWED_USERS"], "U123,U456")
-        self.assertEqual(os.environ["HERMES_HOME"], str(self.home))
-
-
-class GatewayRuntimeConfig(unittest.TestCase):
+class HermesRuntimeConfig(unittest.TestCase):
     def setUp(self):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
@@ -61,44 +30,16 @@ class GatewayRuntimeConfig(unittest.TestCase):
             "plugins": {"enabled": ["omp-acp-delegator"]},
         }
         self.defaults_path.write_text(yaml.safe_dump(self.defaults, sort_keys=False))
-        self.managed_config = self.home / "config.nix.yaml"
-        self.managed_config.symlink_to(self.defaults_path)
-        self.plugin_source = self.root / "omp-acp-delegator"
-        self.plugin_source.mkdir()
-        plugin_link = self.home / "plugins" / "omp-acp-delegator"
-        plugin_link.parent.mkdir()
-        plugin_link.symlink_to(self.plugin_source, target_is_directory=True)
         self.runtime = self.home / "config.yaml"
-        self.config = {
-            "home": str(self.home),
-            "environment_file": str(self.home / ".env"),
-            "config_defaults": str(self.defaults_path),
-            "plugin_source": str(self.plugin_source),
-        }
 
     def check(self):
-        with patch.object(MODULE, "validate_environment"), patch.object(MODULE, "check_runtime"):
-            MODULE.check(self.config)
-
-    def test_missing_acp_sdk_prevents_config_materialization(self):
-        with patch.object(MODULE, "validate_environment"), patch.object(
-            MODULE, "check_runtime", side_effect=lambda _: MODULE.validate_runtime()
-        ), patch.object(
-            MODULE.importlib,
-            "import_module",
-            side_effect=ModuleNotFoundError("No module named 'acp'"),
-        ):
-            with self.assertRaisesRegex(
-                RuntimeError, "ACP SDK runtime dependency unavailable: acp.client.ClientSideConnection"
-            ):
-                MODULE.check(self.config)
-        self.assertFalse(self.runtime.exists())
+        MODULE.prepare_runtime_config(self.home, self.defaults_path)
 
     def write_defaults(self, path, values):
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(yaml.safe_dump(values, sort_keys=False))
 
-    def test_check_converts_private_config_and_preserves_only_native_allowlist(self):
+    def test_preparation_converts_private_config_and_preserves_only_native_allowlist(self):
         source_content = self.defaults_path.read_bytes()
         self.runtime.write_text(
             "model:\n  provider: stale-provider\napi_key: private-old-secret\n"
@@ -140,9 +81,7 @@ class GatewayRuntimeConfig(unittest.TestCase):
             "plugins": {"enabled": ["omp-acp-delegator"]},
         }
         self.write_defaults(next_defaults_path, next_defaults)
-        self.managed_config.unlink()
-        self.managed_config.symlink_to(next_defaults_path)
-        self.config["config_defaults"] = str(next_defaults_path)
+        self.defaults_path = next_defaults_path
         self.check()
 
         self.assertEqual(
@@ -215,17 +154,6 @@ class GatewayRuntimeConfig(unittest.TestCase):
         self.assertEqual(stat.S_IMODE(self.runtime.stat().st_mode), 0o600)
         self.assertEqual(yaml.safe_load(self.runtime.read_text()), self.defaults)
         self.assertEqual(self.defaults_path.read_bytes(), source_content)
-
-    def test_plugin_must_resolve_to_declared_source(self):
-        other_plugin = self.root / "other-plugin"
-        other_plugin.mkdir()
-        self.config["plugin_source"] = str(other_plugin)
-
-        with self.assertRaisesRegex(
-            RuntimeError, "plugins/omp-acp-delegator is not the declared Nix resource"
-        ):
-            self.check()
-        self.assertFalse(self.runtime.exists())
 
 
 if __name__ == "__main__":

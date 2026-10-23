@@ -1,12 +1,9 @@
 #!/usr/bin/env python3
-"""Launch the Nix-owned gateway without putting credentials in a derivation."""
+"""Prepare the writable Hermes configuration from Nix-owned defaults."""
 
-import importlib
-import json
 import os
 from pathlib import Path
 import stat
-import subprocess
 import sys
 import tempfile
 
@@ -14,64 +11,6 @@ import tempfile
 
 NIX_STORE_ROOT = Path("/nix/store")
 RUNTIME_CONFIG_NAME = "config.yaml"
-MANAGED_CONFIG_NAME = "config.nix.yaml"
-
-
-def validate_environment(config):
-    from dotenv import load_dotenv
-
-    path = Path(config["environment_file"])
-    if path.resolve() != (Path(config["home"]) / ".env").resolve():
-        raise RuntimeError("Validate the same .env file that Hermes loads at startup.")
-    info = path.stat()
-    if info.st_uid != os.getuid() or stat.S_IMODE(info.st_mode) & 0o077:
-        raise RuntimeError("The Hermes environment file must be user-owned and mode 0600.")
-    load_dotenv(path, override=True)
-    if os.environ.get("HERMES_HOME") not in (None, config["home"]):
-        raise RuntimeError("The private .env must not override Nix-owned HERMES_HOME.")
-    for key in ("SLACK_BOT_TOKEN", "SLACK_APP_TOKEN"):
-        if not os.environ.get(key, "").strip():
-            raise RuntimeError(f"Missing private runtime setting: {key}")
-    os.environ["HERMES_HOME"] = config["home"]
-    os.umask(0o077)
-    Path(config["home"], "logs").mkdir(parents=True, exist_ok=True)
-
-
-def validate_runtime():
-    try:
-        connection = importlib.import_module("acp.client").ClientSideConnection
-        if not callable(connection):
-            raise TypeError("ClientSideConnection is not callable")
-    except (ImportError, AttributeError, TypeError) as error:
-        raise RuntimeError(
-            f"Hermes ACP SDK runtime dependency unavailable: acp.client.ClientSideConnection: {error}"
-        ) from error
-
-    try:
-        context = importlib.import_module("hermes_cli.plugins").PluginContext
-        if not callable(context):
-            raise TypeError("PluginContext is not callable")
-        plugin_data_dir = importlib.import_module("plugins.plugin_storage").plugin_data_dir
-        if not callable(plugin_data_dir):
-            raise TypeError("plugin_data_dir is not callable")
-    except (ImportError, AttributeError, TypeError) as error:
-        raise RuntimeError(f"Hermes plugin runtime API unavailable: {error}") from error
-
-    for module_name, name in (
-        ("slack_bolt.async_app", "AsyncApp"),
-        ("slack_bolt.adapter.socket_mode.async_handler", "AsyncSocketModeHandler"),
-        ("slack_sdk.web.async_client", "AsyncWebClient"),
-    ):
-        try:
-            getattr(importlib.import_module(module_name), name)
-        except (ImportError, AttributeError) as error:
-            raise RuntimeError(f"Slack runtime dependencies unavailable: {module_name}.{name}: {error}") from error
-
-
-def check_runtime(config):
-    result = subprocess.run([config["runtime_python"], __file__, "--runtime-check"], check=False)
-    if result.returncode:
-        raise RuntimeError("Hermes ACP/plugin runtime preflight failed; see the runtime error above.")
 
 
 def _signature(info):
@@ -219,48 +158,19 @@ def prepare_runtime_config(home, defaults_path):
     return runtime_path
 
 
-def check(config):
-    home = Path(config["home"])
-    home_info = home.lstat()
-    if (
-        not stat.S_ISDIR(home_info.st_mode)
-        or home_info.st_uid != os.getuid()
-        or stat.S_IMODE(home_info.st_mode) & 0o022
-    ):
-        raise RuntimeError("The Hermes home must be a user-owned directory not writable by others.")
-    validate_environment(config)
-    check_runtime(config)
-    defaults = Path(config["config_defaults"])
-    resources = {
-        MANAGED_CONFIG_NAME: defaults,
-        "plugins/omp-acp-delegator": Path(config["plugin_source"]),
-    }
-    for relative, source in resources.items():
-        target = home / relative
-        if not source.exists() or target.resolve() != source.resolve():
-            raise RuntimeError(f"{relative} is not the declared Nix resource; apply the Nix configuration.")
-    prepare_runtime_config(home, defaults)
-    return None
-
-
 def main():
-    if sys.argv[1:] == ["--runtime-check"]:
-        validate_runtime()
-        print("Hermes ACP SDK, plugin context/storage, and Slack dependencies are available.")
-        return
-    config = json.loads(Path(sys.argv[1]).read_text())
-    check(config)
-    if sys.argv[2:] == ["--check"]:
-        print("Hermes plugin runtime and private Slack configuration are ready.")
-        return
-    if sys.argv[2:]:
-        raise RuntimeError("Only --check is supported.")
-    os.execv(config["hermes"], [config["hermes"], "gateway", "run", "--external-supervisor"])
+    if len(sys.argv) != 3:
+        raise RuntimeError("Usage: prepare-config.py PROFILE_HOME DEFAULTS")
+    home = Path(sys.argv[1])
+    info = home.lstat()
+    if not stat.S_ISDIR(info.st_mode) or info.st_uid != os.getuid() or stat.S_IMODE(info.st_mode) & 0o022:
+        raise RuntimeError("The Hermes home must be a user-owned directory not writable by others.")
+    prepare_runtime_config(home, sys.argv[2])
 
 
 if __name__ == "__main__":
     try:
         main()
     except (OSError, ValueError, RuntimeError) as error:
-        print(f"Hermes gateway: {error}", file=sys.stderr)
+        print(f"Hermes configuration: {error}", file=sys.stderr)
         sys.exit(1)

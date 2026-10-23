@@ -17,29 +17,14 @@ let
   pluginSource = "${inputs.hermes-omp-acp}/delegator";
   supportPython = pkgs.python3.withPackages (ps: [
     ps.pyyaml
-    ps.python-dotenv
   ]);
-  gatewayConfig = pkgs.writeText "hermes-gateway.json" (
-    builtins.toJSON {
-      hermes = lib.getExe cfg.package;
-      runtime_python = "${cfg.package.hermesVenv}/bin/python3";
-      home = profileHome;
-      environment_file = "${profileHome}/.env";
-      config_defaults = "${hermesConfig}";
-      plugin_source = pluginSource;
-    }
-  );
-  gateway = pkgs.writeShellScript "hermes-slack-gateway" ''
-    export PATH=${
-      lib.makeBinPath [
-        pkgs.git
-        config.workstation.omp.package
-        cfg.package
-      ]
-    }:/run/current-system/sw/bin:/etc/profiles/per-user/${user}/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin
-    export PYTHONDONTWRITEBYTECODE=1
-    exec ${supportPython}/bin/python3 ${../scripts/hermes/gateway.py} ${gatewayConfig} "$@"
-  '';
+  gatewayPath = "${
+    lib.makeBinPath [
+      pkgs.git
+      config.workstation.omp.package
+      cfg.package
+    ]
+  }:/run/current-system/sw/bin:/etc/profiles/per-user/${user}/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin";
   hermesConfig = yaml.generate "hermes-config.nix.yaml" {
     model = {
       provider = "openai-codex";
@@ -133,7 +118,6 @@ in
       }
     ];
     system.build = {
-      hermesGateway = gateway;
       inherit hermesConfig;
     };
 
@@ -150,13 +134,31 @@ in
                 run ${pkgs.bash}/bin/bash ${../scripts/hermes/prepare-profile.sh} \
                   ${lib.getExe cfg.package} ${lib.escapeShellArg "${home}/.hermes"} ${lib.escapeShellArg profileName}
               '';
+          prepareHermesConfig =
+            lib.hm.dag.entryBetween [ "setupLaunchAgents" ] [ "linkGeneration" "prepareHermes" ]
+              ''
+                run ${supportPython}/bin/python3 ${../scripts/hermes/prepare-config.py} \
+                  ${lib.escapeShellArg profileHome} ${hermesConfig}
+              '';
         };
       };
       launchd.agents.hermes = {
         enable = true;
         config = {
-          Label = "ai.hermes.gateway";
-          ProgramArguments = [ "${gateway}" ];
+          Label = "ai.hermes.gateway-${profileName}";
+          ProgramArguments = [
+            (lib.getExe cfg.package)
+            "--profile"
+            profileName
+            "gateway"
+            "run"
+            "--external-supervisor"
+          ];
+          EnvironmentVariables = {
+            HERMES_HOME = profileHome;
+            PATH = gatewayPath;
+            PYTHONDONTWRITEBYTECODE = "1";
+          };
           RunAtLoad = true;
           KeepAlive.SuccessfulExit = false;
           ThrottleInterval = 30;
