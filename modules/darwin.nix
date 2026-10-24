@@ -7,6 +7,7 @@
 
 let
   userHome = config.users.users.${config.system.primaryUser}.home;
+  appStoreIDs = map toString (builtins.attrValues config.homebrew.masApps);
   homeManagerBackup = pkgs.writeShellScript "home-manager-backup" ''
     target="$1"
     backup="''${target}.pre-nix.$(${pkgs.coreutils}/bin/date -u +%Y%m%dT%H%M%S.%NZ)"
@@ -29,6 +30,8 @@ in
       autoUpdate = false;
       upgrade = false;
       cleanup = "none";
+      # App Store installs run as root below, not through user-owned brew.
+      extraEnv.HOMEBREW_BUNDLE_MAS_SKIP = lib.concatStringsSep " " appStoreIDs;
     };
 
     brews = [
@@ -100,6 +103,13 @@ in
 
   system = {
     activationScripts = {
+      homebrew.text = lib.mkBefore (
+        lib.optionalString (appStoreIDs != [ ]) ''
+          # mas 7 requires root; reuse activation privileges rather than sudo again.
+          ${pkgs.mas}/bin/mas install ${lib.escapeShellArgs appStoreIDs}
+        ''
+      );
+
       defaults.text = lib.mkBefore ''
         sudo --user=${config.system.primaryUser} --set-home mkdir -p \
           "${userHome}/Library/Application Support/DockStacks/Development" \
