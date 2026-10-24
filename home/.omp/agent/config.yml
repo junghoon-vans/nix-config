@@ -23,7 +23,7 @@ task:
   enableLsp: true
 worktree:
   onStart: create
-  onExit: keep
+  onExit: remove
   cleanSource: false
   clone: false
 symbolPreset: nerd
