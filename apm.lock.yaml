@@ -7,6 +7,7 @@ dependencies:
   package_type: claude_skill
   source: local
   local_path: ./skills/jira-cloud-formatting
+  content_hash: sha256:b93ed650262fbe6d52fa9d52c41cdf4867368ab180a0b8d43e6e32a9106097e0
 - repo_url: anthropics/knowledge-work-plugins
   name: documentation
   host: github.com
