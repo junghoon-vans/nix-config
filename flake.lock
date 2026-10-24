@@ -63,6 +63,23 @@
         "type": "github"
       }
     },
+    "hermes-official-plugins": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1792743860,
+        "narHash": "sha256-VqxbyslgjJmjIb2WGLtu/oVplutaaV4l3vRs9P/dBWY=",
+        "owner": "NousResearch",
+        "repo": "hermes-official-plugins",
+        "rev": "e404b6816b20237a82f6fbe2749b5a576cf75dba",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NousResearch",
+        "repo": "hermes-official-plugins",
+        "rev": "e404b6816b20237a82f6fbe2749b5a576cf75dba",
+        "type": "github"
+      }
+    },
     "hermes-omp-acp": {
       "flake": false,
       "locked": {
@@ -332,6 +349,7 @@
     "root": {
       "inputs": {
         "hermes-agent": "hermes-agent",
+        "hermes-official-plugins": "hermes-official-plugins",
         "hermes-omp-acp": "hermes-omp-acp",
         "home-manager": "home-manager_2",
         "homebrew-cask": "homebrew-cask",

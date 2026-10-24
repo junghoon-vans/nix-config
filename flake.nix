@@ -13,6 +13,10 @@
       url = "github:junghoon-vans/hermes-omp-acp/1d79a01187ea3d7398e6ae746968db20202ab78d";
       flake = false;
     };
+    hermes-official-plugins = {
+      url = "github:NousResearch/hermes-official-plugins/e404b6816b20237a82f6fbe2749b5a576cf75dba";
+      flake = false;
+    };
     protobuf36 = {
       url = "github:protocolbuffers/protobuf/v36.2";
       flake = false;

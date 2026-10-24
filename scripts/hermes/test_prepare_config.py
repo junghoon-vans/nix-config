@@ -27,7 +27,7 @@ class HermesRuntimeConfig(unittest.TestCase):
         self.defaults = {
             "model": {"provider": "openai-codex", "default": "openai/gpt-6.1-sol"},
             "approvals": {"mode": "manual", "unattended_mode": "deny"},
-            "plugins": {"enabled": ["omp-acp-delegator"]},
+            "plugins": {"enabled": ["omp-acp-provider", "advanced-delegation"]},
         }
         self.defaults_path.write_text(yaml.safe_dump(self.defaults, sort_keys=False))
         self.runtime = self.home / "config.yaml"
@@ -63,7 +63,7 @@ class HermesRuntimeConfig(unittest.TestCase):
                 **self.defaults,
                 "model": {**self.defaults["model"], "temperature": 0.7},
                 "plugins": {
-                    "enabled": ["omp-acp-delegator"],
+                    "enabled": ["omp-acp-provider", "advanced-delegation"],
                     "entries": {"local-plugin": {"enabled": True}},
                 },
                 "api_key": "private-test-secret",
@@ -92,7 +92,7 @@ class HermesRuntimeConfig(unittest.TestCase):
         next_defaults = {
             "model": {"provider": "new-provider", "default": "new-model"},
             "approvals": {"mode": "manual", "unattended_mode": "deny"},
-            "plugins": {"enabled": ["omp-acp-delegator"]},
+            "plugins": {"enabled": ["omp-acp-provider", "advanced-delegation"]},
         }
         self.write_defaults(next_defaults_path, next_defaults)
         self.defaults_path = next_defaults_path
