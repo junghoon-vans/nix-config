@@ -9,14 +9,9 @@ export PATH="$PATH:/opt/homebrew/bin"
 
 repository_root="${1:-$PWD}"
 manifest="$repository_root/apm.yml"
-lockfile="$repository_root/apm.lock.yaml"
 
 [[ -f "$manifest" ]] || {
   echo "apm.yml not found in $repository_root" >&2
-  exit 1
-}
-[[ -f "$lockfile" ]] || {
-  echo "apm.lock.yaml not found in $repository_root" >&2
   exit 1
 }
 [[ -f "$repository_root/skills/jira-cloud-formatting/SKILL.md" ]] || {
@@ -28,8 +23,15 @@ lockfile="$repository_root/apm.lock.yaml"
   exit 1
 }
 
+# 0.34 can overwrite edited skills on a normal global reinstall.
+apm_version="$("$apm" --version)"
+if [[ ! "$apm_version" =~ version\ ([0-9]+)\.([0-9]+)\. ]] ||
+  (( BASH_REMATCH[1] == 0 && BASH_REMATCH[2] < 35 )); then
+  echo "APM 0.35 or newer is required to preserve edited skills; apply the Nix configuration first." >&2
+  exit 1
+fi
+
 # Let APM remove the old skill while its deployment ownership is still recorded.
-# Replacing the lockfile first would lose the provenance needed for safe cleanup.
 if [[ -d "$HOME/.apm/apm_modules/netresearch/jira-skill/skills/jira-syntax" ]]; then
   "$apm" uninstall --global netresearch/jira-skill/skills/jira-syntax
 fi
@@ -37,5 +39,6 @@ fi
 mkdir -p "$HOME/.apm/skills"
 cp -R "$repository_root/skills/." "$HOME/.apm/skills/"
 cp "$manifest" "$HOME/.apm/apm.yml"
-cp "$lockfile" "$HOME/.apm/apm.lock.yaml"
-"$apm" install --global --target agent-skills --only apm --frozen --trust-bin
+# Keep the machine-local lockfile: repository deployment receipts cannot replace it.
+# A normal install resolves manifest pins and records ownership; --frozen cannot.
+"$apm" install --global --target agent-skills --only apm --trust-bin
