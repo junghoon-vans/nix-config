@@ -105,8 +105,10 @@ in
     activationScripts = {
       homebrew.text = lib.mkBefore (
         lib.optionalString (appStoreIDs != [ ]) ''
-          # mas 7 requires root; reuse activation privileges rather than sudo again.
-          ${pkgs.mas}/bin/mas install ${lib.escapeShellArgs appStoreIDs}
+          # Activation clears sudo's environment; mas 7 needs the App Store user's IDs.
+          SUDO_UID="$(/usr/bin/id -u ${lib.escapeShellArg config.system.primaryUser})" \
+          SUDO_GID="$(/usr/bin/id -g ${lib.escapeShellArg config.system.primaryUser})" \
+            ${pkgs.mas}/bin/mas install ${lib.escapeShellArgs appStoreIDs}
         ''
       );
 
