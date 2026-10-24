@@ -15,6 +15,13 @@ let
   profileHome = "${home}/${profilePath}";
   yaml = pkgs.formats.yaml { };
   pluginSource = "${inputs.hermes-omp-acp}/delegator";
+  hermesPackages = inputs.hermes-agent.packages.${pkgs.stdenv.hostPlatform.system};
+  # Hermes 0.22.5 attaches Linux ELF fixups to its Darwin pm artifacts too.
+  # Keep the upstream artifact pins, but do not run auto-patchelf on Mach-O.
+  pmPackages = lib.mapAttrs' (
+    name: package:
+    lib.nameValuePair (lib.removePrefix "pm-" name) (package.overrideAttrs { dontAutoPatchelf = true; })
+  ) (lib.filterAttrs (name: _: lib.hasPrefix "pm-" name) hermesPackages);
   supportPython = pkgs.python3.withPackages (ps: [
     ps.pyyaml
   ]);
@@ -89,7 +96,8 @@ in
     enable = lib.mkEnableOption "the local Slack to OMP ACP gateway";
     package = lib.mkOption {
       type = lib.types.package;
-      default = inputs.hermes-agent.packages.${pkgs.stdenv.hostPlatform.system}.messaging.override {
+      default = hermesPackages.messaging.override {
+        inherit pmPackages;
         version = lib.removePrefix "v" (builtins.fromJSON (builtins.readFile ../flake.lock))
         .nodes.hermes-agent.original.ref;
         extraDependencyGroups = [
