@@ -47,11 +47,13 @@ let
         Use coder for all repository inspection, implementation and verification:
         it runs OMP through ACP, and OMP owns repository tools.
         Include complete requirements and relevant previous results in every task.
-        For coder tasks, include the absolute repository path and only use repositories under:
+        For coder tasks, set the structured repository field to the absolute Git
+        repository root, and only use repositories under:
         ${lib.concatStringsSep "\n" cfg.repositoryRoots}
         Ask which repository to use when ambiguous. Each delegation starts fresh:
-        do not assume a previous OMP session or worktree is resumed. For changes,
-        require the worker to create or reuse an isolated Git worktree and report
+        do not assume a previous OMP session is resumed. The OMP model provider
+        creates and retains an isolated Git worktree for each coder task. Require
+        the worker to use that worktree, not the original checkout, and report
         its path, branch, actual verification and any failures. Never repeat a
         failed or interrupted mutation blindly or infer success from prose alone.
         Push, deployment and permission changes require explicit user approval.
@@ -72,8 +74,9 @@ let
       };
     };
     delegation = {
-      backend = "model_map";
+      backend = "omp-worktree";
       fallback_providers = [ ];
+      backends.omp-worktree.allowed_roots = cfg.repositoryRoots;
       backends.model_map = {
         default = "fast";
         options = [
@@ -148,7 +151,7 @@ in
     repositoryRoots = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       default = [ "${home}/workspace" ];
-      description = "Repository roots included in coordinator instructions; not an enforced allowlist or OS sandbox.";
+      description = "Allowed Git repository roots for the OMP model provider's worktree routing.";
     };
   };
 
@@ -170,6 +173,7 @@ in
             HERMES_BUNDLED_PLUGINS = "${cfg.package}/share/hermes-agent/plugins";
             PYTHONDONTWRITEBYTECODE = "1";
             HERMES_OMP_ACP_COMMAND = lib.getExe config.workstation.omp.package;
+            nativeBuildInputs = [ pkgs.git ];
           }
           ''
             ${cfg.package.hermesVenv}/bin/python3 ${../scripts/hermes/check-runtime.py} \

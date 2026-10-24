@@ -83,17 +83,17 @@
     "hermes-omp-acp": {
       "flake": false,
       "locked": {
-        "lastModified": 1792715167,
-        "narHash": "sha256-PT+q48e4pDR3q5NDJf4e8uO4F4bT0kn6OP+QiquUOwc=",
+        "lastModified": 1792835851,
+        "narHash": "sha256-mJ8UGLF97aQuYN7CmvgvLUEbYtUIuMRnkaiZA3gHUSU=",
         "owner": "junghoon-vans",
         "repo": "hermes-omp-acp",
-        "rev": "1d79a01187ea3d7398e6ae746968db20202ab78d",
+        "rev": "a5c8b9465c5dc68bb8ea55022fd38a91e65246df",
         "type": "github"
       },
       "original": {
         "owner": "junghoon-vans",
         "repo": "hermes-omp-acp",
-        "rev": "1d79a01187ea3d7398e6ae746968db20202ab78d",
+        "rev": "a5c8b9465c5dc68bb8ea55022fd38a91e65246df",
         "type": "github"
       }
     },
