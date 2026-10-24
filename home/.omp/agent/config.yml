@@ -25,6 +25,7 @@ worktree:
   onStart: create
   onExit: keep
   cleanSource: false
+  clone: false
 symbolPreset: nerd
 browser:
   relay: false
