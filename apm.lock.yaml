@@ -644,21 +644,6 @@ dependencies:
   deployed_file_hashes:
     .agents/skills/skill-inspector/SKILL.md: sha256:89ab1550769752ffbad782ee63fee3c345d546bded672adaac5fd03d2941aa84
   content_hash: sha256:26e8cdf95215de34f9f832ff3b897649dcef118da318886d2665a7fcd026f91d
-- repo_url: obra/superpowers
-  name: using-git-worktrees
-  host: github.com
-  resolved_commit: 2ce8aa15d05bd57213e6f746f953aafb7ded7a8b
-  resolved_ref: v7.0.1
-  version: unknown
-  virtual_path: skills/using-git-worktrees
-  is_virtual: true
-  package_type: claude_skill
-  deployed_files:
-  - .agents/skills/using-git-worktrees
-  - .agents/skills/using-git-worktrees/SKILL.md
-  deployed_file_hashes:
-    .agents/skills/using-git-worktrees/SKILL.md: sha256:8cfb86f121269e8f7f12361e6795c4f6738828340e28964c9229d365666c9edd
-  content_hash: sha256:48c8a1040e378e0cb7208107294e3afa9067b9370c3f33b49a443eb6b7528b0d
 - repo_url: openai/skills
   name: gh-address-comments
   host: github.com
@@ -7767,24 +7752,6 @@ deployments:
   - jetbrains/go-modern-guidelines/plugin/skills/use-modern-go
   active_owner: jetbrains/go-modern-guidelines/plugin/skills/use-modern-go
   content_hash: sha256:a593b2484834fc7d068e7cbe1a09f92b149ed61b9a07556ea50790d95f50a25b
-- kind: project-relative
-  target: agent-skills
-  value: .agents/skills/using-git-worktrees
-  runtime: null
-  scope: project
-  owners:
-  - obra/superpowers/skills/using-git-worktrees
-  active_owner: obra/superpowers/skills/using-git-worktrees
-  content_hash: null
-- kind: project-relative
-  target: agent-skills
-  value: .agents/skills/using-git-worktrees/SKILL.md
-  runtime: null
-  scope: project
-  owners:
-  - obra/superpowers/skills/using-git-worktrees
-  active_owner: obra/superpowers/skills/using-git-worktrees
-  content_hash: sha256:8cfb86f121269e8f7f12361e6795c4f6738828340e28964c9229d365666c9edd
 - kind: project-relative
   target: agent-skills
   value: .agents/skills/vercel-composition-patterns
