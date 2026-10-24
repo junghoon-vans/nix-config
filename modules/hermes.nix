@@ -216,6 +216,7 @@ in
             HERMES_HOME = profileHome;
             PATH = gatewayPath;
             HERMES_OMP_ACP_COMMAND = lib.getExe config.workstation.omp.package;
+            HERMES_OMP_ACP_ARGS = "acp --approval-mode yolo";
             PYTHONDONTWRITEBYTECODE = "1";
           };
           RunAtLoad = true;
