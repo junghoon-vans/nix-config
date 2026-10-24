@@ -88,7 +88,7 @@ let
             name = "deep";
             description = "Careful reasoning, planning and review of supplied context through OpenAI; use coder for repository tools.";
             provider = "openai-codex";
-            model = cfg.model;
+            inherit (cfg) model;
             fallback_providers = [ ];
           }
           {
