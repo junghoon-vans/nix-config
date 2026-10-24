@@ -14,7 +14,8 @@ let
   profilePath = ".hermes/profiles/${profileName}";
   profileHome = "${home}/${profilePath}";
   yaml = pkgs.formats.yaml { };
-  pluginSource = "${inputs.hermes-omp-acp}/delegator";
+  providerSource = "${inputs.hermes-omp-acp}/model-provider";
+  delegationSource = "${inputs.hermes-official-plugins}/advanced-delegation";
   hermesPackages = inputs.hermes-agent.packages.${pkgs.stdenv.hostPlatform.system};
   # Hermes 0.22.5 attaches Linux ELF fixups to its Darwin pm artifacts too.
   # Keep the upstream artifact pins, but do not run auto-patchelf on Mach-O.
@@ -40,21 +41,27 @@ let
     agent = {
       max_turns = 30;
       system_prompt = ''
-        You are the Slack interface to the local OMP coding worker. Use omp_task for
-        all repository inspection, implementation and verification. OMP, not you,
-        owns coding tools. Ask for the repository if it is ambiguous. Reuse the
-        existing task for follow-up instructions; never repeat a failed or
-        interrupted mutation blindly. Use omp_status to inspect retained state.
-        Report the worktree, actual verification and failures faithfully. Never
-        claim a task succeeded from a summary without the worker's evidence.
+        You coordinate workers through delegate_task. Use fast for quick answers
+        and summaries of supplied context, and deep for careful reasoning,
+        planning and review of supplied context. These routes call OpenAI directly.
+        Use coder for all repository inspection, implementation and verification:
+        it runs OMP through ACP, and OMP owns repository tools.
+        Include complete requirements and relevant previous results in every task.
+        For coder tasks, include the absolute repository path and only use repositories under:
+        ${lib.concatStringsSep "\n" cfg.repositoryRoots}
+        Ask which repository to use when ambiguous. Each delegation starts fresh:
+        do not assume a previous OMP session or worktree is resumed. For changes,
+        require the worker to create or reuse an isolated Git worktree and report
+        its path, branch, actual verification and any failures. Never repeat a
+        failed or interrupted mutation blindly or infer success from prose alone.
         Push, deployment and permission changes require explicit user approval.
         Additional OMP permission requests are denied, not relayed to Slack.
-        Report permission_required and ask how to proceed; do not escalate permissions.
+        Report blocked operations and ask how to proceed; do not escalate permissions.
       '';
     };
     platform_toolsets = {
-      slack = [ "omp-acp-delegator" ];
-      cli = [ "omp-acp-delegator" ];
+      slack = [ "delegation" ];
+      cli = [ "delegation" ];
     };
     platforms.slack = {
       enabled = true;
@@ -64,14 +71,40 @@ let
         reply_broadcast = false;
       };
     };
-    plugins = {
-      enabled = [ "omp-acp-delegator" ];
-      entries.omp-acp-delegator.settings = {
-        allowed_roots = cfg.repositoryRoots;
-        timeout = 1800;
-        omp_command = lib.getExe config.workstation.omp.package;
+    delegation = {
+      backend = "model_map";
+      fallback_providers = [ ];
+      backends.model_map = {
+        default = "fast";
+        options = [
+          {
+            name = "fast";
+            description = "Quick answers and summaries of supplied context through OpenAI; use coder for repository tools.";
+            provider = "openai-codex";
+            model = "openai/gpt-6-luna";
+            fallback_providers = [ ];
+          }
+          {
+            name = "deep";
+            description = "Careful reasoning, planning and review of supplied context through OpenAI; use coder for repository tools.";
+            provider = "openai-codex";
+            model = cfg.model;
+            fallback_providers = [ ];
+          }
+          {
+            name = "coder";
+            description = "Repository inspection, implementation and verification through the local OMP agent and its native tools.";
+            provider = "omp-acp";
+            model = "openai-codex/gpt-6.1-sol";
+            fallback_providers = [ ];
+          }
+        ];
       };
     };
+    plugins.enabled = [
+      "omp-acp-provider"
+      "advanced-delegation"
+    ];
     approvals = {
       mode = "manual";
       timeout = 300;
@@ -110,17 +143,18 @@ in
     model = lib.mkOption {
       type = lib.types.str;
       default = "openai/gpt-6.1-sol";
-      description = "Hermes intake model; OMP retains its own model role configuration.";
+      description = "Hermes coordinator and deep-route model; coder uses the separate OMP ACP provider.";
     };
     repositoryRoots = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       default = [ "${home}/workspace" ];
-      description = "Allowed canonical repository roots; not an OS sandbox.";
+      description = "Repository roots included in coordinator instructions; not an enforced allowlist or OS sandbox.";
     };
   };
 
   config = lib.mkIf cfg.enable {
     environment.systemPackages = [ cfg.package ];
+    environment.variables.HERMES_OMP_ACP_COMMAND = lib.getExe config.workstation.omp.package;
     assertions = [
       {
         assertion = config.workstation.omp.enable && cfg.repositoryRoots != [ ];
@@ -135,10 +169,11 @@ in
             HERMES_INSTALL_ROOT = "${cfg.package}/share/hermes-agent";
             HERMES_BUNDLED_PLUGINS = "${cfg.package}/share/hermes-agent/plugins";
             PYTHONDONTWRITEBYTECODE = "1";
+            HERMES_OMP_ACP_COMMAND = lib.getExe config.workstation.omp.package;
           }
           ''
             ${cfg.package.hermesVenv}/bin/python3 ${../scripts/hermes/check-runtime.py} \
-              ${hermesConfig} ${pluginSource} ${lib.escapeShellArg cfg.package.version}
+              ${hermesConfig} ${providerSource} ${delegationSource} ${lib.escapeShellArg cfg.package.version}
             touch "$out"
           '';
     };
@@ -147,7 +182,8 @@ in
       home = {
         file = {
           "${profilePath}/config.nix.yaml".source = hermesConfig;
-          "${profilePath}/plugins/omp-acp-delegator".source = pluginSource;
+          "${profilePath}/plugins/omp-acp-provider".source = providerSource;
+          "${profilePath}/plugins/advanced-delegation".source = delegationSource;
         };
         activation = {
           prepareHermes =
@@ -179,6 +215,7 @@ in
           EnvironmentVariables = {
             HERMES_HOME = profileHome;
             PATH = gatewayPath;
+            HERMES_OMP_ACP_COMMAND = lib.getExe config.workstation.omp.package;
             PYTHONDONTWRITEBYTECODE = "1";
           };
           RunAtLoad = true;
