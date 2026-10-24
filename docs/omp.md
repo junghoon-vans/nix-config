@@ -29,7 +29,7 @@ Start a new shell and inspect the effective behavior by opening OMP from a neste
 reading a known skill:
 
 ```text
-skill://worktree-workflow
+skill://pr-contribution-standards
 ```
 
 The shell appends the local overlay to an existing `PI_CONFIG_FILES` path list and avoids adding it
