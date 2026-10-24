@@ -21,6 +21,11 @@ task:
   isolation:
     enabled: true
   enableLsp: true
+worktree:
+  onStart: create
+  onExit: keep
+  cleanSource: false
+  clone: false
 symbolPreset: nerd
 browser:
   relay: false
