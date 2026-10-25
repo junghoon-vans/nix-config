@@ -71,6 +71,7 @@ Managed by: Homebrew formula.
 | `git-delta` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `go-task` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `grpcurl` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
+| `hashicorp/tap/terraform` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `helm` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `htop` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `hugo` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
@@ -86,7 +87,6 @@ Managed by: Homebrew formula.
 | `ripgrep` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `shellcheck` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `shfmt` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
-| `terraform` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `tldr` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `tmux` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `yamlfmt` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
