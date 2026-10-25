@@ -77,7 +77,10 @@ in
   home = {
     inherit username homeDirectory;
     stateVersion = "26.05";
-    packages = [ pkgs.mise ];
+    packages = [
+      pkgs.mise
+      pkgs.worktrunk
+    ];
     sessionPath = [ "$HOME/.local/bin" ];
   };
 

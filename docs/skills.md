@@ -9,7 +9,7 @@ Names use explicit skill selectors, then aliases, then the final path component.
 Source links use the declared ref and package path; selectors identify package exports,
 not inferred repository directories. See [APM management](apm.md) for deployment and updates.
 
-Declared skills: 33.
+Declared skills: 34.
 
 | Skill | Repository | Package path | Ref | Skill selector | Source |
 | --- | --- | --- | --- | --- | --- |
@@ -42,6 +42,7 @@ Declared skills: 33.
 | `typescript-best-practices` | https://github.com/cursor/plugins | `pstack/skills/typescript-best-practices` | `93b00b89ef425a9c1bac0d0b317dfc49c930ac99` | — | [upstream](https://github.com/cursor/plugins/tree/93b00b89ef425a9c1bac0d0b317dfc49c930ac99/pstack/skills/typescript-best-practices) |
 | `ui-ux-pro-max` | https://github.com/nextlevelbuilder/ui-ux-pro-max-skill | `.claude/skills/ui-ux-pro-max` | `823b0a14d3539b5d78c0efb614426a4fab5983ec` | — | [upstream](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill/tree/823b0a14d3539b5d78c0efb614426a4fab5983ec/.claude/skills/ui-ux-pro-max) |
 | `use-modern-go` | https://github.com/JetBrains/go-modern-guidelines | `plugin/skills/use-modern-go` | `v0.1.1` | — | [upstream](https://github.com/JetBrains/go-modern-guidelines/tree/v0.1.1/plugin/skills/use-modern-go) |
+| `using-git-worktrees` | https://github.com/obra/superpowers | `skills/using-git-worktrees` | `v7.0.1` | — | [upstream](https://github.com/obra/superpowers/tree/v7.0.1/skills/using-git-worktrees) |
 | `vercel-composition-patterns` | https://github.com/vercel-labs/agent-skills | `skills/composition-patterns` | `agent-skills-dd089a8c752c966dee8bf0f27cb625ba193ffd9e` | — | [upstream](https://github.com/vercel-labs/agent-skills/tree/agent-skills-dd089a8c752c966dee8bf0f27cb625ba193ffd9e/skills/composition-patterns) |
 | `vercel-react-best-practices` | https://github.com/vercel-labs/agent-skills | `skills/react-best-practices` | `agent-skills-dd089a8c752c966dee8bf0f27cb625ba193ffd9e` | — | [upstream](https://github.com/vercel-labs/agent-skills/tree/agent-skills-dd089a8c752c966dee8bf0f27cb625ba193ffd9e/skills/react-best-practices) |
 | `web-design-guidelines` | https://github.com/vercel-labs/agent-skills | `skills/web-design-guidelines` | `agent-skills-dd089a8c752c966dee8bf0f27cb625ba193ffd9e` | — | [upstream](https://github.com/vercel-labs/agent-skills/tree/agent-skills-dd089a8c752c966dee8bf0f27cb625ba193ffd9e/skills/web-design-guidelines) |

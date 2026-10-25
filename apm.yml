@@ -76,6 +76,9 @@ dependencies:
     - git: https://github.com/github/awesome-copilot.git
       path: skills/git-commit
       ref: 7568a482ce2df38f8965ab5336a3220db796a4ba
+    - git: https://github.com/obra/superpowers.git
+      path: skills/using-git-worktrees
+      ref: v7.0.1
     - git: https://github.com/mattpocock/skills.git
       path: skills/engineering/codebase-design
       ref: 49dd158d1076134a641b33efb035946536778336
