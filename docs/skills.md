@@ -9,7 +9,7 @@ Names use explicit skill selectors, then aliases, then the final path component.
 Source links use the declared ref and package path; selectors identify package exports,
 not inferred repository directories. See [APM management](apm.md) for deployment and updates.
 
-Declared skills: 34.
+Declared skills: 35.
 
 | Skill | Repository | Package path | Ref | Skill selector | Source |
 | --- | --- | --- | --- | --- | --- |
@@ -46,4 +46,5 @@ Declared skills: 34.
 | `vercel-composition-patterns` | https://github.com/vercel-labs/agent-skills | `skills/composition-patterns` | `agent-skills-dd089a8c752c966dee8bf0f27cb625ba193ffd9e` | — | [upstream](https://github.com/vercel-labs/agent-skills/tree/agent-skills-dd089a8c752c966dee8bf0f27cb625ba193ffd9e/skills/composition-patterns) |
 | `vercel-react-best-practices` | https://github.com/vercel-labs/agent-skills | `skills/react-best-practices` | `agent-skills-dd089a8c752c966dee8bf0f27cb625ba193ffd9e` | — | [upstream](https://github.com/vercel-labs/agent-skills/tree/agent-skills-dd089a8c752c966dee8bf0f27cb625ba193ffd9e/skills/react-best-practices) |
 | `web-design-guidelines` | https://github.com/vercel-labs/agent-skills | `skills/web-design-guidelines` | `agent-skills-dd089a8c752c966dee8bf0f27cb625ba193ffd9e` | — | [upstream](https://github.com/vercel-labs/agent-skills/tree/agent-skills-dd089a8c752c966dee8bf0f27cb625ba193ffd9e/skills/web-design-guidelines) |
+| `worktrunk` | https://github.com/max-sixty/worktrunk | `skills/worktrunk` | `v0.74.0` | — | [upstream](https://github.com/max-sixty/worktrunk/tree/v0.74.0/skills/worktrunk) |
 | `write-spec` | https://github.com/anthropics/knowledge-work-plugins | `product-management/skills/write-spec` | `02ffa99ff00ce4d3046ccebabb8357cb39f3ab06` | — | [upstream](https://github.com/anthropics/knowledge-work-plugins/tree/02ffa99ff00ce4d3046ccebabb8357cb39f3ab06/product-management/skills/write-spec) |
