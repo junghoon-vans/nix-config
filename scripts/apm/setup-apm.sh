@@ -31,6 +31,9 @@ if [[ ! "$apm_version" =~ version\ ([0-9]+)\.([0-9]+)\. ]] ||
   exit 1
 fi
 
+# APM 0.35 binds receipts to st_dev, which can change across macOS mounts.
+python3 -B "$(dirname "${BASH_SOURCE[0]}")/refresh-receipt-device.py"
+
 # Let APM remove the old skill while its deployment ownership is still recorded.
 if [[ -d "$HOME/.apm/apm_modules/netresearch/jira-skill/skills/jira-syntax" ]]; then
   "$apm" uninstall --global netresearch/jira-skill/skills/jira-syntax
