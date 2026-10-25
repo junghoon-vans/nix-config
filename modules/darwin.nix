@@ -56,7 +56,7 @@ in
       "awscli"
       "kubernetes-cli"
       "helm"
-      "terraform"
+      "hashicorp/tap/terraform"
       "grpcurl"
       "mysql-client"
       "libpq"

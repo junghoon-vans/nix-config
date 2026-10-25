@@ -41,6 +41,7 @@ in
     taps = {
       "homebrew/homebrew-core" = inputs.homebrew-core;
       "homebrew/homebrew-cask" = inputs.homebrew-cask;
+      "hashicorp/tap" = inputs.hashicorp-tap;
     };
   };
 
