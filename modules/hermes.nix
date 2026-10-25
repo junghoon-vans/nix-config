@@ -69,6 +69,9 @@ let
       extra = {
         reply_in_thread = true;
         reply_broadcast = false;
+        require_mention = true;
+        strict_mention = true;
+        thread_require_mention = true;
       };
     };
     delegation = {
