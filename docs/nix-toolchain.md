@@ -87,6 +87,9 @@ Existing `~/.hermes/omp-worker` legacy task data is not automatically reattached
 delegator. Additional ACP permission requests are denied, not relayed to Slack; permitted tools
 retain their declared capabilities and may still write.
 
+Slack's `allow_bots = "mentions"` accepts bot/app messages only when they explicitly mention
+the assistant; existing mention requirements remain unchanged.
+
 To upgrade Hermes, select a reviewed release tag in the `hermes-agent` input URL, run
 `nix flake update hermes-agent`, and build both hosts before activation. Updating the lock
 without changing the tagged URL does not select a newer release. Wait for active coding tasks
