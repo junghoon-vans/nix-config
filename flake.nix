@@ -60,6 +60,10 @@
       url = "github:homebrew/homebrew-cask";
       flake = false;
     };
+    hashicorp-tap = {
+      url = "github:hashicorp/homebrew-tap";
+      flake = false;
+    };
   };
 
   outputs =

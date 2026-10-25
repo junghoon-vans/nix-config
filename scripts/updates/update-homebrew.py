@@ -8,7 +8,7 @@ from pathlib import Path
 import subprocess
 
 
-TAPS = {"homebrew-core": "Formula", "homebrew-cask": "Casks"}
+TAPS = {"homebrew-core": "Formula", "homebrew-cask": "Casks", "hashicorp-tap": "Formula"}
 
 
 def prefetch(locked):
@@ -64,7 +64,7 @@ def summarize(before, after, declared):
     lines = [
         "## Homebrew tap update",
         "",
-        "Updates only `homebrew-core` and `homebrew-cask` in `flake.lock`.",
+        "Updates only " + ", ".join(f"`{tap}`" for tap in TAPS) + " in `flake.lock`.",
         "Tables include only Homebrew packages declared by the Nix host configurations.",
         "Versions come from the pinned definitions, not the currently installed packages.",
         "Formula versions include Homebrew revisions (`_N`); cask versions target Apple Silicon.",

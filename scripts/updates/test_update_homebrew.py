@@ -53,15 +53,15 @@ class HomebrewSummaryTests(unittest.TestCase):
         self.old = Path(temporary.name) / "old"
         self.new = Path(temporary.name) / "new"
         for root in (self.old, self.new):
-            for subdir in updater.TAPS.values():
-                (root / subdir / "e").mkdir(parents=True)
+            for tap, subdir in updater.TAPS.items():
+                (root / tap / subdir / "e").mkdir(parents=True)
         self.declared = {tap: ["example"] for tap in updater.TAPS}
 
     def definition(self, root, tap, text, name="example"):
-        (root / updater.TAPS[tap] / "e" / f"{name}.rb").write_text(text)
+        (root / tap / updater.TAPS[tap] / "e" / f"{name}.rb").write_text(text)
 
     def summary(self):
-        with patch.object(updater, "prefetch", side_effect=lambda node: self.old if node["rev"] == "old" else self.new):
+        with patch.object(updater, "prefetch", side_effect=lambda node: (self.old if node["rev"] == "old" else self.new) / node["repo"]):
             return updater.summarize(lock("old"), lock("new"), self.declared)
 
     def test_declared_versions_use_formula_url_revision_and_apple_silicon_cask(self):
@@ -88,11 +88,12 @@ class HomebrewSummaryTests(unittest.TestCase):
 
     def test_declared_additions_removals_and_unchanged_packages(self):
         self.declared["homebrew-cask"] = []
+        self.declared["hashicorp-tap"] = []
         self.definition(self.new, "homebrew-core", formula("1.0"))
         self.assertIn("| `example` | — | `1.0` | Added |", self.summary())
         self.definition(self.old, "homebrew-core", formula("1.0"))
         self.assertNotIn("| `example`", self.summary())
-        (self.new / "Formula/e/example.rb").unlink()
+        (self.new / "homebrew-core/Formula/e/example.rb").unlink()
         self.assertIn("| `example` | `1.0` | — | Removed |", self.summary())
 
     def test_unchanged_taps_do_not_fetch(self):
@@ -106,6 +107,19 @@ class HomebrewSummaryTests(unittest.TestCase):
             "| `example` | — | — | Unavailable in both pinned taps |",
             self.summary(),
         )
+
+    def test_hashicorp_formula_versions_are_reported_separately_from_core(self):
+        self.declared = {tap: [] for tap in updater.TAPS}
+        self.declared["hashicorp-tap"] = ["example"]
+        self.definition(self.old, "homebrew-core", formula("0.15.0"))
+        self.definition(self.new, "homebrew-core", formula("0.15.1"))
+        for root, version in ((self.old, "1.15.0"), (self.new, "1.16.0")):
+            directory = root / "hashicorp-tap/Formula"
+            (directory / "example.rb").write_text(formula(version))
+        body = self.summary()
+        self.assertIn("### hashicorp-tap", body)
+        self.assertIn("| `example` | `1.15.0` | `1.16.0` | Version / revision |", body)
+        self.assertNotIn("`0.15.0`", body)
 
 
 

@@ -38,6 +38,22 @@
         "type": "github"
       }
     },
+    "hashicorp-tap": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1792735419,
+        "narHash": "sha256-iCCDPd8i9G+UaBL2wX1PjlDy9ExHkIJk9spZgtU3IdY=",
+        "owner": "hashicorp",
+        "repo": "homebrew-tap",
+        "rev": "c73524b94071e2d076cbb060110ba403fdd00e9b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "hashicorp",
+        "repo": "homebrew-tap",
+        "type": "github"
+      }
+    },
     "hermes-agent": {
       "inputs": {
         "flake-parts": "flake-parts",
@@ -348,6 +364,7 @@
     },
     "root": {
       "inputs": {
+        "hashicorp-tap": "hashicorp-tap",
         "hermes-agent": "hermes-agent",
         "hermes-official-plugins": "hermes-official-plugins",
         "hermes-omp-acp": "hermes-omp-acp",
