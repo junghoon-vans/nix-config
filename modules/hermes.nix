@@ -14,7 +14,7 @@ let
   profilePath = ".hermes/profiles/${profileName}";
   profileHome = "${home}/${profilePath}";
   yaml = pkgs.formats.yaml { };
-  providerSource = "${inputs.hermes-omp-acp}/model-provider";
+  providerSource = inputs.hermes-omp-acp;
   delegationSource = "${inputs.hermes-official-plugins}/advanced-delegation";
   hermesPackages = inputs.hermes-agent.packages.${pkgs.stdenv.hostPlatform.system};
   # Hermes 0.22.5 attaches Linux ELF fixups to its Darwin pm artifacts too.
