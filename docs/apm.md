@@ -12,7 +12,7 @@ the common machine inputs and installation procedure:
 | Installation | `scripts/apm/setup-apm.sh` |
 
 `make bootstrap` and `make switch` invoke `scripts/apm/setup-apm.sh` after activation. The script
-requires APM 0.35 or newer and uses the absolute Nix-managed executable, not a shell-resolved CLI.
+uses the absolute Nix-managed APM executable pinned in `release-pins.json`, not a shell-resolved CLI.
 It first stages `apm.yml`, `apm.lock.yaml`, and `skills/` together and runs
 `apm install --global --target agent-skills --only apm --trust-bin --frozen --dry-run` with an
 isolated staging HOME. Missing locks, manifest drift and changed local dependency content fail
@@ -25,7 +25,7 @@ skills are materialized by APM into `~/.agents/skills/`. The committed lock rema
 unchanged; a pre-existing machine lock does not override its dependency resolutions.
 
 The lock is a portable resolution/deployment description, not machine ownership evidence.
-APM 0.35 keeps user-scope ownership receipts under `~/.apm/deployment-receipts/`, bound to the
+The pinned APM release keeps user-scope ownership receipts under `~/.apm/deployment-receipts/`, bound to the
 installation identity in `~/.apm-local/`. Setup retains these files and the existing narrow macOS
 device-number reconciliation; it never imports another machine's receipts or uses `--force`.
 APM preserves locally edited and unrelated skills on reinstall. Preflight is not a transaction:
@@ -56,7 +56,7 @@ Moving it to the shared manifest would deploy it on MacBookPro too. Removing the
 before a locked host-selection mechanism is proven would lose the Air-only skill. A safe cutover
 must prove equivalent payload pinning, a single global ownership ledger, and host selection before
 removing this exception; project-scoped installs are not a substitute for machine host composition.
-APM 0.35 target filters select agent runtimes, not machine identities; a host-specific locked
+The pinned APM release's target filters select agent runtimes, not machine identities; a host-specific locked
 manifest/composition contract is still needed. No host selection is inferred from the current shell.
 
 ## Isolated validation
