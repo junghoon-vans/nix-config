@@ -72,6 +72,7 @@ let
         require_mention = true;
         strict_mention = true;
         thread_require_mention = true;
+        allow_bots = "mentions";
       };
     };
     delegation = {
