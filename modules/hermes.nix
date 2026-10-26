@@ -138,7 +138,6 @@ let
       long_running_notifications = true;
       platforms.slack = {
         tool_progress = "off";
-        interim_assistant_messages = false;
       };
     };
   };
