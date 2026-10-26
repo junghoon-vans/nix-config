@@ -136,6 +136,9 @@ let
     display = {
       tool_progress = "all";
       long_running_notifications = true;
+      platforms.slack = {
+        tool_progress = "off";
+      };
     };
   };
 in
