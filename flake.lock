@@ -141,11 +141,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1792421589,
-        "narHash": "sha256-kd1uAerzkPNEBTh+Bl5wdfVqP2MPpxTRvcWtfbIP1kI=",
+        "lastModified": 1792773325,
+        "narHash": "sha256-bvba9Lts8r8d15MdIDMwJGDxLtJiTlasKtAZyhTDzXk=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "94c556362d7ef878175d2f0eb3045565d1685b0c",
+        "rev": "6d9655f76459099b0db2f57b13563729c7022aa7",
         "type": "github"
       },
       "original": {
@@ -194,11 +194,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1792366139,
-        "narHash": "sha256-jto4pdsl0bgErQ5vaMc3gOyj//PILLRJuqX3I7fUk6s=",
+        "lastModified": 1792737899,
+        "narHash": "sha256-P0/GhewcEQmAbzq3QunNWY2jLJaYH9F6c/5dEM/jQ4M=",
         "owner": "nix-darwin",
         "repo": "nix-darwin",
-        "rev": "f0ec2b3fae4df92ea7788359aef9e07bb88d720f",
+        "rev": "bb0b90dbd54e207100de72b5dcbe3188c98a4b69",
         "type": "github"
       },
       "original": {
@@ -244,11 +244,11 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1792116957,
-        "narHash": "sha256-EjZqHKObBfIOeHZnMRVV87HB3pPq/WBkmRJWyFxmZu8=",
+        "lastModified": 1792506237,
+        "narHash": "sha256-Q/8KLB6jNfpaUN1HAedE/u/Et9feE/zYSsutBLKrCFk=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "f20cd90e28fe0403873f473b29e42662cd86e8c4",
+        "rev": "5adc50831c259f87faeb09ddf930d43597197473",
         "type": "github"
       },
       "original": {
@@ -282,11 +282,11 @@
     "oh-my-zsh": {
       "flake": false,
       "locked": {
-        "lastModified": 1791883344,
-        "narHash": "sha256-RG32nAZOP7nLNSy+OFIB2C15tpx/x9KN9QQVqck57Ow=",
+        "lastModified": 1792578674,
+        "narHash": "sha256-Y6S7urrtsdUN7A7lgWF2FkIWZpA1HNkjf1eWwfkjzUQ=",
         "owner": "ohmyzsh",
         "repo": "ohmyzsh",
-        "rev": "964ddf789b022b6958b27d02d7fa54f552de21e9",
+        "rev": "2100c630ba4bd67bb48802c3e7da893a4fdaa1a0",
         "type": "github"
       },
       "original": {
@@ -387,11 +387,11 @@
     "spaceship-prompt": {
       "flake": false,
       "locked": {
-        "lastModified": 1788319918,
-        "narHash": "sha256-iJDX0waRgi6vdtARutzNbwC3QivFaLKwEDpvfbjSd28=",
+        "lastModified": 1792585208,
+        "narHash": "sha256-j44aLORtyMx3uh2tEhnulksve/yaA1m5Zw/WWXuozrI=",
         "owner": "spaceship-prompt",
         "repo": "spaceship-prompt",
-        "rev": "109989cf3fcd6696b38445d9303e8a22fb3dbb22",
+        "rev": "0676854eb49585d6be2b4faf218de92bbf18ce18",
         "type": "github"
       },
       "original": {
