@@ -26,6 +26,12 @@ let
   supportPython = pkgs.python3.withPackages (ps: [
     ps.pyyaml
   ]);
+  ompAcpConfig = yaml.generate "hermes-omp-acp-config.yaml" {
+    retry = {
+      maxRetries = 3;
+      baseDelayMs = 2000;
+    };
+  };
   gatewayPath = "${
     lib.makeBinPath [
       pkgs.git
@@ -114,6 +120,8 @@ let
         command = lib.getExe config.workstation.omp.package;
         args = [
           "acp"
+          "--config"
+          "${ompAcpConfig}"
           "--approval-mode"
           "yolo"
         ];

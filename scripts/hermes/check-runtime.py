@@ -1,11 +1,96 @@
 #!/usr/bin/env python3
-"""Check packaged Hermes and mixed delegation routes without credentials or model calls."""
+"""Check packaged Hermes routes and native ACP retry limits without live credentials."""
 
+import base64
+from contextlib import closing
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import os
 from pathlib import Path
 import sys
 import tempfile
+import threading
+import time
+
+
+def check_acp_retries(profile, command, configured_args, root):
+    attempts = []
+
+    class CapacityEndpoint(BaseHTTPRequestHandler):
+        def do_POST(self):
+            self.rfile.read(int(self.headers["Content-Length"]))
+            attempts.append(time.monotonic())
+            payload = (
+                "data: "
+                + json.dumps({
+                    "type": "error",
+                    "code": "turn_rate_limit_exceeded",
+                    "message": "Codex is at capacity, please try again later",
+                })
+                + "\n\n"
+            ).encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "text/event-stream")
+            self.send_header("Content-Length", str(len(payload)))
+            self.end_headers()
+            self.wfile.write(payload)
+
+        def log_message(self, format, *args):
+            pass
+
+    agent = root / ".omp/agent"
+    agent.mkdir(parents=True)
+    os.environ["PI_CODING_AGENT_DIR"] = str(agent)
+    os.environ["PI_CONFIG_FILES"] = ""
+    os.environ["PI_CODEX_WEBSOCKET"] = "0"
+    # Synthetic JWT shape for the loopback Codex fixture, never a live credential.
+    claims = {"https://api.openai.com/auth": {"chatgpt_account_id": "synthetic-account"}}
+    encoded_claims = base64.urlsafe_b64encode(json.dumps(claims).encode()).decode().rstrip("=")
+    with ThreadingHTTPServer(("127.0.0.1", 0), CapacityEndpoint) as server:
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            (agent / "models.yml").write_text(json.dumps({"providers": {"fixture": {
+                "baseUrl": f"http://127.0.0.1:{server.server_port}/v1",
+                "api": "openai-codex-responses",
+                "apiKey": f"synthetic.{encoded_claims}.fixture",
+                "models": [{"id": "retry-probe", "name": "retry-probe", "reasoning": False,
+                            "contextWindow": 128000, "maxTokens": 1024}],
+            }}}))
+            (agent / "config.yml").write_text(json.dumps({
+                "modelRoles": {"default": "fixture/retry-probe"},
+                "retry": {"maxRetries": 0, "baseDelayMs": 1, "modelFallback": False},
+            }))
+            quiet_args = ["--no-title", "--no-lsp", "--no-extensions", "--no-skills", "--no-rules", "--no-tools"]
+            for label, args, expected_requests in (
+                ("ordinary ACP control", ["acp"], 1),
+                ("Hermes ACP overlay", configured_args, 4),
+            ):
+                attempts.clear()
+                with closing(profile.create_client(
+                    command=command, args=[*args, *quiet_args], acp_cwd=str(root), mcp_enabled=False,
+                )) as client:
+                    result = client.chat.completions.create(
+                        model="fixture/retry-probe", timeout=60,
+                        messages=[{"role": "user", "content": "Reply OK."}],
+                    )
+                if len(attempts) != expected_requests:
+                    raise RuntimeError(
+                        f"{label} sent {len(attempts)} provider requests, expected {expected_requests}."
+                    )
+                if "turn_rate_limit_exceeded" not in (result.choices[0].message.content or ""):
+                    raise RuntimeError(f"{label} did not reach the synthetic Codex capacity failure.")
+            delays = [later - earlier for earlier, later in zip(attempts, attempts[1:])]
+            for delay, minimum in zip(delays, (1.5, 3.0, 6.0), strict=True):
+                if delay < minimum:
+                    raise RuntimeError(f"ACP retry arrived after {delay:.3f}s, below {minimum}s.")
+            print(
+                "Native ACP capacity failure: control sent 1 request; Hermes overlay sent 4; "
+                f"retry intervals: {', '.join(f'{delay:.2f}s' for delay in delays)}."
+            )
+        finally:
+            server.shutdown()
+            thread.join(timeout=5)
 
 
 def main():
@@ -92,6 +177,9 @@ def main():
                 raise RuntimeError("The coder route lost the packaged OMP executable.")
             if not os.access(command, os.X_OK) or credentials.get("args") != settings["args"]:
                 raise RuntimeError("The coder route cannot launch the packaged OMP ACP server.")
+            from providers import get_provider_profile
+
+            check_acp_retries(get_provider_profile("omp-acp"), command, credentials["args"], root)
             print(
                 f"Hermes {version}: fast/deep OpenAI routes, coder OMP ACP route, "
                 "unknown-route refusal and delegate_task exposure verified."
