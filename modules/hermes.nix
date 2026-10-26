@@ -105,10 +105,21 @@ let
         ];
       };
     };
-    plugins.enabled = [
-      "omp-acp-provider"
-      "advanced-delegation"
-    ];
+    plugins = {
+      enabled = [
+        "omp-acp-provider"
+        "advanced-delegation"
+      ];
+      entries.omp-acp-provider.settings = {
+        command = lib.getExe config.workstation.omp.package;
+        args = [
+          "acp"
+          "--approval-mode"
+          "yolo"
+        ];
+        mcp_enabled = true;
+      };
+    };
     approvals = {
       mode = "manual";
       timeout = 300;
@@ -158,7 +169,6 @@ in
 
   config = lib.mkIf cfg.enable {
     environment.systemPackages = [ cfg.package ];
-    environment.variables.HERMES_OMP_ACP_COMMAND = lib.getExe config.workstation.omp.package;
     assertions = [
       {
         assertion = config.workstation.omp.enable && cfg.repositoryRoots != [ ];
@@ -173,11 +183,11 @@ in
             HERMES_INSTALL_ROOT = "${cfg.package}/share/hermes-agent";
             HERMES_BUNDLED_PLUGINS = "${cfg.package}/share/hermes-agent/plugins";
             PYTHONDONTWRITEBYTECODE = "1";
-            HERMES_OMP_ACP_COMMAND = lib.getExe config.workstation.omp.package;
           }
           ''
             ${cfg.package.hermesVenv}/bin/python3 ${../scripts/hermes/check-runtime.py} \
-              ${hermesConfig} ${providerSource} ${delegationSource} ${lib.escapeShellArg cfg.package.version}
+              ${hermesConfig} ${providerSource} ${delegationSource} ${lib.escapeShellArg cfg.package.version} \
+              ${lib.getExe config.workstation.omp.package}
             touch "$out"
           '';
     };
@@ -219,8 +229,6 @@ in
           EnvironmentVariables = {
             HERMES_HOME = profileHome;
             PATH = gatewayPath;
-            HERMES_OMP_ACP_COMMAND = lib.getExe config.workstation.omp.package;
-            HERMES_OMP_ACP_ARGS = "acp --approval-mode yolo";
             PYTHONDONTWRITEBYTECODE = "1";
           };
           RunAtLoad = true;

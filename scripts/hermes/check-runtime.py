@@ -9,7 +9,7 @@ import tempfile
 
 
 def main():
-    defaults_path, provider_source, delegation_source, expected_version = sys.argv[1:]
+    defaults_path, provider_source, delegation_source, expected_version, expected_command = sys.argv[1:]
     with tempfile.TemporaryDirectory(prefix="hermes-runtime-check-") as directory:
         root = Path(directory)
         home = root / ".hermes/profiles/omp-worker"
@@ -17,6 +17,8 @@ def main():
         os.environ["HOME"] = str(root)
         os.environ["HERMES_HOME"] = str(home)
         os.environ["HERMES_REAL_HOME"] = str(root)
+        for name in ("HERMES_OMP_ACP_COMMAND", "HERMES_OMP_ACP_ARGS", "HERMES_OMP_ACP_MCP_ENABLED"):
+            os.environ.pop(name, None)
 
         from hermes_cli.version_info import get_version_info
         from ruamel.yaml import YAML
@@ -85,10 +87,10 @@ def main():
             if credentials.get("model") != coder.routing_cfg["model"]:
                 raise RuntimeError("The coder route lost its selected OMP model.")
             command = credentials.get("command")
-            expected_command = os.environ["HERMES_OMP_ACP_COMMAND"]
+            settings = config["plugins"]["entries"]["omp-acp-provider"]["settings"]
             if not command or Path(command).resolve() != Path(expected_command).resolve():
                 raise RuntimeError("The coder route lost the packaged OMP executable.")
-            if not os.access(command, os.X_OK) or credentials.get("args") != ["acp"]:
+            if not os.access(command, os.X_OK) or credentials.get("args") != settings["args"]:
                 raise RuntimeError("The coder route cannot launch the packaged OMP ACP server.")
             print(
                 f"Hermes {version}: fast/deep OpenAI routes, coder OMP ACP route, "
