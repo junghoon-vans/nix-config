@@ -142,4 +142,5 @@ Managed by: Home Manager.
 | Name | Description | Hosts | Declaration |
 | --- | --- | --- | --- |
 | `apply-aside-settings` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/aside.nix`](../modules/aside.nix) |
+| `aside` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/aside.nix`](../modules/aside.nix) |
 | `mise` | Front-end to your dev env | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`hosts/common.nix`](../hosts/common.nix) |
