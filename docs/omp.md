@@ -45,6 +45,22 @@ This automatic registration applies to OMP processes launched from the managed i
 GUI applications do not source `.zshrc`; a GUI launcher must pass `PI_CONFIG_FILES` itself or add
 the same overlay with its OMP launch arguments.
 
+## Hermes ACP retry limit
+
+`modules/hermes.nix` generates a Nix-store overlay with `retry.maxRetries: 1` and passes
+it through the `omp-acp-provider` plugin's existing `args` as `acp --config <store-path>`.
+Only OMP children launched by that Hermes profile receive this overlay; interactive OMP
+and Zed keep their existing settings. No separate OMP home or credentials are created.
+
+This permits one session-level retry after the initial attempt. It does not cap lower-level
+Codex transport retries, disable configured model fallbacks, or change Hermes's own retry
+policy. Provider/approval defaults and the existing ACP approval mode are unchanged.
+
+The `hermesRuntimeCheck` build uses temporary homes and a loopback-only synthetic Codex
+endpoint: the ordinary ACP control sends one request with retries disabled, while the
+Hermes launch arguments override that control and send exactly two. No live model account
+or workstation activation is needed.
+
 ## Skill ownership
 
 APM owns generated global skills. Project-local skills stay with their project. Use a local overlay
