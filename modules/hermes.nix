@@ -27,7 +27,10 @@ let
     ps.pyyaml
   ]);
   ompAcpConfig = yaml.generate "hermes-omp-acp-config.yaml" {
-    retry.maxRetries = 1;
+    retry = {
+      maxRetries = 3;
+      baseDelayMs = 2000;
+    };
   };
   gatewayPath = "${
     lib.makeBinPath [

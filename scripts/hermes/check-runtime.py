@@ -10,6 +10,7 @@ from pathlib import Path
 import sys
 import tempfile
 import threading
+import time
 
 
 def check_acp_retries(profile, command, configured_args, root):
@@ -18,7 +19,7 @@ def check_acp_retries(profile, command, configured_args, root):
     class CapacityEndpoint(BaseHTTPRequestHandler):
         def do_POST(self):
             self.rfile.read(int(self.headers["Content-Length"]))
-            attempts.append(self.path)
+            attempts.append(time.monotonic())
             payload = (
                 "data: "
                 + json.dumps({
@@ -63,14 +64,14 @@ def check_acp_retries(profile, command, configured_args, root):
             quiet_args = ["--no-title", "--no-lsp", "--no-extensions", "--no-skills", "--no-rules", "--no-tools"]
             for label, args, expected_requests in (
                 ("ordinary ACP control", ["acp"], 1),
-                ("Hermes ACP overlay", configured_args, 2),
+                ("Hermes ACP overlay", configured_args, 4),
             ):
                 attempts.clear()
                 with closing(profile.create_client(
                     command=command, args=[*args, *quiet_args], acp_cwd=str(root), mcp_enabled=False,
                 )) as client:
                     result = client.chat.completions.create(
-                        model="fixture/retry-probe", timeout=30,
+                        model="fixture/retry-probe", timeout=60,
                         messages=[{"role": "user", "content": "Reply OK."}],
                     )
                 if len(attempts) != expected_requests:
@@ -79,7 +80,14 @@ def check_acp_retries(profile, command, configured_args, root):
                     )
                 if "turn_rate_limit_exceeded" not in (result.choices[0].message.content or ""):
                     raise RuntimeError(f"{label} did not reach the synthetic Codex capacity failure.")
-            print("Native ACP capacity failure: control sent 1 request; Hermes overlay sent 2.")
+            delays = [later - earlier for earlier, later in zip(attempts, attempts[1:])]
+            for delay, minimum in zip(delays, (1.5, 3.0, 6.0), strict=True):
+                if delay < minimum:
+                    raise RuntimeError(f"ACP retry arrived after {delay:.3f}s, below {minimum}s.")
+            print(
+                "Native ACP capacity failure: control sent 1 request; Hermes overlay sent 4; "
+                f"retry intervals: {', '.join(f'{delay:.2f}s' for delay in delays)}."
+            )
         finally:
             server.shutdown()
             thread.join(timeout=5)
