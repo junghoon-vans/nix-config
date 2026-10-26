@@ -10,7 +10,7 @@
     nix-homebrew.url = "github:zhaofengli/nix-homebrew";
     hermes-agent.url = "github:NousResearch/hermes-agent/v0.22.5";
     hermes-omp-acp = {
-      url = "github:junghoon-vans/hermes-omp-acp/v0.1.0";
+      url = "github:junghoon-vans/hermes-omp-acp/v0.2.0";
       flake = false;
     };
     hermes-official-plugins = {
