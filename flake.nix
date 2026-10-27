@@ -99,6 +99,7 @@
           deadnix
           nixfmt
           (python3.withPackages (ps: [
+            ps.packaging
             ps.pyyaml
             ps.python-dotenv
           ]))

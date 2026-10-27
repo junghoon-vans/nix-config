@@ -13,6 +13,39 @@ import threading
 import time
 
 
+def check_provider_dependencies(provider_source):
+    from importlib import metadata
+    import tomllib
+    from packaging.requirements import Requirement
+
+    pyproject_path = Path(provider_source) / "pyproject.toml"
+    project = tomllib.loads(pyproject_path.read_text())["project"]
+    unsatisfied = []
+    for declared in project.get("dependencies", []):
+        requirement = Requirement(declared)
+        if requirement.marker and not requirement.marker.evaluate():
+            continue
+        if requirement.url is not None:
+            raise RuntimeError(
+                f"Cannot verify direct-URL provider dependency from installed versions: {declared}"
+            )
+        try:
+            installed = metadata.version(requirement.name)
+        except metadata.PackageNotFoundError:
+            installed = None
+        if installed is None or not requirement.specifier.contains(installed, prereleases=True):
+            unsatisfied.append(
+                f"{requirement.name}: installed={installed or 'missing'}; required={declared}"
+            )
+
+    if unsatisfied:
+        details = "\n  ".join(unsatisfied)
+        raise RuntimeError(
+            f"Packaged Python environment does not satisfy provider dependencies "
+            f"from {pyproject_path}:\n  {details}"
+        )
+
+
 def check_acp_retries(profile, command, configured_args, root):
     attempts = []
 
@@ -104,6 +137,7 @@ def main():
         os.environ["HERMES_REAL_HOME"] = str(root)
         for name in ("HERMES_OMP_ACP_COMMAND", "HERMES_OMP_ACP_ARGS", "HERMES_OMP_ACP_MCP_ENABLED"):
             os.environ.pop(name, None)
+        check_provider_dependencies(provider_source)
 
         from hermes_cli.version_info import get_version_info
         from ruamel.yaml import YAML
