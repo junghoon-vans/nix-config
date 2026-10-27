@@ -49,9 +49,23 @@ let
     };
     vendorHash = gnoplsVendorHash;
     subPackages = [ "." ];
+    # Builtin initialization imports cmp through go/importer at runtime.
+    allowGoReference = true;
     nativeBuildInputs = [ pkgs.makeWrapper ];
+    postInstall = ''
+      install -Dm444 pkg/gnotypes/builtin/builtin.gno "$out/share/gnopls/builtin/builtin.gno"
+    '';
     postFixup = ''
-      wrapProgram "$out/bin/gnopls" --set GNOROOT ${gnoSource}
+      wrapProgram "$out/bin/gnopls" \
+        --set GNOROOT ${gnoSource} \
+        --set GNOBUILTIN "$out/share/gnopls/builtin"
+    '';
+    doInstallCheck = true;
+    nativeInstallCheckInputs = [ pkgs.python3 ];
+    installCheckPhase = ''
+      runHook preInstallCheck
+      python3 -B ${../../scripts/validation/check-gnopls.py} "$out/bin/gnopls"
+      runHook postInstallCheck
     '';
   };
 in
