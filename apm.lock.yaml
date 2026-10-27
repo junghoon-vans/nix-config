@@ -476,7 +476,7 @@ dependencies:
   resolved_commit: 1e0ca1ce660421cb685b9c69ca421838100e2315
   resolved_ref: v0.74.0
   version: unknown
-  virtual_path: skills/worktrunk
+  virtual_path: plugins/worktrunk/skills/worktrunk
   is_virtual: true
   package_type: claude_skill
   deployed_files:
@@ -8654,8 +8654,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - max-sixty/worktrunk/skills/worktrunk
-  active_owner: max-sixty/worktrunk/skills/worktrunk
+  - max-sixty/worktrunk/plugins/worktrunk/skills/worktrunk
+  active_owner: max-sixty/worktrunk/plugins/worktrunk/skills/worktrunk
   content_hash: null
 - kind: project-relative
   target: agent-skills
@@ -8663,8 +8663,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - max-sixty/worktrunk/skills/worktrunk
-  active_owner: max-sixty/worktrunk/skills/worktrunk
+  - max-sixty/worktrunk/plugins/worktrunk/skills/worktrunk
+  active_owner: max-sixty/worktrunk/plugins/worktrunk/skills/worktrunk
   content_hash: sha256:3fc6de776a7db9b9f1f65e8312cf85baa8f9008c1c00144aa319cb8ac0d04af7
 - kind: project-relative
   target: agent-skills
@@ -8672,8 +8672,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - max-sixty/worktrunk/skills/worktrunk
-  active_owner: max-sixty/worktrunk/skills/worktrunk
+  - max-sixty/worktrunk/plugins/worktrunk/skills/worktrunk
+  active_owner: max-sixty/worktrunk/plugins/worktrunk/skills/worktrunk
   content_hash: sha256:ba8916a619aab99418d0110bdaf9233c93b72c9ba4cbd7b11d6b767513271d56
 - kind: project-relative
   target: agent-skills
@@ -8681,8 +8681,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - max-sixty/worktrunk/skills/worktrunk
-  active_owner: max-sixty/worktrunk/skills/worktrunk
+  - max-sixty/worktrunk/plugins/worktrunk/skills/worktrunk
+  active_owner: max-sixty/worktrunk/plugins/worktrunk/skills/worktrunk
   content_hash: sha256:591895835e0e94f7715fb600b065a25db33bbdc63e7050868de38b5ed1085c69
 - kind: project-relative
   target: agent-skills
@@ -8690,8 +8690,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - max-sixty/worktrunk/skills/worktrunk
-  active_owner: max-sixty/worktrunk/skills/worktrunk
+  - max-sixty/worktrunk/plugins/worktrunk/skills/worktrunk
+  active_owner: max-sixty/worktrunk/plugins/worktrunk/skills/worktrunk
   content_hash: sha256:8f27f89e960ecc914cef4d30ad00121047365d245f50a5d58f0c2b9918497858
 - kind: project-relative
   target: agent-skills
@@ -8699,8 +8699,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - max-sixty/worktrunk/skills/worktrunk
-  active_owner: max-sixty/worktrunk/skills/worktrunk
+  - max-sixty/worktrunk/plugins/worktrunk/skills/worktrunk
+  active_owner: max-sixty/worktrunk/plugins/worktrunk/skills/worktrunk
   content_hash: sha256:f99a412864d23fb8ee407dc5b111d7dc2913f5b1aa5056b3821dbd5b2b04caa1
 - kind: project-relative
   target: agent-skills
@@ -8708,8 +8708,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - max-sixty/worktrunk/skills/worktrunk
-  active_owner: max-sixty/worktrunk/skills/worktrunk
+  - max-sixty/worktrunk/plugins/worktrunk/skills/worktrunk
+  active_owner: max-sixty/worktrunk/plugins/worktrunk/skills/worktrunk
   content_hash: sha256:7ac210ca494348ebcadf951b195988224e9ac30b5240cd74ce295cc8ef0a0126
 - kind: project-relative
   target: agent-skills
@@ -8717,8 +8717,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - max-sixty/worktrunk/skills/worktrunk
-  active_owner: max-sixty/worktrunk/skills/worktrunk
+  - max-sixty/worktrunk/plugins/worktrunk/skills/worktrunk
+  active_owner: max-sixty/worktrunk/plugins/worktrunk/skills/worktrunk
   content_hash: sha256:90ff78e50162db175286b50e92fcfec4033ca741159bb8d8aac3c67d7c0bcc0b
 - kind: project-relative
   target: agent-skills
@@ -8726,8 +8726,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - max-sixty/worktrunk/skills/worktrunk
-  active_owner: max-sixty/worktrunk/skills/worktrunk
+  - max-sixty/worktrunk/plugins/worktrunk/skills/worktrunk
+  active_owner: max-sixty/worktrunk/plugins/worktrunk/skills/worktrunk
   content_hash: sha256:65dfd3bfa6a653d0858d5be5bd4197df1982821031685b4dc01a87d2d969c9c2
 - kind: project-relative
   target: agent-skills
@@ -8735,8 +8735,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - max-sixty/worktrunk/skills/worktrunk
-  active_owner: max-sixty/worktrunk/skills/worktrunk
+  - max-sixty/worktrunk/plugins/worktrunk/skills/worktrunk
+  active_owner: max-sixty/worktrunk/plugins/worktrunk/skills/worktrunk
   content_hash: sha256:51e35ab79c4a9d41800efed431ecdf1947915ed59ffcafa10b86bf92b9a530ea
 - kind: project-relative
   target: agent-skills
@@ -8744,8 +8744,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - max-sixty/worktrunk/skills/worktrunk
-  active_owner: max-sixty/worktrunk/skills/worktrunk
+  - max-sixty/worktrunk/plugins/worktrunk/skills/worktrunk
+  active_owner: max-sixty/worktrunk/plugins/worktrunk/skills/worktrunk
   content_hash: sha256:d6700bf190fb9baa4f120d19b37f7549e4cfbde2a9a7dff110c5e6ce66e61212
 - kind: project-relative
   target: agent-skills
@@ -8753,8 +8753,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - max-sixty/worktrunk/skills/worktrunk
-  active_owner: max-sixty/worktrunk/skills/worktrunk
+  - max-sixty/worktrunk/plugins/worktrunk/skills/worktrunk
+  active_owner: max-sixty/worktrunk/plugins/worktrunk/skills/worktrunk
   content_hash: sha256:8ef5603744e8cc4a54d843fcc5cc53213614861e60cdee5db2760993ae4330c8
 - kind: project-relative
   target: agent-skills
@@ -8762,8 +8762,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - max-sixty/worktrunk/skills/worktrunk
-  active_owner: max-sixty/worktrunk/skills/worktrunk
+  - max-sixty/worktrunk/plugins/worktrunk/skills/worktrunk
+  active_owner: max-sixty/worktrunk/plugins/worktrunk/skills/worktrunk
   content_hash: sha256:15338497ba548889bf4e1bda3a49bc243a13344dab6d2ff0650c0cd706fad8f3
 - kind: project-relative
   target: agent-skills
@@ -8771,8 +8771,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - max-sixty/worktrunk/skills/worktrunk
-  active_owner: max-sixty/worktrunk/skills/worktrunk
+  - max-sixty/worktrunk/plugins/worktrunk/skills/worktrunk
+  active_owner: max-sixty/worktrunk/plugins/worktrunk/skills/worktrunk
   content_hash: sha256:360e71265c06c5e1ca80a2598fad9e47b270b7dd5698f83a5f9d31887a143ea1
 - kind: project-relative
   target: agent-skills
@@ -8780,8 +8780,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - max-sixty/worktrunk/skills/worktrunk
-  active_owner: max-sixty/worktrunk/skills/worktrunk
+  - max-sixty/worktrunk/plugins/worktrunk/skills/worktrunk
+  active_owner: max-sixty/worktrunk/plugins/worktrunk/skills/worktrunk
   content_hash: sha256:375a51c18e5fe50c36ec75723a10904451c419d786b05a0a8d7b2605aa9ec9f6
 - kind: project-relative
   target: agent-skills
@@ -8789,8 +8789,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - max-sixty/worktrunk/skills/worktrunk
-  active_owner: max-sixty/worktrunk/skills/worktrunk
+  - max-sixty/worktrunk/plugins/worktrunk/skills/worktrunk
+  active_owner: max-sixty/worktrunk/plugins/worktrunk/skills/worktrunk
   content_hash: sha256:36dc3ae71de7e674ca058c0d2fcc5b8476e719c677c0799a0fc954d74b75f9d1
 - kind: project-relative
   target: agent-skills
@@ -8798,8 +8798,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - max-sixty/worktrunk/skills/worktrunk
-  active_owner: max-sixty/worktrunk/skills/worktrunk
+  - max-sixty/worktrunk/plugins/worktrunk/skills/worktrunk
+  active_owner: max-sixty/worktrunk/plugins/worktrunk/skills/worktrunk
   content_hash: sha256:e69c124676f4a4d943dc56620dde3dbedd774d0516c8bfaa0cd74841a6878132
 - kind: project-relative
   target: agent-skills
@@ -8807,8 +8807,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - max-sixty/worktrunk/skills/worktrunk
-  active_owner: max-sixty/worktrunk/skills/worktrunk
+  - max-sixty/worktrunk/plugins/worktrunk/skills/worktrunk
+  active_owner: max-sixty/worktrunk/plugins/worktrunk/skills/worktrunk
   content_hash: sha256:bc89dc87cb643de7e0b4e890f3177538cd1224cf5f177fe5a3cff3afdb8e36f9
 - kind: project-relative
   target: agent-skills
@@ -8816,8 +8816,8 @@ deployments:
   runtime: null
   scope: project
   owners:
-  - max-sixty/worktrunk/skills/worktrunk
-  active_owner: max-sixty/worktrunk/skills/worktrunk
+  - max-sixty/worktrunk/plugins/worktrunk/skills/worktrunk
+  active_owner: max-sixty/worktrunk/plugins/worktrunk/skills/worktrunk
   content_hash: sha256:701067b9bc282d7f0ffaddcbfb14a4d6f59b0b12937eda75f9fcd3f50721d063
 - kind: project-relative
   target: agent-skills
