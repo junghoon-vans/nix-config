@@ -30,6 +30,10 @@ jobs:
           python-version: "3.12"
       - name: Install lockfile parser
         run: python -m pip install --disable-pip-version-check -r scripts/security/requirements.txt
+      - name: Test Paseo plugin update logic
+        run: python3 -B -m unittest discover -s scripts/updates -p 'test_update_paseo_plugins.py'
+      - name: Test update pull request helper
+        run: python3 -B -m unittest discover -s scripts/updates -p 'test_open_update_pr.py'
       - name: Check generated skill inventory
         run: make skills-check
       - name: Test skill inspection contract

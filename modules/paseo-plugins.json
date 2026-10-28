@@ -1,0 +1,26 @@
+{
+  "paseo-jira": {
+    "source": "github",
+    "repository": "tranhuywin/paseo-jira",
+    "directory": "",
+    "revision": "2e128a3c6c8c51a3afab338b218632096cd6a2c8",
+    "hash": "sha256-mQWA/W9nLKqf3ksLY5R2RWqP1z7CKOW4SOVr1L29EHg=",
+    "enabled": true
+  },
+  "host-monitor": {
+    "source": "github",
+    "repository": "a31521424/paseo-kit",
+    "directory": "plugins/host-monitor",
+    "revision": "14e6ac03d78c7430c054894557062426acd3f2e9",
+    "hash": "sha256-qQP1mRMARM5066+V73Q+2EJzEusJBmfqzZATjkfofZ0=",
+    "enabled": true
+  },
+  "keep-awake": {
+    "source": "github",
+    "repository": "hichamboushaba/paseo-plugins",
+    "directory": "keep-awake",
+    "revision": "485e9f466a1f26c888986edd6e6a83a90d08e34f",
+    "hash": "sha256-Sa8X6M69B/6DksU+7yIX8pDfr9X75bjLImrVQRkJekE=",
+    "enabled": true
+  }
+}
