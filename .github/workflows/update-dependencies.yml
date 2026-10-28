@@ -30,10 +30,17 @@ jobs:
           fetch-depth: 0
           token: ${{ steps.app-token.outputs.token }}
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
+      - name: Build locked Homebrew runtime
+        run: nix build --no-link --print-out-paths .#homebrew > "$RUNNER_TEMP/homebrew-runtime"
       - name: Test Homebrew package summaries
-        run: python3 -B -m unittest discover -s scripts/updates -p 'test_update_homebrew.py'
+        run: |
+          HOMEBREW_TEST_BREW="$(cat "$RUNNER_TEMP/homebrew-runtime")/bin/brew" \
+            python3 -B -m unittest discover -s scripts/updates -p 'test_update_homebrew.py'
       - name: Update Homebrew tap pins and summarize packages
-        run: python3 -B scripts/updates/update-homebrew.py --body-file "$RUNNER_TEMP/homebrew-update.md"
+        run: |
+          python3 -B scripts/updates/update-homebrew.py \
+            --brew "$(cat "$RUNNER_TEMP/homebrew-runtime")/bin/brew" \
+            --body-file "$RUNNER_TEMP/homebrew-update.md"
       - name: Open Homebrew lock update pull request
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}

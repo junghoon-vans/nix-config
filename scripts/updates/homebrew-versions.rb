@@ -8,7 +8,9 @@ versions = JSON.parse($stdin.read).to_h do |name, entry|
   version = if entry.fetch("tap") == "homebrew-cask"
     Cask::CaskLoader.load(path).version.to_s
   else
-    Formulary.factory(path).pkg_version.to_s
+    # An explicit tap avoids Formula's implicit CoreTap lookup/auto-install.
+    tap = Tap.fetch(entry.fetch("tap") == "hashicorp-tap" ? "hashicorp/tap" : "homebrew/core")
+    Formulary::FormulaLoader.new(name, path, tap: tap).get_formula(:stable).pkg_version.to_s
   end
   [name, version]
 end

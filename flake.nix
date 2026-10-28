@@ -79,17 +79,21 @@
     let
       system = "aarch64-darwin";
       pkgs = nixpkgs.legacyPackages.${system};
-      # nix-homebrew otherwise labels overridden sources with its own lockfile's version.
       brewVersion = (builtins.fromJSON (builtins.readFile ./flake.lock)).nodes.brew-src.original.ref;
+      homebrewPackage = pkgs.callPackage ./packages/homebrew.nix {
+        source = inputs.nix-homebrew.inputs.brew-src;
+        version = brewVersion;
+      };
       homebrewSource = {
-        nix-homebrew.package = inputs.nix-homebrew.inputs.brew-src // {
-          name = "brew-${brewVersion}";
-          version = brewVersion;
-        };
+        nix-homebrew.package = homebrewPackage;
+        nix-homebrew.patchBrew = false;
       };
     in
     {
-      packages.${system}.apm = pkgs.callPackage ./packages/apm.nix { };
+      packages.${system} = {
+        homebrew = homebrewPackage;
+        apm = pkgs.callPackage ./packages/apm.nix { };
+      };
       formatter.${system} = pkgs.writeShellApplication {
         name = "nixfmt-all";
         runtimeInputs = [

@@ -76,14 +76,34 @@ Resolve the activation error and retry the switch before upgrading packages.
 These commands update formula/cask definitions and packages, not the Homebrew executable.
 The executable source is the `nix-homebrew/brew-src` input in `flake.lock`, overridden in
 `flake.nix` independently of `nix-homebrew` so new cask DSL syntax can be supported without
-upgrading unrelated dependencies. Both hosts use the locked source's tag for package
-metadata; nix-homebrew still applies its self-update and Nix Ruby patches.
+upgrading unrelated dependencies. Both Darwin hosts and CI use the same `.#homebrew`
+derivation. Its version metadata comes from the locked release tag, not a second version
+constant. `packages/homebrew.nix` preserves nix-homebrew's self-update blocking and Nix
+Ruby/fiddle patches; `patchBrew = false` prevents applying those patches twice locally.
 
 To update the executable, change `nix-homebrew.inputs.brew-src.url` in `flake.nix`, then run
 `nix flake update nix-homebrew/brew-src`. Review the source hash and revision in `flake.lock`,
-build both hosts, and parse any newly required cask syntax with the built Homebrew before
-activation. Building does not change the active executable or taps; activation requires
-separate approval. A tap-only update cannot fix an older active Homebrew parser.
+build both hosts, and run the runtime regression tests:
+
+```sh
+homebrew_store="$(nix build --no-link --print-out-paths .#homebrew)"
+HOMEBREW_TEST_BREW="$homebrew_store/bin/brew" \
+  python3 -B -m unittest discover -s scripts/updates -p 'test_update_homebrew.py'
+```
+
+The dependency-update job builds this same runtime and passes its exact executable to
+`scripts/updates/update-homebrew.py --brew "$homebrew_store/bin/brew" --body-file <file>`.
+It never refreshes the runner's Homebrew with a floating `brew update`. Before creating
+an update PR, the helper checks the runtime version and parses every declared formula
+and cask against the candidate tap pins, including unchanged definitions. It does not
+parse unrelated upstream packages. Unsupported DSL fails the job and requires a reviewed
+`brew-src` pin update; there is no fallback to a newer runner Homebrew.
+Formula loading passes its tap explicitly, avoiding Homebrew's implicit core-tap
+installation. No writable Homebrew prefix or preinstalled runner/workstation taps
+are required.
+
+Building and summary generation do not change the active executable or taps; activation
+requires separate approval. A tap-only update cannot fix an older active Homebrew parser.
 
 Hermes is managed by its upstream Nix `messaging` package, not Homebrew. See
 [Nix toolchain](nix-toolchain.md#hermes) for its pin, update procedure, and Slack verification.
