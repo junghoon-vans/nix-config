@@ -231,3 +231,39 @@ jobs:
             "chore(deps): update npm MCP server versions" \
             "Automated exact-version npm MCP update from the registry latest tags. Prerelease pins, disabled servers, remote services, and unsupported launch commands remain unchanged. MCP inspection runs on the changed configuration; findings are advisory. Review and activation remain manual." \
             home/.omp/agent/mcp.json
+
+  paseo-plugins:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - name: Create repository-scoped update token
+        id: app-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: ${{ vars.DEPENDENCY_UPDATES_APP_CLIENT_ID }}
+          private-key: ${{ secrets.DEPENDENCY_UPDATES_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token }}
+      - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
+      - name: Test Paseo plugin update logic
+        run: python3 -B -m unittest discover -s scripts/updates -p 'test_update_paseo_plugins.py'
+      - name: Resolve Paseo plugin metadata and update pins
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: python3 -B scripts/updates/update-paseo-plugins.py --body-file "$RUNNER_TEMP/paseo-plugins-update.md"
+      - name: Open Paseo plugin update pull request
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+        run: |
+          body="$(cat "$RUNNER_TEMP/paseo-plugins-update.md")"
+          scripts/updates/open-update-pr.sh \
+            automation/update-paseo-plugins \
+            "chore(deps): update Paseo plugins" \
+            "$body" \
+            modules/home-manager.nix
