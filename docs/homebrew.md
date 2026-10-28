@@ -73,8 +73,17 @@ HOMEBREW_NO_AUTO_UPDATE=1 brew upgrade
 
 If activation fails after the lockfile update, the new pins remain in `flake.lock`.
 Resolve the activation error and retry the switch before upgrading packages.
-These commands update formula/cask definitions and packages, not the Homebrew executable;
-the latter is pinned separately by the `nix-homebrew` input.
+These commands update formula/cask definitions and packages, not the Homebrew executable.
+The executable source is the `nix-homebrew/brew-src` input in `flake.lock`, overridden in
+`flake.nix` independently of `nix-homebrew` so new cask DSL syntax can be supported without
+upgrading unrelated dependencies. Both hosts use the locked source's tag for package
+metadata; nix-homebrew still applies its self-update and Nix Ruby patches.
+
+To update the executable, change `nix-homebrew.inputs.brew-src.url` in `flake.nix`, then run
+`nix flake update nix-homebrew/brew-src`. Review the source hash and revision in `flake.lock`,
+build both hosts, and parse any newly required cask syntax with the built Homebrew before
+activation. Building does not change the active executable or taps; activation requires
+separate approval. A tap-only update cannot fix an older active Homebrew parser.
 
 Hermes is managed by its upstream Nix `messaging` package, not Homebrew. See
 [Nix toolchain](nix-toolchain.md#hermes) for its pin, update procedure, and Slack verification.
