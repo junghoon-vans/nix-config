@@ -8,6 +8,11 @@
 
 let
   inherit (workstationUser) username homeDirectory;
+  paseoJiraSource = pkgs.fetchzip {
+    url = "https://github.com/tranhuywin/paseo-jira/archive/2e128a3c6c8c51a3afab338b218632096cd6a2c8.tar.gz";
+    hash = "sha256-mQWA/W9nLKqf3ksLY5R2RWqP1z7CKOW4SOVr1L29EHg=";
+  };
+  paseoConfig = builtins.fromJSON (builtins.readFile ../home/.paseo/config.json);
   ohMyZsh = pkgs.runCommand "oh-my-zsh" { } ''
     cp -a ${inputs.oh-my-zsh}/. "$out"
     chmod -R u+w "$out/custom"
@@ -85,7 +90,19 @@ in
     ".zshrc".source = ../home/.zshrc;
     ".gitconfig".source = ../home/.gitconfig;
     ".gitignore_global".source = ../home/.gitignore_global;
-    ".paseo/config.json".source = ../home/.paseo/config.json;
+    ".paseo/config.json".text = builtins.toJSON (
+      paseoConfig
+      // {
+        pluginsEnabled = true;
+        plugins = (paseoConfig.plugins or { }) // {
+          paseo-jira = {
+            source = "directory";
+            path = "${paseoJiraSource}";
+            enabled = true;
+          };
+        };
+      }
+    );
     ".omp/agent/config.yml".source = ../home/.omp/agent/config.yml;
     ".omp/agent/lsp.yml".source = ../home/.omp/agent/lsp.yml;
     ".omp/agent/RULES.md".source = ../home/.omp/agent/RULES.md;
