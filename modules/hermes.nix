@@ -67,7 +67,12 @@ let
       '';
     };
     platform_toolsets = {
-      slack = [ "delegation" ];
+      slack = [
+        "delegation"
+        "cronjob"
+        "session_search"
+        "memory"
+      ];
       cli = [ "delegation" ];
     };
     platforms.slack = {
