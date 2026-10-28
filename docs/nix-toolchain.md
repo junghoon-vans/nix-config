@@ -59,6 +59,11 @@ The private `.env`, authentication, sessions, and memories remain user-managed.
 Logs also live under this profile. The launchd label follows Hermes's
 official profile convention: `ai.hermes.gateway-omp-worker`.
 
+Only this profile sets the Hermes core provider key
+`providers.omp-acp.stale_timeout_seconds` to `1800` seconds for long-running OMP ACP calls.
+This is a fixed 30-minute stale cap, not an activity-reset timeout. It does not change
+the plugin settings, request timeout, other providers, or the default profile.
+
 Before moving an existing default profile, stop its gateway and use the official full
 backup/import commands. `profile create --clone-all` deliberately excludes session history
 and cron jobs, and profile export excludes credentials, so neither is a full-state migration:
