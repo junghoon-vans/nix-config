@@ -11,6 +11,7 @@ import tempfile
 
 NIX_STORE_ROOT = Path("/nix/store")
 RUNTIME_CONFIG_NAME = "config.yaml"
+OWNED_MCP_SERVER_NAMES = ("notion", "github")
 
 
 def _signature(info):
@@ -102,6 +103,19 @@ def _load_config(content, description):
     return value
 
 
+def _remove_owned_mcp_servers(previous):
+    servers = previous.get("mcp_servers")
+    if not isinstance(servers, dict):
+        return previous
+
+    result = dict(previous)
+    servers = dict(servers)
+    for name in OWNED_MCP_SERVER_NAMES:
+        servers.pop(name, None)
+    result["mcp_servers"] = servers
+    return result
+
+
 def _overlay_config(previous, overrides):
     result = dict(previous) if isinstance(previous, dict) else {}
     for key, value in overrides.items():
@@ -144,7 +158,7 @@ def prepare_runtime_config(home, defaults_path):
         raise RuntimeError("The declared Nix Hermes config defaults are unavailable.")
     defaults = _load_config(defaults_path.read_bytes(), "the declared Nix Hermes config defaults")
     previous = _load_config(previous_content, "the existing Hermes runtime config")
-    result = _overlay_config(previous, defaults)
+    result = _overlay_config(_remove_owned_mcp_servers(previous), defaults)
     content = yaml.safe_dump(result, sort_keys=False, allow_unicode=True).encode("utf-8")
     if previous_content == content and previous_mode == 0o600:
         if _runtime_state(runtime_path) != state:

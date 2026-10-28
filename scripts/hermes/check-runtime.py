@@ -126,6 +126,89 @@ def check_acp_retries(profile, command, configured_args, root):
             thread.join(timeout=5)
 
 
+def check_native_mcp(config):
+    """Offline registration smoke using synthetic discovery, never vendor connections."""
+    from types import SimpleNamespace
+    from unittest.mock import patch
+
+    import model_tools
+    from hermes_cli.tools_config import _get_platform_tools
+    from tools import mcp_tool
+    from tools.mcp_tool_config import _interpolate_env_vars
+    from tools.mcp_tool_registration import _register_server_tools
+    from tools.mcp_tool_scope import _server_key
+
+    servers = config["mcp_servers"]
+    if set(servers) != {"notion", "github"}:
+        raise RuntimeError("Only Notion and GitHub should be declared natively.")
+    notion, github = servers["notion"], servers["github"]
+    if notion["url"] != "https://mcp.notion.com/mcp" or notion["auth"] != "oauth":
+        raise RuntimeError("Notion must use its official OAuth endpoint.")
+    if github["url"] != "https://api.githubcopilot.com/mcp/":
+        raise RuntimeError("GitHub must use its official hosted endpoint.")
+    authorization = github["headers"]["Authorization"]
+    if authorization != "Bearer ${HERMES_GITHUB_TOKEN}":
+        raise RuntimeError("GitHub credentials must remain a runtime placeholder.")
+    with patch("agent.secret_scope.get_secret", return_value="synthetic-mcp-token"):
+        if _interpolate_env_vars(authorization) != "Bearer synthetic-mcp-token":
+            raise RuntimeError("GitHub runtime token expansion failed.")
+    if github["headers"]["X-MCP-Readonly"] != "true":
+        raise RuntimeError("GitHub must request read-only server tools.")
+
+    expected = set()
+    for name, server_config in servers.items():
+        # A new mutating vendor tool must not silently become available.
+        native_names = [*server_config["tools"]["include"], "create_unapproved_content"]
+        server = SimpleNamespace(
+            name=name,
+            tool_timeout=30,
+            session=SimpleNamespace(),
+            initialize_result=SimpleNamespace(
+                capabilities=SimpleNamespace(resources=object(), prompts=object())
+            ),
+            _tools=[
+                SimpleNamespace(
+                    name=tool, description="Synthetic offline discovery fixture",
+                    input_schema={"type": "object", "properties": {}},
+                    annotations={"readOnlyHint": tool != "create_unapproved_content"},
+                )
+                for tool in native_names
+            ],
+        )
+        # Publish only synthetic sessions in this build's isolated profile.
+        mcp_tool._servers[_server_key(name)] = server
+        with patch("tools.mcp_tool_registration._write_schema_cache"):
+            registered = set(_register_server_tools(name, server, server_config))
+        expected_native = {
+            f"mcp__{name}__{tool.replace('-', '_')}"
+            for tool in server_config["tools"]["include"]
+        }
+        utilities = {f"mcp__{name}__list_resources", f"mcp__{name}__read_resource"} if name == "notion" else set()
+        if registered != expected_native | utilities:
+            raise RuntimeError(f"{name}: native allowlist or utility policy was not enforced.")
+        expected |= registered
+
+    for platform in ("cli", "slack"):
+        # Local MCPs remain user-managed but must not leak into these platform allowlists.
+        selection_config = {
+            **config,
+            "mcp_servers": {**servers, "user-local": {"command": "not-invoked"}},
+        }
+        selected = _get_platform_tools(selection_config, platform)
+        if not {"delegation", "notion", "github"} <= selected or "user-local" in selected:
+            raise RuntimeError(f"{platform}: incorrect delegation/native MCP selection.")
+        definitions = model_tools.get_tool_definitions(
+            enabled_toolsets=sorted(selected), quiet_mode=True, skip_tool_search_assembly=True,
+        )
+        exposed = {tool["function"]["name"] for tool in definitions}
+        if not expected | {"delegate_task"} <= exposed:
+            raise RuntimeError(f"{platform}: declared MCP tools or delegation are missing.")
+        if any("create_unapproved_content" in tool for tool in exposed):
+            raise RuntimeError(f"{platform}: an unapproved write tool escaped filtering.")
+    print("Offline synthetic MCP discovery: CLI/Slack allowlists, Notion resources, "
+          "GitHub placeholder expansion and write-tool exclusion verified; no vendor connection.")
+
+
 def main():
     defaults_path, provider_source, delegation_source, expected_version, expected_command = sys.argv[1:]
     with tempfile.TemporaryDirectory(prefix="hermes-runtime-check-") as directory:
@@ -168,6 +251,7 @@ def main():
             backend, error = backend_status("model_map")
             if error or backend is None:
                 raise RuntimeError(f"model_map is unavailable: {error}")
+            check_native_mcp(config)
             definitions = model_tools.get_tool_definitions(
                 enabled_toolsets=sorted(_get_platform_tools(config, "slack")),
                 quiet_mode=True,
