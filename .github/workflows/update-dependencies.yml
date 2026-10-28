@@ -30,6 +30,10 @@ jobs:
           fetch-depth: 0
           token: ${{ steps.app-token.outputs.token }}
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
+      - name: Update CI Homebrew for current tap syntax
+        env:
+          HOMEBREW_UPDATE_TO_TAG: "1"
+        run: brew update
       - name: Test Homebrew package summaries
         run: python3 -B -m unittest discover -s scripts/updates -p 'test_update_homebrew.py'
       - name: Update Homebrew tap pins and summarize packages
