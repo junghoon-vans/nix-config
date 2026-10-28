@@ -3,16 +3,16 @@
     "source": "github",
     "repository": "tranhuywin/paseo-jira",
     "directory": "",
-    "revision": "2e128a3c6c8c51a3afab338b218632096cd6a2c8",
-    "hash": "sha256-mQWA/W9nLKqf3ksLY5R2RWqP1z7CKOW4SOVr1L29EHg=",
+    "revision": "9af1c40c8265f71b69660ea7bc9f34d07ef737ff",
+    "hash": "sha256-j+CYfHnpS9uwhFAZycdA+e2erYPF7fXq2xK2/iwEQK8=",
     "enabled": true
   },
   "host-monitor": {
     "source": "github",
     "repository": "a31521424/paseo-kit",
     "directory": "plugins/host-monitor",
-    "revision": "14e6ac03d78c7430c054894557062426acd3f2e9",
-    "hash": "sha256-qQP1mRMARM5066+V73Q+2EJzEusJBmfqzZATjkfofZ0=",
+    "revision": "7186643fa50abbc3d0bf987bba63c1db3dcd6be7",
+    "hash": "sha256-NGBZ1zYvrgABMfU016JIp3J+wLUVsGHpie+wj6kzpS0=",
     "enabled": true
   },
   "keep-awake": {
