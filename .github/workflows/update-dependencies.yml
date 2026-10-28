@@ -266,4 +266,4 @@ jobs:
             automation/update-paseo-plugins \
             "chore(deps): update Paseo plugins" \
             "$body" \
-            modules/home-manager.nix
+            modules/paseo-plugins.json

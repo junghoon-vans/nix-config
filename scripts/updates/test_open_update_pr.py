@@ -7,7 +7,7 @@ import unittest
 
 HELPER = Path(__file__).resolve().with_name("open-update-pr.sh")
 BRANCH = "automation/update-paseo-plugins"
-TARGET = "modules/home-manager.nix"
+TARGET = "modules/paseo-plugins.json"
 MOCK_GH = """#!/bin/sh
 set -eu
 printf '%s\\n' "$*" >> "$GH_TEST_LOG"

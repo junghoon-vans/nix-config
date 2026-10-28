@@ -13,11 +13,6 @@ import subprocess
 from pathlib import Path
 from urllib.parse import quote
 
-SPECS = (
-    ("paseo-jira", "paseoJiraSource", "tranhuywin/paseo-jira", ""),
-    ("host-monitor", "paseoHostMonitorSource", "a31521424/paseo-kit", "plugins/host-monitor"),
-    ("keep-awake", "paseoKeepAwakeSource", "hichamboushaba/paseo-plugins", "keep-awake"),
-)
 SHA = r"[0-9a-f]{40}"
 HASH = r"sha256-[A-Za-z0-9+/]{43}="
 VERSION = re.compile(r"(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-([0-9A-Za-z.-]+))?")
@@ -98,22 +93,54 @@ def source_file(source, relative):
     return path
 
 
+def declarations(text):
+    def unique_object(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError(f"duplicate declaration key: {key}")
+            result[key] = value
+        return result
+
+    plugins = json.loads(text, object_pairs_hook=unique_object)
+    if not isinstance(plugins, dict):
+        raise ValueError("plugin declarations must be an object")
+    fields = {"source", "repository", "directory", "revision", "hash", "enabled"}
+    for plugin_id, plugin in plugins.items():
+        if not re.fullmatch(r"[a-z0-9][a-z0-9._-]*", plugin_id):
+            raise ValueError(f"invalid plugin id: {plugin_id}")
+        if not isinstance(plugin, dict) or set(plugin) != fields:
+            raise ValueError(f"{plugin_id}: unsupported declaration fields")
+        if plugin["source"] != "github":
+            raise ValueError(f"{plugin_id}: unsupported source: {plugin['source']}")
+        for field, pattern in (
+            ("repository", r"[A-Za-z0-9_-]+/[A-Za-z0-9_][A-Za-z0-9._-]*"),
+            ("revision", SHA),
+            ("hash", HASH),
+        ):
+            if not isinstance(plugin[field], str) or not re.fullmatch(pattern, plugin[field]):
+                raise ValueError(f"{plugin_id}: invalid {field}")
+        directory = plugin["directory"]
+        if not isinstance(directory, str) or (
+            directory and any(not re.fullmatch(r"[A-Za-z0-9_-][A-Za-z0-9._-]*", part)
+                              for part in directory.split("/"))
+        ):
+            raise ValueError(f"{plugin_id}: invalid directory")
+        if not isinstance(plugin["enabled"], bool):
+            raise ValueError(f"{plugin_id}: invalid enabled")
+    return plugins
+
+
 def update(root, dry_run=False, body_file=None, api=github, fetch=prefetch):
-    module = root / "modules/home-manager.nix"
-    original = module.read_text()
-    updated = original
+    declaration_file = root / "modules/paseo-plugins.json"
+    original = declaration_file.read_text()
+    plugins = declarations(original)
     paseo_version = json.loads((root / "release-pins.json").read_text())["paseo"]["version"]
     rows = []
-    for plugin_id, symbol, repository, directory in SPECS:
-        pattern = re.compile(
-            rf'({symbol} = pkgs\.fetchzip \{{\s+url = "https://github\.com/{re.escape(repository)}/archive/)'
-            rf'({SHA})(\.tar\.gz";\s+hash = ")({HASH})(";\s+\}};)'
-        )
-        matches = list(pattern.finditer(updated))
-        if len(matches) != 1:
-            raise ValueError(f"{plugin_id}: expected exactly one immutable source declaration")
-        match = matches[0]
-        current, old_hash = match[2], match[4]
+    changed = False
+    for plugin_id, plugin in plugins.items():
+        repository, directory = plugin["repository"], plugin["directory"]
+        current, old_hash = plugin["revision"], plugin["hash"]
         revision, policy = candidate(repository, current, api)
         url = f"https://github.com/{repository}/archive/{revision}.tar.gz"
         artifact_hash, source = fetch(url)
@@ -124,10 +151,10 @@ def update(root, dry_run=False, body_file=None, api=github, fetch=prefetch):
         requirement = compatible(manifest, plugin_id, paseo_version)
         for entry in ("index.server.ts", "index.client.tsx"):
             source_file(source, str(Path(directory) / entry))
-        replacement = match[1] + revision + match[3] + artifact_hash + match[5]
-        updated = updated[:match.start()] + replacement + updated[match.end():]
+        if revision != current:
+            plugin.update(revision=revision, hash=artifact_hash)
+            changed = True
         rows.append(f"- {plugin_id}: `{current}` → `{revision}`; {policy}; Paseo `{requirement}`; `{artifact_hash}`")
-    changed = updated != original
     body = "\n".join([
         "## Paseo plugin source updates", "",
         "Policy: latest stable GitHub release; default-branch HEAD only when no stable releases exist.",
@@ -138,7 +165,7 @@ def update(root, dry_run=False, body_file=None, api=github, fetch=prefetch):
     ])
     # Validate every candidate before modifying any tracked file.
     if changed and not dry_run:
-        module.write_text(updated)
+        declaration_file.write_text(json.dumps(plugins, indent=2) + "\n")
     if body_file is not None:
         body_file.write_text(body)
     print(body, end="")
