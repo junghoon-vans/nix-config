@@ -155,11 +155,7 @@ in
     enable = lib.mkEnableOption "the local Slack to OMP ACP gateway";
     package = lib.mkOption {
       type = lib.types.package;
-      default = pkgs.callPackage ../packages/hermes-acp-sdk.nix {
-        package = hermesPackages.messaging;
-        upstreamCallPackage =
-          inputs.hermes-agent.inputs.nixpkgs.legacyPackages.${pkgs.stdenv.hostPlatform.system}.callPackage;
-        patch = ../packages/hermes-acp-sdk-0.10.1.patch;
+      default = hermesPackages.messaging.override {
         inherit pmPackages;
         version = lib.removePrefix "v" (builtins.fromJSON (builtins.readFile ../flake.lock))
         .nodes.hermes-agent.original.ref;
@@ -168,7 +164,7 @@ in
           "acp"
         ];
       };
-      description = "Upstream Hermes messaging package with the provider-compatible ACP SDK.";
+      description = "Upstream Hermes messaging package with its official ACP dependency group.";
     };
     model = lib.mkOption {
       type = lib.types.str;
