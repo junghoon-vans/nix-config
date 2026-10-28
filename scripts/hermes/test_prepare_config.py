@@ -131,6 +131,94 @@ class HermesRuntimeConfig(unittest.TestCase):
             "command_allowlist": [],
         })
 
+    def test_undeclared_owned_mcp_servers_are_removed_and_local_state_is_preserved(self):
+        local_servers = {
+            "local": {
+                "command": "local-mcp",
+                "env": {"TOKEN": "synthetic-local-secret"},
+            },
+        }
+        local_profile = {
+            "model": "local-profile-model",
+            "api_key": "synthetic-profile-secret",
+        }
+        self.runtime.write_text(yaml.safe_dump({
+            "mcp_servers": {
+                **local_servers,
+                "notion": {"command": "old-notion", "headers": {"Authorization": "old"}},
+                "github": {"command": "old-github", "filter": {"repos": ["old/repo"]}},
+            },
+            "profiles": {"work": local_profile},
+            "api_key": "synthetic-local-secret",
+            "command_allowlist": ["git status"],
+        }))
+        self.runtime.chmod(0o600)
+
+        self.check()
+
+        self.assertEqual(yaml.safe_load(self.runtime.read_text()), {
+            **self.defaults,
+            "mcp_servers": local_servers,
+            "profiles": {"work": local_profile},
+            "api_key": "synthetic-local-secret",
+            "command_allowlist": ["git status"],
+        })
+
+    def test_declared_owned_mcp_servers_replace_whole_entries_idempotently(self):
+        local_server = {
+            "command": "local-mcp",
+            "env": {"TOKEN": "synthetic-local-secret"},
+        }
+        declared_servers = {
+            "notion": {
+                "url": "https://notion.example/mcp",
+                "headers": {"Authorization": "new-notion-secret"},
+            },
+            "github": {
+                "url": "https://github.example/mcp",
+                "filters": {"repos": ["new/repo"]},
+            },
+        }
+        self.runtime.write_text(yaml.safe_dump({
+            "mcp_servers": {
+                "local": local_server,
+                "notion": {
+                    "command": "old-notion",
+                    "args": ["--stale"],
+                    "headers": {"Authorization": "old-notion-secret"},
+                    "filters": {"repos": ["old/repo"]},
+                },
+                "github": {
+                    "command": "old-github",
+                    "headers": {"Authorization": "old-github-secret"},
+                    "filter": {"repos": ["old/repo"]},
+                },
+            },
+            "profiles": {"work": {"model": "local-profile-model"}},
+        }))
+        self.runtime.chmod(0o600)
+        self.write_defaults(self.defaults_path, {
+            **self.defaults,
+            "mcp_servers": declared_servers,
+        })
+
+        self.check()
+        first_stat = self.runtime.stat()
+        expected = {
+            **self.defaults,
+            "mcp_servers": {"local": local_server, **declared_servers},
+            "profiles": {"work": {"model": "local-profile-model"}},
+        }
+        first_content = self.runtime.read_bytes()
+        self.assertEqual(yaml.safe_load(first_content), expected)
+
+        self.check()
+
+        repeated_stat = self.runtime.stat()
+        self.assertEqual(self.runtime.read_bytes(), first_content)
+        self.assertEqual(repeated_stat.st_ino, first_stat.st_ino)
+        self.assertEqual(repeated_stat.st_mtime_ns, first_stat.st_mtime_ns)
+
     def test_legacy_nix_store_symlink_is_replaced_without_touching_target(self):
         legacy_path = self.store / "previous-config.yaml"
         legacy_content = b"model:\n  provider: old\ncommand_allowlist:\n  - old command\n"

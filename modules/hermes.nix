@@ -50,7 +50,9 @@ let
         You coordinate workers through delegate_task. Use fast for quick answers
         and summaries of supplied context, and deep for careful reasoning,
         planning and review of supplied context. These routes call OpenAI directly.
-        Use coder for all repository inspection, implementation and verification:
+        Use native Notion tools to read documents and native GitHub tools to inspect
+        PRs and CI. These integrations are read-only; use coder for repository
+        inspection, implementation, verification and approved remote mutations:
         it runs OMP through ACP, and OMP owns repository tools.
         Include complete requirements and relevant previous results in every task.
         For coder tasks, include the absolute repository path and only use repositories under:
@@ -66,8 +68,16 @@ let
       '';
     };
     platform_toolsets = {
-      slack = [ "delegation" ];
-      cli = [ "delegation" ];
+      slack = [
+        "delegation"
+        "notion"
+        "github"
+      ];
+      cli = [
+        "delegation"
+        "notion"
+        "github"
+      ];
     };
     platforms.slack = {
       enabled = true;
@@ -140,7 +150,49 @@ let
     };
     unauthorized_dm_behavior = "ignore";
     kanban.dispatch_in_gateway = false;
-    mcp_servers = { };
+    mcp_servers = {
+      notion = {
+        url = "https://mcp.notion.com/mcp";
+        auth = "oauth";
+        tools = {
+          include = [
+            "notion-search"
+            "notion-fetch"
+            "notion-get-self"
+            "notion-get-tool-access"
+            "notion-query-data-sources"
+            "notion-get-comments"
+          ];
+          # Keep vendor instructions available as MCP resources during bootstrap.
+          resources = true;
+          prompts = false;
+        };
+      };
+      github = {
+        url = "https://api.githubcopilot.com/mcp/";
+        # Unified Actions tools require the modern protocol, not legacy initialize.
+        protocol = "stateless";
+        headers = {
+          Authorization = "Bearer \${HERMES_GITHUB_TOKEN}";
+          "X-MCP-Readonly" = "true";
+          "X-MCP-Toolsets" = "context,repos,pull_requests,actions";
+        };
+        tools = {
+          include = [
+            "get_me"
+            "search_repositories"
+            "list_pull_requests"
+            "search_pull_requests"
+            "pull_request_read"
+            "actions_list"
+            "actions_get"
+            "get_job_logs"
+          ];
+          resources = false;
+          prompts = false;
+        };
+      };
+    };
     display = {
       tool_progress = "all";
       long_running_notifications = true;
