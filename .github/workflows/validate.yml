@@ -143,7 +143,7 @@ jobs:
         run: nix eval .#darwinConfigurations.${{ matrix.host }}.config.system.build.toplevel.drvPath
       - name: Build Darwin configuration
         run: nix build .#darwinConfigurations.${{ matrix.host }}.system
-      - name: Verify routed OMP provider and delegation runtime
+      - name: Run packaged Hermes integration tests (isolated profile, loopback ACP)
         run: nix build .#darwinConfigurations.${{ matrix.host }}.config.system.build.hermesRuntimeCheck --no-link
 
   validate:

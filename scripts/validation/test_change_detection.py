@@ -13,7 +13,13 @@ DETECTOR = REPOSITORY / ".github/scripts/detect-nix-config-changes"
 
 class ConfigurationChangeDetection(unittest.TestCase):
     def test_release_pin_only_update_requires_full_configuration_checks(self):
-        with tempfile.TemporaryDirectory(prefix="release-pin-ci-") as directory:
+        self.check_changed_path("release-pins.json")
+
+    def test_packaged_integration_only_update_requires_full_configuration_checks(self):
+        self.check_changed_path("tests/hermes/test_packaged_runtime.py")
+
+    def check_changed_path(self, changed_path):
+        with tempfile.TemporaryDirectory(prefix="configuration-ci-") as directory:
             root = Path(directory)
             environment = {key: value for key, value in os.environ.items() if not key.startswith("GIT_")}
             environment.update({
@@ -43,10 +49,15 @@ class ConfigurationChangeDetection(unittest.TestCase):
             git("add", ".")
             git("commit", "-qm", "Initial release pins")
             base = git("rev-parse", "HEAD")
-            pins["apm"]["version"] = "0.0.0-ci-regression"
-            pin_path.write_text(json.dumps(pins))
-            git("add", "release-pins.json")
-            git("commit", "-qm", "Update only the APM release pin")
+            if changed_path == "release-pins.json":
+                pins["apm"]["version"] = "0.0.0-ci-regression"
+                pin_path.write_text(json.dumps(pins))
+            else:
+                integration_test = root / changed_path
+                integration_test.parent.mkdir(parents=True)
+                integration_test.write_text("# Packaged integration regression\n")
+            git("add", changed_path)
+            git("commit", "-qm", "Update only the tested configuration path")
             head = git("rev-parse", "HEAD")
 
             subprocess.run(

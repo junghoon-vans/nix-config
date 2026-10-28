@@ -26,6 +26,7 @@ if git diff --quiet "$base_sha" "$head_sha" -- \
   packages \
   home \
   scripts \
+  tests \
   ':(exclude)scripts/validation'; then
   printf 'configuration_changed=false\n' >> "$GITHUB_OUTPUT"
 else
