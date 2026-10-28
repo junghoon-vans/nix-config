@@ -202,7 +202,7 @@ in
             PYTHONDONTWRITEBYTECODE = "1";
           }
           ''
-            ${cfg.package.hermesVenv}/bin/python3 ${../scripts/hermes/check-runtime.py} \
+            ${cfg.package.hermesVenv}/bin/python3 ${../tests/hermes/test_packaged_runtime.py} \
               ${hermesConfig} ${providerSource} ${delegationSource} ${lib.escapeShellArg cfg.package.version} \
               ${lib.getExe config.workstation.omp.package}
             touch "$out"
