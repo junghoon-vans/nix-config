@@ -12,6 +12,14 @@ let
     url = "https://github.com/tranhuywin/paseo-jira/archive/2e128a3c6c8c51a3afab338b218632096cd6a2c8.tar.gz";
     hash = "sha256-mQWA/W9nLKqf3ksLY5R2RWqP1z7CKOW4SOVr1L29EHg=";
   };
+  paseoHostMonitorSource = pkgs.fetchzip {
+    url = "https://github.com/a31521424/paseo-kit/archive/14e6ac03d78c7430c054894557062426acd3f2e9.tar.gz";
+    hash = "sha256-qQP1mRMARM5066+V73Q+2EJzEusJBmfqzZATjkfofZ0=";
+  };
+  paseoKeepAwakeSource = pkgs.fetchzip {
+    url = "https://github.com/hichamboushaba/paseo-plugins/archive/485e9f466a1f26c888986edd6e6a83a90d08e34f.tar.gz";
+    hash = "sha256-Sa8X6M69B/6DksU+7yIX8pDfr9X75bjLImrVQRkJekE=";
+  };
   paseoConfig = builtins.fromJSON (builtins.readFile ../home/.paseo/config.json);
   ohMyZsh = pkgs.runCommand "oh-my-zsh" { } ''
     cp -a ${inputs.oh-my-zsh}/. "$out"
@@ -95,6 +103,16 @@ in
       // {
         pluginsEnabled = true;
         plugins = (paseoConfig.plugins or { }) // {
+          host-monitor = {
+            source = "directory";
+            path = "${paseoHostMonitorSource}/plugins/host-monitor";
+            enabled = true;
+          };
+          keep-awake = {
+            source = "directory";
+            path = "${paseoKeepAwakeSource}/keep-awake";
+            enabled = true;
+          };
           paseo-jira = {
             source = "directory";
             path = "${paseoJiraSource}";
