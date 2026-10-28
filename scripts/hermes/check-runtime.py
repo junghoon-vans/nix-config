@@ -148,6 +148,14 @@ def main():
         config = YAML(typ="safe").load(Path(defaults_path).read_text())
         (home / "config.yaml").write_text(json.dumps(config))
         (home / "config.yaml").chmod(0o600)
+        from hermes_cli.timeouts import get_provider_request_timeout, get_provider_stale_timeout
+
+        if get_provider_stale_timeout("omp-acp", "openai-codex/gpt-6.1-sol") != 1800:
+            raise RuntimeError("OMP ACP must have a 30-minute stale cap.")
+        if get_provider_request_timeout("omp-acp") is not None:
+            raise RuntimeError("OMP ACP must retain its default request timeout.")
+        if get_provider_stale_timeout("openai-codex") is not None:
+            raise RuntimeError("The OMP stale cap must not override OpenAI timeouts.")
         (home / "plugins").mkdir()
         for name, source in (
             ("omp-acp-provider", provider_source),

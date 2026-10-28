@@ -44,6 +44,7 @@ let
       provider = "openai-codex";
       default = cfg.model;
     };
+    providers."omp-acp".stale_timeout_seconds = 1800;
     agent = {
       max_turns = 30;
       system_prompt = ''
