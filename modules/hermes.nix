@@ -79,6 +79,7 @@ let
       enabled = true;
       reply_to_mode = "first";
       extra = {
+        rich_blocks = true;
         reply_in_thread = true;
         reply_broadcast = false;
         require_mention = true;
