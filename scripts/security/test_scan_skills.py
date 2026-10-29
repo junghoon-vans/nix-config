@@ -433,5 +433,51 @@ class ScanReportValidationTests(unittest.TestCase):
                 self.assertEqual(scan_skills._report_details(report, 0)["scan_status"], "error")
 
 
+class SkillStagingTests(unittest.TestCase):
+    def test_self_contained_reference_survives_without_source_checkout(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "checkout"
+            skill = source / "plugins/worktrunk/skills/worktrunk"
+            reference = skill / "reference/README.md"
+            reference.parent.mkdir(parents=True)
+            (skill / "SKILL.md").write_text("Read reference/README.md\n")
+            reference.write_text("# Worktrunk reference\n")
+            staged = scan_skills._stage_target(source, skill, root / "staged")
+            reference.unlink()
+            self.assertEqual((staged / "SKILL.md").read_text(), "Read reference/README.md\n")
+            self.assertEqual((staged / "reference/README.md").read_text(), "# Worktrunk reference\n")
+            self.assertFalse((staged / "reference/README.md").is_symlink())
+
+    def test_reference_symlinks_cannot_escape_staged_skill(self):
+        cases = (
+            ("../../../README.md", False),
+            ("../../../README.md", True),
+            ("../../../../outside.md", False),
+            ("../../../.git/config", False),
+            ("README.md", False),
+            ("/etc/passwd", False),
+        )
+        for link, root_readme in cases:
+            with self.subTest(link=link, root_readme=root_readme):
+                with tempfile.TemporaryDirectory() as directory:
+                    root = Path(directory)
+                    source = root / "checkout"
+                    skill = source / "skills/worktrunk"
+                    reference = skill / "reference/README.md"
+                    reference.parent.mkdir(parents=True)
+                    (skill / "SKILL.md").write_text("Read reference/README.md\n")
+                    (root / "outside.md").write_text("Not part of the repository\n")
+                    (source / ".git").mkdir()
+                    (source / ".git/config").write_text("Not skill content\n")
+                    if root_readme:
+                        (source / "README.md").write_text("Repository documentation\n")
+                    reference.symlink_to(link)
+                    destination = root / "staged"
+                    with self.assertRaises(scan_skills.ScanError):
+                        scan_skills._stage_target(source, skill, destination)
+                    self.assertFalse(destination.exists())
+
+
 if __name__ == "__main__":
     unittest.main()
