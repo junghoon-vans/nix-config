@@ -1,4 +1,12 @@
 {
+  "paseo-bots": {
+    "source": "github",
+    "repository": "oliexe/paseo-bots",
+    "directory": "",
+    "revision": "39a700006c204aef25de4e0db11419b6f75ac814",
+    "hash": "sha256-bVKoX3NcKCSpq2MHRdGWG3aaWVGnTKVPitSDNLOwyYg=",
+    "enabled": true
+  },
   "paseo-jira": {
     "source": "github",
     "repository": "tranhuywin/paseo-jira",
