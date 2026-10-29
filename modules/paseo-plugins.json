@@ -27,16 +27,16 @@
     "source": "github",
     "repository": "ZedObaia/paseo-plugins",
     "directory": "plugins/resources",
-    "revision": "e3ecb0bb31f83517aa86d3ee89b9223e2b2c34f1",
-    "hash": "sha256-CgJc9heno45xDRzSmi7sJmx01lzvNvguhP24TQYJQns=",
+    "revision": "fb4ffb82afb368a38e55bd0773a6007e7bf0c1a9",
+    "hash": "sha256-f8wRWP4XJ4WfOvDqSSTQBmgKayPtcTXgiiaa3u7TmFU=",
     "enabled": true
   },
   "keep-awake": {
     "source": "github",
     "repository": "hichamboushaba/paseo-plugins",
     "directory": "keep-awake",
-    "revision": "485e9f466a1f26c888986edd6e6a83a90d08e34f",
-    "hash": "sha256-Sa8X6M69B/6DksU+7yIX8pDfr9X75bjLImrVQRkJekE=",
+    "revision": "937f11a900da8c233461c8ec8c6bf1bc348d6861",
+    "hash": "sha256-Ke/1Up5owoVagVMVYWh/+m3eqcBZD+ri4298zettU6A=",
     "enabled": true
   }
 }
