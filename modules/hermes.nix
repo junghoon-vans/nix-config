@@ -215,6 +215,10 @@ in
       home = {
         file = {
           "${profilePath}/config.nix.yaml".source = hermesConfig;
+          # Partial overlay for the profile's default English UI; keep the scheduler's name intact.
+          "${profilePath}/locales/en.yaml".source = yaml.generate "hermes-slack-locale.yaml" {
+            platform.slack.handoff.seed = "*{name}*";
+          };
           "${profilePath}/plugins/omp-acp-provider".source = providerSource;
           "${profilePath}/plugins/advanced-delegation".source = delegationSource;
         };
