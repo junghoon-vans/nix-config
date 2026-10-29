@@ -85,7 +85,7 @@ dependencies:
       ref: 49dd158d1076134a641b33efb035946536778336
     - git: https://github.com/mattpocock/skills.git
       path: skills/engineering/diagnosing-bugs
-      ref: v1.3.1
+      ref: v1.3.2
     - git: https://github.com/mattpocock/skills.git
       path: skills/engineering/tdd
       ref: 49dd158d1076134a641b33efb035946536778336
