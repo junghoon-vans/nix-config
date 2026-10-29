@@ -1,19 +1,26 @@
 import importlib.util
+import json
+import os
 from pathlib import Path
 import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 
 spec = importlib.util.spec_from_file_location("update_homebrew", Path(__file__).with_name("update-homebrew.py"))
 updater = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(updater)
 
+LOCK = json.loads((Path(__file__).resolve().parents[2] / "flake.lock").read_text())
 
-def lock(rev):
+
+def lock(rev, brew_version=LOCK["nodes"]["brew-src"]["original"]["ref"]):
     return {"nodes": {
-        tap: {"locked": {"owner": "homebrew", "repo": tap, "rev": rev}}
-        for tap in updater.TAPS
+        "brew-src": {"original": {"ref": brew_version}},
+        **{
+            tap: {"locked": {"owner": "homebrew", "repo": tap, "rev": rev}}
+            for tap in updater.TAPS
+        },
     }}
 
 
@@ -52,6 +59,19 @@ class HomebrewSummaryTests(unittest.TestCase):
         self.addCleanup(temporary.cleanup)
         self.old = Path(temporary.name) / "old"
         self.new = Path(temporary.name) / "new"
+        home = Path(temporary.name) / "home"
+        cache = Path(temporary.name) / "cache"
+        home.mkdir()
+        cache.mkdir()
+        homebrew_env = patch.dict(os.environ, {
+            "HOME": str(home),
+            "HOMEBREW_CACHE": str(cache),
+            "HOMEBREW_NO_AUTO_UPDATE": "1",
+            "HOMEBREW_NO_INSTALL_FROM_API": "1",
+        })
+        homebrew_env.start()
+        self.addCleanup(homebrew_env.stop)
+        self.brew = os.environ.get("HOMEBREW_TEST_BREW", "brew")
         for root in (self.old, self.new):
             for tap, subdir in updater.TAPS.items():
                 (root / tap / subdir / "e").mkdir(parents=True)
@@ -60,21 +80,33 @@ class HomebrewSummaryTests(unittest.TestCase):
     def definition(self, root, tap, text, name="example"):
         (root / tap / updater.TAPS[tap] / "e" / f"{name}.rb").write_text(text)
 
-    def summary(self):
-        with patch.object(updater, "prefetch", side_effect=lambda node: (self.old if node["rev"] == "old" else self.new) / node["repo"]):
-            return updater.summarize(lock("old"), lock("new"), self.declared)
+    def summary(self, before="old", after="new"):
+        with patch.object(
+            updater,
+            "prefetch",
+            side_effect=lambda node: (self.old if node["rev"] == "old" else self.new) / node["repo"],
+        ):
+            return updater.summarize(lock(before), lock(after), self.declared, self.brew)
 
     def test_declared_versions_use_formula_url_revision_and_apple_silicon_cask(self):
         self.definition(self.old, "homebrew-core", formula("1.2.0", 1))
         self.definition(self.new, "homebrew-core", formula("1.3.0", 2))
         self.definition(self.old, "homebrew-cask", cask("2.0.0"))
         self.definition(self.new, "homebrew-cask", cask("2.1.0"))
-        self.definition(self.new, "homebrew-core", "invalid Ruby", "unrelated")
         body = self.summary()
         self.assertIn("| `example` | `1.2.0_1` | `1.3.0_2` | Version / revision |", body)
         self.assertIn("| `example` | `2.0.0` | `2.1.0` | Version / revision |", body)
-        self.assertNotIn("unrelated", body)
         self.assertNotIn("9.9.9", body)
+
+    def test_cask_zap_not_required_parses_with_selected_runtime(self):
+        self.declared = {tap: [] for tap in updater.TAPS}
+        self.declared["homebrew-cask"] = ["example"]
+        candidate = cask("2.1.0").replace(
+            '  app "Example.app"\n',
+            '  app "Example.app"\n  zap :not_required\n',
+        )
+        self.definition(self.new, "homebrew-cask", candidate)
+        self.assertIn("| `example` | — | `2.1.0` | Added |", self.summary())
 
     def test_revision_only_and_definition_only_changes_are_distinguished(self):
         for tap in updater.TAPS:
@@ -96,10 +128,47 @@ class HomebrewSummaryTests(unittest.TestCase):
         (self.new / "homebrew-core/Formula/e/example.rb").unlink()
         self.assertIn("| `example` | `1.0` | — | Removed |", self.summary())
 
-    def test_unchanged_taps_do_not_fetch(self):
-        with patch.object(updater, "prefetch", side_effect=AssertionError("unchanged tap fetched")):
-            body = updater.summarize(lock("same"), lock("same"), self.declared)
-        self.assertNotIn("| `example`", body)
+    def test_unchanged_incompatible_declared_definition_is_rejected(self):
+        self.declared = {tap: [] for tap in updater.TAPS}
+        self.declared["homebrew-core"] = ["example"]
+        incompatible = formula("1.0").replace(
+            "  revision 0\n",
+            "  revision 0\n  future_homebrew_dsl :unsupported\n",
+        )
+        self.definition(self.old, "homebrew-core", incompatible)
+        self.definition(self.new, "homebrew-core", incompatible)
+        for before, after in (("old", "new"), ("same", "same")):
+            with self.subTest(before=before, after=after):
+                with self.assertRaisesRegex(RuntimeError, "update the brew-src pin"):
+                    self.summary(before, after)
+
+    def test_unrelated_incompatible_definition_is_ignored(self):
+        self.declared = {tap: [] for tap in updater.TAPS}
+        self.declared["homebrew-core"] = ["example"]
+        self.definition(self.old, "homebrew-core", formula("1.0"))
+        self.definition(self.new, "homebrew-core", formula("1.0"))
+        self.definition(
+            self.new,
+            "homebrew-core",
+            "class Unrelated < Formula\n  future_homebrew_dsl :unsupported\nend\n",
+            "unrelated",
+        )
+        self.assertIn("No declared package changes.", self.summary())
+
+    def test_built_runtime_reports_locked_release_exactly(self):
+        self.assertEqual(
+            updater.verify_brew_version(self.brew, LOCK),
+            LOCK["nodes"]["brew-src"]["original"]["ref"],
+        )
+
+    def test_runtime_version_must_match_brew_src_pin_exactly(self):
+        with patch.object(
+            updater.subprocess,
+            "run",
+            return_value=Mock(stdout="Homebrew 0.0.0\n"),
+        ):
+            with self.assertRaisesRegex(RuntimeError, "brew-src pin"):
+                updater.verify_brew_version(self.brew, lock("old"))
 
     def test_declaration_missing_from_both_pins_is_not_reported_as_added(self):
         self.declared["homebrew-cask"] = []

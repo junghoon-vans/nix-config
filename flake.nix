@@ -8,6 +8,7 @@
     home-manager.url = "github:nix-community/home-manager/master";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     nix-homebrew.url = "github:zhaofengli/nix-homebrew";
+    nix-homebrew.inputs.brew-src.url = "github:Homebrew/brew/7.0.11";
     hermes-agent.url = "github:NousResearch/hermes-agent/v0.22.5";
     hermes-omp-acp = {
       url = "github:junghoon-vans/hermes-omp-acp/v0.2.3";
@@ -78,9 +79,21 @@
     let
       system = "aarch64-darwin";
       pkgs = nixpkgs.legacyPackages.${system};
+      brewVersion = (builtins.fromJSON (builtins.readFile ./flake.lock)).nodes.brew-src.original.ref;
+      homebrewPackage = pkgs.callPackage ./packages/homebrew.nix {
+        source = inputs.nix-homebrew.inputs.brew-src;
+        version = brewVersion;
+      };
+      homebrewSource = {
+        nix-homebrew.package = homebrewPackage;
+        nix-homebrew.patchBrew = false;
+      };
     in
     {
-      packages.${system}.apm = pkgs.callPackage ./packages/apm.nix { };
+      packages.${system} = {
+        homebrew = homebrewPackage;
+        apm = pkgs.callPackage ./packages/apm.nix { };
+      };
       formatter.${system} = pkgs.writeShellApplication {
         name = "nixfmt-all";
         runtimeInputs = [
@@ -113,6 +126,7 @@
           specialArgs = { inherit inputs; };
           modules = [
             nix-homebrew.darwinModules.nix-homebrew
+            homebrewSource
             home-manager.darwinModules.home-manager
             ./hosts/junghoonui-MacBookAir
           ];
@@ -122,6 +136,7 @@
           specialArgs = { inherit inputs; };
           modules = [
             nix-homebrew.darwinModules.nix-homebrew
+            homebrewSource
             home-manager.darwinModules.home-manager
             ./hosts/junghoonui-MacBookPro
           ];
