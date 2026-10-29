@@ -99,16 +99,16 @@
     "hermes-omp-acp": {
       "flake": false,
       "locked": {
-        "lastModified": 1793146406,
-        "narHash": "sha256-RnDhtE25BDW0R39JETsStxliEjx7W1yj4bI/nkMGXgk=",
+        "lastModified": 1792909571,
+        "narHash": "sha256-gU8JpMF77NtTlxb7bZE2utPP5QFM5paTDAt2aYflZzE=",
         "owner": "junghoon-vans",
         "repo": "hermes-omp-acp",
-        "rev": "b66c4d5c63964b29f4cb5b5e63169f9c47250666",
+        "rev": "6fa8eedf66f7d17d0657f98b94ca510c795700e6",
         "type": "github"
       },
       "original": {
         "owner": "junghoon-vans",
-        "ref": "v0.2.3",
+        "ref": "v0.1.0",
         "repo": "hermes-omp-acp",
         "type": "github"
       }
@@ -141,11 +141,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1792818371,
-        "narHash": "sha256-yhEZAzZRNvzYpoAlyFY3wM75V9BmkIXJIueof8S5gOg=",
+        "lastModified": 1792896866,
+        "narHash": "sha256-/0tELNnhdSnP+bHSdWiEe6KpfSwi6WrTnT9cm/jNkjA=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "2cd3234928f60bbff695a7ee56115ef7799c47cd",
+        "rev": "c216bf5a1f173b0481bd5c8c489ebe5595ecc68c",
         "type": "github"
       },
       "original": {
@@ -244,11 +244,11 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1792506237,
-        "narHash": "sha256-Q/8KLB6jNfpaUN1HAedE/u/Et9feE/zYSsutBLKrCFk=",
+        "lastModified": 1792812153,
+        "narHash": "sha256-T2+XBfNbf9pecLUWS4+RtuVNZ3W8K5taG5QdV71mWlk=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "5adc50831c259f87faeb09ddf930d43597197473",
+        "rev": "674a2028661e550a97400c1cc992b9cca9a668a1",
         "type": "github"
       },
       "original": {
@@ -282,11 +282,11 @@
     "oh-my-zsh": {
       "flake": false,
       "locked": {
-        "lastModified": 1792578674,
-        "narHash": "sha256-Y6S7urrtsdUN7A7lgWF2FkIWZpA1HNkjf1eWwfkjzUQ=",
+        "lastModified": 1792939171,
+        "narHash": "sha256-tXXRwqOCMLaInnDRBSM3ML+RN2QDpKZtoPxJNwWZ3qQ=",
         "owner": "ohmyzsh",
         "repo": "ohmyzsh",
-        "rev": "2100c630ba4bd67bb48802c3e7da893a4fdaa1a0",
+        "rev": "d2b7f557cceaddb16ba89bbf8200d8a8df35c4d8",
         "type": "github"
       },
       "original": {
