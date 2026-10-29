@@ -146,6 +146,7 @@ let
     };
     unauthorized_dm_behavior = "ignore";
     kanban.dispatch_in_gateway = false;
+    cron.wrap_response = false;
     mcp_servers = { };
     display = {
       tool_progress = "all";
