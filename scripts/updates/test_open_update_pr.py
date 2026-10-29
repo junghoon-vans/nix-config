@@ -4,6 +4,10 @@ import subprocess
 import tempfile
 import unittest
 
+from test_enable_update_automerge import MOCK_GH as AUTOMERGE_GH, PR
+import copy
+import json
+
 
 HELPER = Path(__file__).resolve().with_name("open-update-pr.sh")
 BRANCH = "automation/update-paseo-plugins"
@@ -13,6 +17,10 @@ set -eu
 printf '%s\\n' "$*" >> "$GH_TEST_LOG"
 case "$1" in
   api)
+    case "$2" in
+      users/*) ;;
+      *) exec "$GH_AUTOMERGE_MOCK" "$@" ;;
+    esac
     if [ "${GH_FAIL_API:-0}" = 1 ]; then
       printf '%s\\n' 'simulated GitHub API failure' >&2
       exit 42
@@ -22,6 +30,7 @@ case "$1" in
   pr)
     case "$2" in
       list) printf '%s\\n' "${GH_PR_COUNT:-0}" ;;
+      view) printf '%s\\n' '7' ;;
       edit|create) ;;
       *) exit 91 ;;
     esac
@@ -51,6 +60,16 @@ class OpenUpdatePRTests(unittest.TestCase):
         gh.write_text(MOCK_GH)
         gh.chmod(0o755)
         self.gh_log = self.root / "gh.log"
+        self.automerge_gh = self.gh_bin / "automerge-gh"
+        self.automerge_gh.write_text(AUTOMERGE_GH)
+        self.automerge_gh.chmod(0o755)
+        self.automerge_fixture = self.root / "automerge.json"
+        pr = copy.deepcopy(PR)
+        pr["head"]["ref"] = BRANCH
+        self.automerge_fixture.write_text(json.dumps({
+            "pr": pr, "local_head": True,
+            "pages": [[{"filename": TARGET, "status": "modified"}]],
+        }))
 
         self.git(self.root, "init", "--bare", "--initial-branch=main", str(self.origin))
         self.git(self.root, "init", "--initial-branch=main", str(self.repo))
@@ -79,6 +98,9 @@ class OpenUpdatePRTests(unittest.TestCase):
         env = self.git_env.copy()
         env["PATH"] = str(self.gh_bin) + os.pathsep + env["PATH"]
         env["GH_TEST_LOG"] = str(self.gh_log)
+        env["GH_AUTOMERGE_MOCK"] = str(self.automerge_gh)
+        env["GH_AUTOMERGE_FIXTURE"] = str(self.automerge_fixture)
+        env["GH_MUTATION_LOG"] = str(self.root / "mutations.jsonl")
         env.update(overrides)
         return env
 

@@ -31,3 +31,8 @@ if [ "$(gh pr list --head "$branch" --state open --json number --jq 'length')" -
 else
   gh pr edit "$branch" --title "$title" --body "$body"
 fi
+
+python3 -B "$(dirname "${BASH_SOURCE[0]}")/enable-update-automerge.py" \
+  --number "$(gh pr view "$branch" --json number --jq '.number')" \
+  --branch "$branch" \
+  --head "$(git rev-parse HEAD)"

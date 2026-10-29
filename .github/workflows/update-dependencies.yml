@@ -118,7 +118,7 @@ jobs:
           scripts/updates/open-update-pr.sh \
             automation/update-gno \
             "chore(deps): update $VERSION" \
-            "Automated latest stable GitHub release update for Gno and gnopls. Pins release commits and recalculates source and Go dependency hashes. Builds and smoke-checks gno, gnokey, and gnopls against the shared GNOROOT before opening this PR. Normal PR validation evaluates and builds both Darwin hosts. Review and activation remain manual." \
+            "Automated latest stable GitHub release update for Gno and gnopls. Pins release commits and recalculates source and Go dependency hashes. Builds and smoke-checks gno, gnokey, and gnopls against the shared GNOROOT before opening this PR. Normal PR validation evaluates and builds both Darwin hosts. Trusted CI updates request SQUASH auto-merge after required validation. Activation remains manual." \
             modules/languages/gno.nix
 
   hermes:
@@ -153,7 +153,7 @@ jobs:
           scripts/updates/open-update-pr.sh \
             automation/update-hermes \
             "chore(deps): update Hermes to ${{ steps.update.outputs.version }}" \
-            "Automated stable Hermes release update. Updates the tagged flake input and its lockfile graph; package version metadata follows the locked release tag automatically. Normal PR validation builds both Darwin hosts and verifies OMP tool exposure in the packaged Hermes runtime. Review and activation remain manual." \
+            "Automated stable Hermes release update. Updates the tagged flake input and its lockfile graph; package version metadata follows the locked release tag automatically. Normal PR validation builds both Darwin hosts and verifies OMP tool exposure in the packaged Hermes runtime. Trusted CI updates request SQUASH auto-merge after required validation. Activation remains manual." \
             flake.nix \
             flake.lock
 
@@ -229,7 +229,7 @@ jobs:
           scripts/updates/open-update-pr.sh \
             automation/update-npm-mcps \
             "chore(deps): update npm MCP server versions" \
-            "Automated exact-version npm MCP update from the registry latest tags. Prerelease pins, disabled servers, remote services, and unsupported launch commands remain unchanged. MCP inspection runs on the changed configuration; findings are advisory. Review and activation remain manual." \
+            "Automated exact-version npm MCP update from the registry latest tags. Prerelease pins, disabled servers, remote services, and unsupported launch commands remain unchanged. MCP inspection runs on the changed configuration; findings are advisory. Trusted CI updates request SQUASH auto-merge after required validation. Activation remains manual." \
             home/.omp/agent/mcp.json
 
   paseo-plugins:
