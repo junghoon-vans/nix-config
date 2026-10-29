@@ -30,6 +30,10 @@ dependencies:
     - git: https://github.com/anthropics/skills.git
       path: skills/frontend-design
       ref: 33375500bcea98d610eb30ce10ac4e59b89c390d
+    - git: https://github.com/Leonxlnx/taste-skill.git
+      path: skills/taste-skill
+      ref: 12af471f627f866411b4bd785b19646d3672784c
+      alias: design-taste-frontend
     - git: https://github.com/nextlevelbuilder/ui-ux-pro-max-skill.git
       path: .claude/skills/ui-ux-pro-max
       ref: 823b0a14d3539b5d78c0efb614426a4fab5983ec
