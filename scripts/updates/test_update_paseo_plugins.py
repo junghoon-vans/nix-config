@@ -22,7 +22,7 @@ NEW_HASH = "sha256-" + "B" * 43 + "="
 # Keep test declarations independent of the updater's implementation data.
 PLUGIN_DEFINITIONS = {
     "paseo-jira": ("tranhuywin/paseo-jira", ""),
-    "host-monitor": ("a31521424/paseo-kit", "plugins/host-monitor"),
+    "fixture-nested": ("sample-owner/paseo-monitor", "plugins/nested"),
     "keep-awake": ("hichamboushaba/paseo-plugins", "keep-awake"),
     "fixture-four": ("sample-owner/paseo-tools", "plugins/examples/nested-plugin"),
 }

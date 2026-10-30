@@ -15,14 +15,6 @@
     "hash": "sha256-j+CYfHnpS9uwhFAZycdA+e2erYPF7fXq2xK2/iwEQK8=",
     "enabled": true
   },
-  "host-monitor": {
-    "source": "github",
-    "repository": "a31521424/paseo-kit",
-    "directory": "plugins/host-monitor",
-    "revision": "7186643fa50abbc3d0bf987bba63c1db3dcd6be7",
-    "hash": "sha256-NGBZ1zYvrgABMfU016JIp3J+wLUVsGHpie+wj6kzpS0=",
-    "enabled": true
-  },
   "resources": {
     "source": "github",
     "repository": "ZedObaia/paseo-plugins",
