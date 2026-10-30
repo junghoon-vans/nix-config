@@ -190,8 +190,11 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
           apm_store="$(nix build --no-link --print-out-paths .#apm)"
+          APM_TEST_APM="$apm_store/bin/apm" \
+            python3 -B -m unittest discover -s scripts/updates -p 'test_update_tagged_skills.py'
           python3 scripts/updates/update-tagged-skills.py --apm "$apm_store/bin/apm"
           make skills
+          nix develop --no-write-lock-file --command bash scripts/apm/check.sh "$apm_store/bin/apm"
       - name: Open skill update pull request
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
