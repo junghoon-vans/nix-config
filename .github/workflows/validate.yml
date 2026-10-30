@@ -125,12 +125,19 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
       - uses: DeterminateSystems/magic-nix-cache-action@84c0677f58dcedf3b91f8223ce36a9ea5b3c84b7 # v15
-      - name: Run repository checks
-        run: make check
-      - name: Verify global APM deployment and local edit preservation in an isolated home
+      - name: Build pinned APM for regression and deployment checks
+        id: apm
         run: |
           apm_store="$(nix build --no-link --print-out-paths .#apm)"
-          nix develop --no-write-lock-file --command bash scripts/apm/check.sh "$apm_store/bin/apm"
+          printf 'executable=%s/bin/apm\n' "$apm_store" >> "$GITHUB_OUTPUT"
+      - name: Run repository checks
+        env:
+          APM_TEST_APM: ${{ steps.apm.outputs.executable }}
+        run: make check
+      - name: Verify global APM deployment and local edit preservation in an isolated home
+        env:
+          APM_TEST_APM: ${{ steps.apm.outputs.executable }}
+        run: nix develop --no-write-lock-file --command bash scripts/apm/check.sh "$APM_TEST_APM"
 
   evaluate:
     needs: [changes, checks]
