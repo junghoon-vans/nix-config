@@ -13,6 +13,10 @@ updates:
     ignore:
       # Hermes uses a dedicated updater; legacy date tags sort above semver releases.
       - dependency-name: hermes-agent
+      # Tap revisions need declared-package/recipe relevance checks in the Homebrew updater.
+      - dependency-name: homebrew-core
+      - dependency-name: homebrew-cask
+      - dependency-name: hashicorp-tap
     groups:
       flake-inputs:
         patterns:

@@ -40,11 +40,13 @@ jobs:
         run: |
           python3 -B scripts/updates/update-homebrew.py \
             --brew "$(cat "$RUNNER_TEMP/homebrew-runtime")/bin/brew" \
+            --changes-file "$RUNNER_TEMP/homebrew-changes.json" \
             --body-file "$RUNNER_TEMP/homebrew-update.md"
       - name: Open Homebrew lock update pull request
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           GH_APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+          DEPENDENCY_CHANGES_FILE: ${{ runner.temp }}/homebrew-changes.json
         run: |
           scripts/updates/open-update-pr.sh \
             automation/update-homebrew \

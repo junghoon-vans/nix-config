@@ -62,6 +62,44 @@ class DependencyReportTests(unittest.TestCase):
         self.assertIn("VendorHash: new", rows[0]["next"])
         self.assertEqual(render_title(rows), "chore(deps): update gno")
 
+    def test_timestamp_and_unrelated_lock_metadata_are_not_dependency_changes(self):
+        before = {"nodes": {"hermes": {"locked": {"rev": "same", "narHash": "same", "lastModified": 1}}}}
+        after = copy.deepcopy(before)
+        after["nodes"]["hermes"]["locked"]["lastModified"] = 2
+        rows = self.report("flake.lock", before, after)
+        with self.assertRaises(ValueError):
+            render_title(rows)
+        before = "dependencies:\n- repo_url: org/skill\n  resolved_commit: same\n  downloaded_at: yesterday\n"
+        rows = self.report("apm.lock.yaml", before, before.replace("yesterday", "today"))
+        with self.assertRaises(ValueError):
+            render_title(rows)
+
+    def test_flake_graph_and_same_revision_hash_changes_are_real(self):
+        before = {"nodes": {"hermes": {"locked": {"rev": "same", "narHash": "old"},
+                                      "inputs": {"dependency": "old-node"}}}}
+        for field, value in (("locked", {"rev": "same", "narHash": "new"}),
+                             ("inputs", {"dependency": "new-node"})):
+            after = copy.deepcopy(before)
+            after["nodes"]["hermes"][field] = value
+            rows = self.report("flake.lock", before, after)
+            self.assertEqual(render_title(rows), "chore(deps): update flake input hermes")
+            self.assertNotEqual(rows[0]["previous"], rows[0]["next"])
+
+    def test_apm_same_revision_file_and_deployment_hash_changes_remain_visible(self):
+        before = (
+            "dependencies:\n- repo_url: org/skill\n  resolved_commit: same\n"
+            "  deployed_file_hashes:\n    skill.md: old\n"
+            "deployments:\n- value: skill.md\n  content_hash: old\n"
+        )
+        for after in (before.replace("skill.md: old", "skill.md: new"),
+                      before.replace("content_hash: old", "content_hash: new")):
+            rows = self.report("apm.lock.yaml", before, after)
+            self.assertEqual(len(rows), 1)
+            self.assertEqual(rows[0]["change"], "Updated")
+            self.assertIn("old", rows[0]["previous"])
+            self.assertIn("new", rows[0]["next"])
+            self.assertNotIn("unchanged", render_title(rows))
+
     def test_homebrew_hermes_and_dependabot_include_transitive_lock_nodes(self):
         for owner in ("homebrew-core", "hermes-agent", "nixpkgs"):
             with self.subTest(owner=owner):

@@ -3,6 +3,7 @@
 import argparse
 import importlib.util
 import json
+import os
 import re
 import subprocess
 import sys
@@ -53,6 +54,11 @@ def flake_pin(node):
     if node is None:
         return None
     locked = dict(node.get("locked", {}))
+    locked.pop("lastModified", None)
+    if node.get("inputs"):
+        locked["inputs"] = node["inputs"]
+    if "flake" in node:
+        locked["flake"] = node["flake"]
     if reference := node.get("original", {}).get("ref"):
         locked["declared ref"] = reference
     return pin(locked)
@@ -82,9 +88,8 @@ def collect_rows(before, after):
                     )
                     item = row(f"flake input {name}", flake_pin(a), flake_pin(b), repository,
                                (first or {}).get("rev"), (last or {}).get("rev"))
-                    if item["change"] == "Unchanged":
-                        item["change"] = "Input metadata changed (locked pin unchanged)"
-                    rows.append(item)
+                    if item["change"] != "Unchanged":
+                        rows.append(item)
             elif path == "home/.omp/agent/mcp.json":
                 old, new = old.get("mcpServers", {}), new.get("mcpServers", {})
                 for name in sorted(old.keys() | new.keys()):
@@ -94,7 +99,9 @@ def collect_rows(before, after):
                             if server is None:
                                 return None
                             return pin({key: server[key] for key in ("command", "args", "url") if key in server})
-                        rows.append(row(f"npm MCP {name}", launch(old.get(name)), launch(new.get(name))))
+                        item = row(f"npm MCP {name}", launch(old.get(name)), launch(new.get(name)))
+                        if item["change"] != "Unchanged":
+                            rows.append(item)
             else:
                 grouped = path == "modules/paseo-plugins.json"
                 for name in sorted(old.keys() | new.keys()):
@@ -146,13 +153,29 @@ def collect_rows(before, after):
                     def resolved(entry):
                         if entry is None:
                             return None
-                        fields = {key: entry[key] for key in ("version", "resolved_ref", "resolved_commit", "content_hash") if key in entry}
+                        fields = {key: entry[key] for key in (
+                            "version", "resolved_ref", "resolved_commit", "content_hash",
+                            "deployed_file_hashes",
+                        ) if key in entry}
                         return pin(fields)
                     item = row("APM lock " + " / ".join(filter(None, identity)), resolved(first), resolved(last), identity[0],
                                (first or {}).get("resolved_commit"), (last or {}).get("resolved_commit"))
-                    if item["change"] == "Unchanged":
-                        item["change"] = "Lock metadata changed (pin unchanged)"
-                    rows.append(item)
+                    if item["change"] != "Unchanged":
+                        rows.append(item)
+                def deployments(document):
+                    return {
+                        tuple(entry.get(key, "") for key in ("kind", "target", "value", "runtime", "scope")): entry
+                        for entry in document.get("deployments", [])
+                    }
+                a, b = deployments(old), deployments(new)
+                for identity in sorted(a.keys() | b.keys(), key=str):
+                    def deployed(entry):
+                        if entry is None:
+                            return None
+                        return pin({key: entry[key] for key in ("content_hash", "active_owner", "owners") if key in entry})
+                    first, last = deployed(a.get(identity)), deployed(b.get(identity))
+                    if first != last:
+                        rows.append(row("APM deployment " + str(identity[2]), first, last))
     return rows
 
 
@@ -197,8 +220,19 @@ def main():
         if Path(path).exists():
             after[path] = Path(path).read_text()
     rows = collect_rows(before, after)
-    if not rows:
-        parser.error("Changed update paths contain no reportable dependency metadata; refusing an incomplete PR body")
+    if changes_file := os.environ.get("DEPENDENCY_CHANGES_FILE"):
+        # Homebrew resolves recipes with the flake-selected runtime before this gate.
+        # Keep full tap pins in its contextual body, but title only affected packages.
+        rows = json.loads(Path(changes_file).read_text())
+        if not isinstance(rows, list) or any(
+            not isinstance(item, dict)
+            or not {"dependency", "previous", "next", "change"} <= item.keys()
+            for item in rows
+        ):
+            parser.error("Invalid dependency changes report")
+    if not any(item["change"] not in ("Unchanged", "Metadata unavailable") for item in rows):
+        print("No dependency changes", file=sys.stderr)
+        return 3
     try:
         title = render_title(rows)
     except ValueError as error:
@@ -211,4 +245,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

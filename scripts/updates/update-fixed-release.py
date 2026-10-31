@@ -71,15 +71,22 @@ def main() -> None:
                 text=True,
             ).stdout.strip()
 
-    manifest[args.package] = {"version": version, "hash": artifact_hash}
+    package_pins = manifest.get(args.package)
+    original_package_pins = dict(package_pins) if isinstance(package_pins, dict) else None
+    if not isinstance(package_pins, dict):
+        package_pins = {}
+        manifest[args.package] = package_pins
+    package_pins["version"] = version
+    package_pins["hash"] = artifact_hash
     if args.package == "officecli":
         skill_url = f"https://raw.githubusercontent.com/{repository}/{tag}/skills/officecli/SKILL.md"
         skill = subprocess.run(
             ["nix", "store", "prefetch-file", "--json", skill_url],
             check=True, capture_output=True, text=True,
         )
-        manifest[args.package]["skillHash"] = json.loads(skill.stdout)["hash"]
-    manifest_path.write_text(json.dumps(manifest, indent=2) + "\n")
+        package_pins["skillHash"] = json.loads(skill.stdout)["hash"]
+    if package_pins != original_package_pins:
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n")
     print(version)
 
 

@@ -214,6 +214,25 @@ class DependabotVersionReportTests(unittest.TestCase):
         self.assertIn("No dependency changes were detected.", body)
         self.assertEqual(body.count("<!-- dependabot-version-report:start -->"), 1)
 
+    def test_action_comment_only_change_is_not_reported_as_dependency_change(self):
+        revision = "a" * 40
+        before = workflow(f"      - uses: actions/checkout@{revision} # v1.0.0\n")
+        after = workflow(f"      - uses: actions/checkout@{revision} # v1.0.1\n")
+        self.fixture(
+            pull_request(),
+            [{"filename": ACTION_FILE, "status": "modified"}],
+            {BASE_SHA: {ACTION_FILE: before}, HEAD_SHA: {ACTION_FILE: after}},
+        )
+
+        result = self.run_report()
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(len(self.patches()), 1)
+        body = self.patches()[0]["body"]
+        self.assertIn("No dependency changes were detected.", body)
+        self.assertNotIn("Action pin metadata updated", body)
+        self.assertNotIn(revision, body)
+
     def test_stale_head_is_refused_before_body_patch(self):
         before = workflow(f"      - uses: actions/checkout@{'a' * 40}\n")
         after = workflow(f"      - uses: actions/checkout@{'b' * 40}\n")

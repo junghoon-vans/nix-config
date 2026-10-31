@@ -260,16 +260,14 @@ def action_rows(before, after):
         for action, occurrence in sorted(set(old_refs) | set(new_refs)):
             old = old_refs.get((action, occurrence))
             new = new_refs.get((action, occurrence))
-            if old == new:
+            if old is not None and new is not None and old["revision"] == new["revision"]:
                 continue
             if old is None:
                 change = "Action reference added"
             elif new is None:
                 change = "Action reference removed"
-            elif old["revision"] != new["revision"]:
-                change = "Action revision updated"
             else:
-                change = "Action pin metadata updated"
+                change = "Action revision updated"
             dependency = f"{path} — {action}"
             if occurrence > 1:
                 dependency += f" (use {occurrence})"

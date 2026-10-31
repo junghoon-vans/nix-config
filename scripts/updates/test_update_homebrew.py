@@ -1,12 +1,13 @@
+from contextlib import chdir
 import html
 import importlib.util
 import json
 import os
 from pathlib import Path
+import sys
 import tempfile
 import unittest
 from unittest.mock import Mock, patch
-
 
 spec = importlib.util.spec_from_file_location("update_homebrew", Path(__file__).with_name("update-homebrew.py"))
 updater = importlib.util.module_from_spec(spec)
@@ -34,8 +35,8 @@ def lock(rev, brew_version=LOCK["nodes"]["brew-src"]["original"]["ref"]):
     }}
 
 
-def formula(version, revision=0, description="Example"):
-    return f'''class Example < Formula
+def formula(version, revision=0, description="Example", class_name="Example"):
+    return f'''class {class_name} < Formula
   desc "{description}"
   homepage "https://example.com"
   url "https://example.com/example-{version}.tar.gz"
@@ -90,7 +91,59 @@ class HomebrewSummaryTests(unittest.TestCase):
     def definition(self, root, tap, text, name="example"):
         (root / tap / updater.TAPS[tap] / "e" / f"{name}.rb").write_text(text)
 
-    def summary(self, before="old", after="new"):
+    def run_main(self, before_lock, after_lock):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            lock_file = root / "flake.lock"
+            body_file = root / "body.md"
+            changes_file = root / "homebrew-changes.json"
+            lock_file.write_text(json.dumps(before_lock))
+
+            def update_taps(*_args, **_kwargs):
+                lock_file.write_text(json.dumps(after_lock))
+
+            with (
+                chdir(root),
+                patch.object(updater, "verify_brew_version"),
+                patch.object(updater, "inventory", return_value=self.declared),
+                patch.object(
+                    updater,
+                    "prefetch",
+                    side_effect=lambda node: (
+                        self.old if node["rev"] == "old" else self.new
+                    ) / node["repo"],
+                ),
+                patch.object(
+                    updater,
+                    "versions",
+                    side_effect=lambda _tap, paths, _brew: {
+                        name: "1.0" for name in paths
+                    },
+                ),
+                patch.object(updater.subprocess, "run", side_effect=update_taps),
+                patch.object(
+                    sys,
+                    "argv",
+                    [
+                        "update-homebrew.py",
+                        "--body-file",
+                        str(body_file),
+                        "--changes-file",
+                        str(changes_file),
+                    ],
+                ),
+            ):
+                updater.main()
+
+            return (
+                json.loads(lock_file.read_text()),
+                json.loads(changes_file.read_text()),
+                body_file.read_text(),
+            )
+
+    def analyze(self, before="old", after="new"):
+        old_lock = lock(before)
+        new_lock = lock(after)
         with patch.object(
             updater,
             "prefetch",
@@ -98,8 +151,11 @@ class HomebrewSummaryTests(unittest.TestCase):
                 self.old if node["rev"] in ("old", OLD_REVISION) else self.new
             ) / node["repo"],
         ):
-            return updater.summarize(lock(before), lock(after), self.declared, self.brew)
+            body, changes = updater.analyze(old_lock, new_lock, self.declared, self.brew)
+        return old_lock, new_lock, body, changes
 
+    def summary(self, before="old", after="new"):
+        return self.analyze(before, after)[2]
     def test_declared_versions_use_formula_url_revision_and_apple_silicon_cask(self):
         self.definition(self.old, "homebrew-core", formula("1.2.0", 1))
         self.definition(self.new, "homebrew-core", formula("1.3.0", 2))
@@ -128,8 +184,268 @@ class HomebrewSummaryTests(unittest.TestCase):
         self.definition(self.old, "homebrew-core", formula("1.0", 1))
         self.definition(self.new, "homebrew-core", formula("1.0", 2))
         self.assertIn(("example", "1.0_1", "1.0_2", "Version / revision"), table_entries(self.summary()))
-        self.definition(self.new, "homebrew-core", formula("1.0", 1, "New description"))
+        changed_url = formula("1.0", 1).replace(
+            "https://example.com/example-1.0.tar.gz",
+            "https://downloads.example.com/example-1.0.tar.gz",
+        )
+        self.definition(self.new, "homebrew-core", changed_url)
         self.assertIn(("example", "1.0_1", "1.0_1", "Definition only (version unchanged)"), table_entries(self.summary()))
+
+    def test_descriptive_metadata_and_comments_do_not_advance_tap_pins(self):
+        self.declared = {tap: [] for tap in updater.TAPS}
+        self.declared["homebrew-core"] = ["example"]
+        self.definition(self.old, "homebrew-core", formula("1.0"))
+        candidate = formula("1.0", description="Updated description").replace(
+            '  homepage "https://example.com"',
+            '  homepage "https://new.example.com"',
+        )
+        self.definition(self.new, "homebrew-core", "# Updated: 2026-10-31\n" + candidate)
+
+        old_lock, new_lock, body, changes = self.analyze()
+
+        self.assertEqual(old_lock["nodes"], new_lock["nodes"])
+        self.assertEqual(changes, [])
+        self.assertIn(("example", "1.0", "1.0", "Unchanged"), table_entries(body))
+
+    def test_multiline_recipe_content_is_not_stripped_as_metadata_or_comments(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "formula.rb"
+            for opening, closing in (("<<~EOS", "EOS"), ("%q{", "}"), ('"', '"')):
+                with self.subTest(opening=opening):
+                    source = f'def install\n  text = {opening}\n# old payload\n  desc "data"\n{closing}\nend\n'
+                    path.write_text(source)
+                    before = updater.normalized_recipe(path)
+                    path.write_text(source.replace("# old payload", "# new payload"))
+                    self.assertNotEqual(before, updater.normalized_recipe(path))
+
+    def test_formula_alias_dependency_ignores_unrelated_changes_but_retains_rebuilds(self):
+        self.declared = {tap: [] for tap in updater.TAPS}
+        self.declared["homebrew-core"] = ["example"]
+        for root in (self.old, self.new):
+            source = root / "homebrew-core"
+            self.definition(root, "homebrew-core", formula("1.0").replace(
+                "  revision 0", '  revision 0\n  depends_on "pkg-config"'))
+            self.definition(root, "homebrew-core", formula("1.0", class_name="Pkgconf"), "pkgconf")
+            (source / "Aliases").mkdir()
+            (source / "Aliases/pkg-config").symlink_to("../Formula/e/pkgconf.rb")
+        self.definition(self.new, "homebrew-core", formula("2.0", class_name="Other"), "other")
+        before, after, _body, changes = self.analyze()
+        self.assertEqual(changes, [])
+        self.assertEqual(before, after)
+        self.definition(self.new, "homebrew-core", formula("1.0", 1, class_name="Pkgconf"), "pkgconf")
+        before, after, _body, changes = self.analyze()
+        self.assertEqual([item["dependency"] for item in changes], ["example"])
+        self.assertNotEqual(before, after)
+
+    def test_system_version_constraints_are_not_unresolved_formula_dependencies(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "formula.rb"
+            path.write_text('  depends_on xcode: ["12.5", :build]\n  depends_on macos: ">= :ventura"\n')
+            self.assertEqual(updater.dependency_references(path), (set(), False))
+
+
+    def test_homepage_change_is_relevant_when_formula_uses_it(self):
+        self.declared = {tap: [] for tap in updater.TAPS}
+        self.declared["homebrew-core"] = ["example"]
+        template = formula("1.0").replace(
+            'url "https://example.com/example-1.0.tar.gz"',
+            'url "#{homepage}/example-1.0.tar.gz"',
+        )
+        self.definition(self.old, "homebrew-core", template)
+        self.definition(
+            self.new,
+            "homebrew-core",
+            template.replace(
+                'homepage "https://example.com"',
+                'homepage "https://new.example.com"',
+            ),
+        )
+
+        with patch.object(
+            updater,
+            "versions",
+            side_effect=lambda _tap, paths, _brew: {
+                name: "1.0" for name in paths
+            },
+        ):
+            old_lock, new_lock, _body, changes = self.analyze()
+
+        self.assertNotEqual(
+            old_lock["nodes"]["homebrew-core"],
+            new_lock["nodes"]["homebrew-core"],
+        )
+        self.assertEqual([row["dependency"] for row in changes], ["example"])
+
+    def test_same_version_bottle_change_is_a_declared_package_change(self):
+        self.declared = {tap: [] for tap in updater.TAPS}
+        self.declared["homebrew-core"] = ["example"]
+        self.definition(
+            self.old,
+            "homebrew-core",
+            formula("1.0").replace(
+                "end\n",
+                f'  bottle do\n    sha256 cellar: :any_skip_relocation, arm64_sonoma: "{"c" * 64}"\n  end\nend\n',
+            ),
+        )
+        self.definition(
+            self.new,
+            "homebrew-core",
+            formula("1.0").replace(
+                "end\n",
+                f'  bottle do\n    sha256 cellar: :any_skip_relocation, arm64_sonoma: "{"d" * 64}"\n  end\nend\n',
+            ),
+        )
+        old_lock, new_lock, body, changes = self.analyze()
+
+        self.assertNotEqual(
+            old_lock["nodes"]["homebrew-core"],
+            new_lock["nodes"]["homebrew-core"],
+        )
+        self.assertEqual([row["dependency"] for row in changes], ["example"])
+        self.assertIn(
+            ("example", "1.0", "1.0", "Definition only (version unchanged)"),
+            table_entries(body),
+        )
+
+    def test_transitive_formula_change_reports_only_affected_declared_packages(self):
+        self.declared = {tap: [] for tap in updater.TAPS}
+        self.declared["homebrew-core"] = ["example", "unrelated"]
+        self.definition(
+            self.old,
+            "homebrew-core",
+            formula("1.0").replace("  revision 0", '  revision 0\n  depends_on "libfoo"'),
+        )
+        self.definition(
+            self.new,
+            "homebrew-core",
+            formula("1.0").replace("  revision 0", '  revision 0\n  depends_on "libfoo"'),
+        )
+        self.definition(self.old, "homebrew-core", formula("1.0", class_name="Libfoo"), "libfoo")
+        self.definition(
+            self.new,
+            "homebrew-core",
+            formula("1.0", class_name="Libfoo").replace(
+                '"' + "a" * 64 + '"',
+                '"' + "b" * 64 + '"',
+            ),
+            "libfoo",
+        )
+        for root in (self.old, self.new):
+            self.definition(root, "homebrew-core", formula("2.0", class_name="Unrelated"), "unrelated")
+
+        old_lock, new_lock, body, changes = self.analyze()
+
+        self.assertNotEqual(
+            old_lock["nodes"]["homebrew-core"],
+            new_lock["nodes"]["homebrew-core"],
+        )
+        self.assertEqual([row["dependency"] for row in changes], ["example"])
+        self.assertIn(("example", "1.0", "1.0", "Dependency / helper updated"), table_entries(body))
+        self.assertIn(("unrelated", "2.0", "2.0", "Unchanged"), table_entries(body))
+
+    def test_cross_tap_transitive_change_retains_only_dependency_tap(self):
+        self.declared = {tap: [] for tap in updater.TAPS}
+        self.declared["homebrew-core"] = ["example"]
+        dependency = '  revision 0\n  depends_on "hashicorp/tap/libfoo"'
+        self.definition(
+            self.old,
+            "homebrew-core",
+            formula("1.0").replace("  revision 0", dependency),
+        )
+        self.definition(
+            self.new,
+            "homebrew-core",
+            formula("1.0").replace("  revision 0", dependency),
+        )
+        self.definition(
+            self.old,
+            "hashicorp-tap",
+            formula("1.0", class_name="Libfoo"),
+            "libfoo",
+        )
+        self.definition(
+            self.new,
+            "hashicorp-tap",
+            formula("1.0", class_name="Libfoo").replace(
+                '"' + "a" * 64 + '"',
+                '"' + "b" * 64 + '"',
+            ),
+            "libfoo",
+        )
+
+        old_lock, new_lock, _body, changes = self.analyze()
+
+        self.assertEqual(
+            old_lock["nodes"]["homebrew-core"],
+            new_lock["nodes"]["homebrew-core"],
+        )
+        self.assertNotEqual(
+            old_lock["nodes"]["hashicorp-tap"],
+            new_lock["nodes"]["hashicorp-tap"],
+        )
+        self.assertEqual([row["dependency"] for row in changes], ["example"])
+
+    def test_unresolved_dynamic_dependency_refuses_speculative_update(self):
+        self.declared = {tap: [] for tap in updater.TAPS}
+        self.declared["homebrew-core"] = ["example"]
+        dynamic = formula("1.0").replace(
+            "  revision 0",
+            "  revision 0\n  depends_on dependency_name",
+        )
+        self.definition(self.old, "homebrew-core", dynamic)
+        self.definition(self.new, "homebrew-core", dynamic)
+        self.definition(
+            self.old,
+            "hashicorp-tap",
+            formula("1.0", class_name="Libfoo"),
+            "libfoo",
+        )
+        self.definition(
+            self.new,
+            "hashicorp-tap",
+            formula("1.0", class_name="Libfoo").replace(
+                '"' + "a" * 64 + '"',
+                '"' + "b" * 64 + '"',
+            ),
+            "libfoo",
+        )
+
+        with patch.object(
+            updater,
+            "versions",
+            side_effect=lambda _tap, paths, _brew: {
+                name: "1.0" for name in paths
+            },
+        ):
+            with self.assertRaisesRegex(RuntimeError, "refusing a speculative update PR"):
+                self.analyze()
+
+    def test_shared_tap_ruby_helper_change_marks_declared_packages(self):
+        self.declared = {tap: [] for tap in updater.TAPS}
+        self.declared["homebrew-core"] = ["example"]
+        self.definition(self.old, "homebrew-core", formula("1.0"))
+        self.definition(self.new, "homebrew-core", formula("1.0"))
+        for root, value in ((self.old, "old"), (self.new, "new")):
+            helper = root / "homebrew-core/lib/shared.rb"
+            helper.parent.mkdir(parents=True)
+            helper.write_text(f'SHARED_BUILD_VALUE = "{value}"\n')
+
+        old_lock, new_lock, body, changes = self.analyze()
+
+        self.assertNotEqual(
+            old_lock["nodes"]["homebrew-core"],
+            new_lock["nodes"]["homebrew-core"],
+        )
+        self.assertEqual([row["dependency"] for row in changes], ["example"])
+        self.assertIn(("example", "1.0", "1.0", "Dependency / helper updated"), table_entries(body))
+
+    def test_missing_declared_package_in_both_revisions_does_not_retain_tap_changes(self):
+        self.declared = {tap: ["missing"] for tap in updater.TAPS}
+
+        old_lock, new_lock, _body, changes = self.analyze()
+
+        self.assertEqual(old_lock["nodes"], new_lock["nodes"])
+        self.assertEqual(changes, [])
 
     def test_declared_additions_removals_and_unchanged_packages(self):
         self.declared["homebrew-cask"] = []
@@ -202,17 +518,30 @@ class HomebrewSummaryTests(unittest.TestCase):
         body = self.summary()
         self.assertIn("example | 1.15.0 | 1.16.0 | Version / revision", body)
         self.assertNotIn("0.15.0", body)
+
     def test_grouped_tap_rows_show_full_revisions_and_unchanged_components(self):
         self.declared = {tap: [] for tap in updater.TAPS}
+        self.declared["homebrew-core"] = ["example"]
+        self.definition(self.old, "homebrew-core", formula("1.0"))
+        self.definition(self.new, "homebrew-core", formula("1.1"))
         before = lock(OLD_REVISION)
         after = lock(OLD_REVISION)
         after["nodes"]["homebrew-core"]["locked"]["rev"] = NEW_REVISION
-        with patch.object(
-            updater,
-            "prefetch",
-            side_effect=lambda node: (
-                self.old if node["rev"] == OLD_REVISION else self.new
-            ) / node["repo"],
+        with (
+            patch.object(
+                updater,
+                "prefetch",
+                side_effect=lambda node: (
+                    self.old if node["rev"] == OLD_REVISION else self.new
+                ) / node["repo"],
+            ),
+            patch.object(
+                updater,
+                "versions",
+                side_effect=lambda _tap, paths, _brew: {
+                    name: "1.0" for name in paths
+                },
+            ),
         ):
             body = updater.summarize(before, after, self.declared, self.brew)
 
@@ -229,6 +558,39 @@ class HomebrewSummaryTests(unittest.TestCase):
                 body,
             )
         self.assertEqual(body.count("| Dependency |"), len(updater.TAPS))
+
+    def test_main_restores_unrelated_taps_and_writes_empty_changes_file(self):
+        self.declared = {tap: [] for tap in updater.TAPS}
+        self.declared["homebrew-core"] = ["example"]
+        self.definition(self.old, "homebrew-core", formula("1.0"))
+        self.definition(self.new, "homebrew-core", formula("1.0"))
+
+        final_lock, changes, body = self.run_main(lock("old"), lock("new"))
+
+        self.assertEqual(final_lock["nodes"], lock("old")["nodes"])
+        self.assertEqual(changes, [])
+        self.assertIn("| homebrew-core tap | revision old | revision old | Unchanged |", body)
+
+    def test_main_keeps_same_version_recipe_change_and_reports_package(self):
+        self.declared = {tap: [] for tap in updater.TAPS}
+        self.declared["homebrew-core"] = ["example"]
+        self.definition(self.old, "homebrew-core", formula("1.0"))
+        self.definition(
+            self.new,
+            "homebrew-core",
+            formula("1.0").replace(
+                '"' + "a" * 64 + '"',
+                '"' + "b" * 64 + '"',
+            ),
+        )
+
+        final_lock, changes, _body = self.run_main(lock("old"), lock("new"))
+
+        self.assertEqual(
+            final_lock["nodes"]["homebrew-core"],
+            lock("new")["nodes"]["homebrew-core"],
+        )
+        self.assertEqual([row["dependency"] for row in changes], ["example"])
 
     def test_declared_package_names_are_escaped_in_shared_table(self):
         self.declared = {tap: [] for tap in updater.TAPS}
