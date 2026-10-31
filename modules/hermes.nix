@@ -45,6 +45,8 @@ let
       default = cfg.model;
     };
     providers."omp-acp".stale_timeout_seconds = 1800;
+    # This Home Manager-owned profile runs separately from the default host gateway.
+    gateway.standalone = true;
     agent = {
       max_turns = 30;
       system_prompt = ''

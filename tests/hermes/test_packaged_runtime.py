@@ -247,6 +247,31 @@ class PackagedHermesIntegration(unittest.TestCase):
         self.assertTrue(any(command == ["launchctl", "list"] for command in launchctl_calls))
         self.assertFalse(any(command[1] in {"bootstrap", "bootout", "kickstart"} for command in launchctl_calls))
 
+    def test_nix_owned_profile_passes_real_gateway_startup_guard(self):
+        definition = plistlib.loads(self.launchd_plist.read_bytes())
+        command = _launchd_command_from_definition(definition)
+        probe = (
+            f"import sys; sys.argv = {['hermes', *command[1:]]!r}; "
+            "import hermes_cli.main; "
+            "from hermes_cli.gateway import _attach_to_host_gateway_or_guard; "
+            "_attach_to_host_gateway_or_guard()"
+        )
+        result = subprocess.run(
+            [sys.executable, "-B", "-c", probe],
+            env={
+                **os.environ,
+                "HOME": str(self.root),
+                "HERMES_HOME": str(self.home),
+                "HERMES_REAL_HOME": str(self.root),
+                "XPC_SERVICE_NAME": definition["Label"],
+            },
+            capture_output=True,
+            text=True,
+            timeout=45,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
     def test_profile_override_and_external_supervisor_restart(self):
         from types import SimpleNamespace
 
