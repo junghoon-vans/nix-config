@@ -143,9 +143,15 @@ migration is performed by a build.
 
 ## Skill ownership
 
-APM owns generated global skills. Project-local skills stay with their project. Use a local overlay
-only to make an existing checkout's skills visible across nested Git workspaces; do not copy the
-generated APM tree into Home Manager.
+The Nix-managed `omp-worker` profile includes APM's common skills root at
+`~/.agents/skills`, alongside the pinned provider skills. Activation merges these Nix
+defaults with any user-declared `skills.external_dirs` and deduplicates paths; it does not
+copy APM output into Home Manager or replace user paths.
+
+Project-local `.agents/skills/` and `.hermes/skills/` remain scoped to the nearest Git
+repository and its Hermes trust boundary. They are not added to the home gateway's
+external roots, so the `omp-worker` gateway does not see skills that exist only inside a
+project. APM project installs remain project-scoped.
 
 `skills.customDirectories` scans one directory level (`*/SKILL.md`). Point it at the directory
 containing the individual skill directories, not at a skill itself. Exposing a large project skill
