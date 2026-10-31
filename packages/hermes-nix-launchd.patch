@@ -1,0 +1,21 @@
+--- a/hermes_cli/gateway_launchd.py
++++ b/hermes_cli/gateway_launchd.py
+@@ -356,8 +356,18 @@
+     _launchd_fallback_to_detached(f"{what} exit {exc.returncode}")
+ 
+ 
++_NIX_LAUNCHD_DIRECTORY = Path("/etc/hermes/launchd")
++
++
+ def generate_launchd_plist() -> str:
+     from html import escape
++    # Nix/Home Manager owns this service, including its wrappers and lifecycle
++    # settings. Compare and refresh against that immutable declared definition,
++    # not the unrelated defaults generated for Hermes-owned services.
++    declared = _NIX_LAUNCHD_DIRECTORY / f"{_gw().get_launchd_label()}.plist"
++    if declared.is_file():
++        return declared.read_text(encoding="utf-8-sig")
++
+     # Stable cwd anchor — never the volatile source checkout (same rot risk as systemd's WorkingDirectory).
+     working_dir = _gw()._stable_service_working_dir()
+     hermes_home = str(_gw().get_hermes_home().resolve())

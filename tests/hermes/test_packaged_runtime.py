@@ -172,6 +172,34 @@ class PackagedHermesIntegration(unittest.TestCase):
     def test_packaged_version(self):
         self.assertEqual(self.version, self.expected_version)
 
+    def test_nix_launchd_detects_changed_service_definition(self):
+        from hermes_cli import gateway, gateway_launchd
+        import plistlib
+
+        declared_dir = self.root / "nix-launchd"
+        declared_dir.mkdir()
+        label = "ai.hermes.gateway-omp-worker"
+        declared = declared_dir / f"{label}.plist"
+        installed = self.root / "installed.plist"
+        definition = {
+            "Label": label,
+            "ProgramArguments": ["/nix/store/current/bin/hermes", "--profile", "omp-worker", "gateway", "run"],
+            "EnvironmentVariables": {"HERMES_HOME": str(self.root / ".hermes/profiles/omp-worker")},
+        }
+        declared.write_bytes(plistlib.dumps(definition))
+        installed.write_bytes(declared.read_bytes())
+        with (
+            patch.object(gateway_launchd, "_NIX_LAUNCHD_DIRECTORY", declared_dir, create=True),
+            patch.object(gateway, "get_launchd_plist_path", return_value=installed),
+            patch.object(gateway, "get_launchd_label", return_value=label),
+        ):
+            self.assertTrue(gateway.launchd_plist_is_current())
+            definition["ProgramArguments"][0] = "/nix/store/old/bin/hermes"
+            installed.write_bytes(plistlib.dumps(definition))
+            self.assertFalse(gateway.launchd_plist_is_current())
+            declared.unlink()
+            self.assertEqual(plistlib.loads(gateway.generate_launchd_plist().encode())["Label"], label)
+
     def test_provider_auth_snapshot_without_cache_expiry(self):
         from hermes_cli.auth import PROVIDER_REGISTRY
         self.assertIn("omp-acp", PROVIDER_REGISTRY)

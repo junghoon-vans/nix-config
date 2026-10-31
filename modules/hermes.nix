@@ -17,6 +17,7 @@ let
   providerSource = inputs.hermes-omp-acp;
   delegationSource = "${inputs.hermes-official-plugins}/advanced-delegation";
   hermesPackages = inputs.hermes-agent.packages.${pkgs.stdenv.hostPlatform.system};
+  hermesPkgs = inputs.hermes-agent.inputs.nixpkgs.legacyPackages.${pkgs.stdenv.hostPlatform.system};
   # Hermes 0.22.5 attaches Linux ELF fixups to its Darwin pm artifacts too.
   # Keep the upstream artifact pins, but do not run auto-patchelf on Mach-O.
   pmPackages = lib.mapAttrs' (
@@ -98,7 +99,7 @@ let
             name = "fast";
             description = "Quick answers and summaries of supplied context through OpenAI; use coder for repository tools.";
             provider = "openai-codex";
-            model = "openai/gpt-6-luna";
+            model = "gpt-6-luna";
             fallback_providers = [ ];
           }
           {
@@ -165,6 +166,18 @@ in
       type = lib.types.package;
       default = hermesPackages.messaging.override {
         inherit pmPackages;
+        callPackage =
+          path: args:
+          hermesPkgs.callPackage path (
+            args
+            // lib.optionalAttrs (baseNameOf path == "python.nix") {
+              pythonSrc = pkgs.applyPatches {
+                name = "hermes-nix-service-source";
+                src = args.pythonSrc;
+                patches = [ ../packages/hermes-nix-launchd.patch ];
+              };
+            }
+          );
         version = lib.removePrefix "v" (builtins.fromJSON (builtins.readFile ../flake.lock))
         .nodes.hermes-agent.original.ref;
         extraDependencyGroups = [
@@ -176,7 +189,7 @@ in
     };
     model = lib.mkOption {
       type = lib.types.str;
-      default = "openai/gpt-6.1-sol";
+      default = "gpt-6.1-sol";
       description = "Hermes coordinator and deep-route model; coder uses the separate OMP ACP provider.";
     };
     repositoryRoots = lib.mkOption {
@@ -188,6 +201,9 @@ in
 
   config = lib.mkIf cfg.enable {
     environment.systemPackages = [ cfg.package ];
+    environment.etc."hermes/launchd/ai.hermes.gateway-${profileName}.plist".source = "${
+      config.home-manager.users.${user}.home.activationPackage
+    }/LaunchAgents/ai.hermes.gateway-${profileName}.plist";
     assertions = [
       {
         assertion = config.workstation.omp.enable && cfg.repositoryRoots != [ ];
