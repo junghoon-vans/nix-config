@@ -58,13 +58,21 @@ repository inspection, coding, and verification. Web-only tasks need no reposito
 repository tasks still require an absolute path within the configured roots and an
 isolated worktree for changes. `fast` and `deep` reason over supplied context only.
 
-This route works with the published provider pinned in `flake.lock`; it does not
-install a separately discoverable Hermes search skill. Bundled search-skill support
-in the companion plugin must be published before Nix can pin it. When updating to
-the split repository layout, `providerSource` must select the `model-provider`
-subdirectory rather than the repository root. Never ship a local worktree or an
-unpublished plugin commit as the input. Plugin installation is not OMP installation:
-the executable and its model/search authentication remain external prerequisites.
+The merged provider revision pinned in `flake.lock` includes `skills/search`.
+The current upstream tree has a single root provider package; `providerSource`
+therefore selects the input root, not the obsolete split-layout subdirectory.
+The generated config connects its immutable Nix-store `skills` parent through
+`skills.external_dirs`. Activation preserves existing external skill directories
+and deduplicates repeated entries. Only the Nix-managed `omp-worker` profile
+receives this configuration; other profiles are not automatically managed.
+
+The packaged runtime check reads the Nix-generated YAML in a disposable home,
+loads `search` with `skills_list` and `skill_view`, compares its full content with
+the pinned source, and verifies the existing bundled `github` and `hermes-agent`
+skills remain available alongside the `omp` delegation route. This is discovery
+and routing validation, not a live web-search/model invocation. Plugin installation
+is not OMP installation: the executable and its model/search authentication remain
+external prerequisites. Build checks do not activate the live profile.
 
 ## Hermes ACP retry limit
 
