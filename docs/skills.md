@@ -9,7 +9,7 @@ Names use explicit skill selectors, then aliases, then the final path component.
 Source links use the declared ref and package path; selectors identify package exports,
 not inferred repository directories. See [APM management](apm.md) for deployment and updates.
 
-Declared skills: 34.
+Declared skills: 35.
 
 | Skill | Repository | Package path | Ref | Skill selector | Source |
 | --- | --- | --- | --- | --- | --- |
@@ -42,6 +42,7 @@ Declared skills: 34.
 | `transitions-dev` | https://github.com/Jakubantalik/transitions.dev | `skills/transitions-dev` | `a0c6e7bbf603a0a46588e37c6c6a4d0af3290d52` | — | [upstream](https://github.com/Jakubantalik/transitions.dev/tree/a0c6e7bbf603a0a46588e37c6c6a4d0af3290d52/skills/transitions-dev) |
 | `typescript-best-practices` | https://github.com/cursor/plugins | `pstack/skills/typescript-best-practices` | `93b00b89ef425a9c1bac0d0b317dfc49c930ac99` | — | [upstream](https://github.com/cursor/plugins/tree/93b00b89ef425a9c1bac0d0b317dfc49c930ac99/pstack/skills/typescript-best-practices) |
 | `ui-ux-pro-max` | https://github.com/nextlevelbuilder/ui-ux-pro-max-skill | `.claude/skills/ui-ux-pro-max` | `823b0a14d3539b5d78c0efb614426a4fab5983ec` | — | [upstream](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill/tree/823b0a14d3539b5d78c0efb614426a4fab5983ec/.claude/skills/ui-ux-pro-max) |
+| `unslop` | https://github.com/heydamir/unslop | `skills/unslop` | `4652254daff586ff4739849395a127b56f7f8cc7` | — | [upstream](https://github.com/heydamir/unslop/tree/4652254daff586ff4739849395a127b56f7f8cc7/skills/unslop) |
 | `use-modern-go` | https://github.com/JetBrains/go-modern-guidelines | `plugin/skills/use-modern-go` | `v0.1.1` | — | [upstream](https://github.com/JetBrains/go-modern-guidelines/tree/v0.1.1/plugin/skills/use-modern-go) |
 | `vercel-composition-patterns` | https://github.com/vercel-labs/agent-skills | `skills/composition-patterns` | `agent-skills-dd089a8c752c966dee8bf0f27cb625ba193ffd9e` | — | [upstream](https://github.com/vercel-labs/agent-skills/tree/agent-skills-dd089a8c752c966dee8bf0f27cb625ba193ffd9e/skills/composition-patterns) |
 | `vercel-react-best-practices` | https://github.com/vercel-labs/agent-skills | `skills/react-best-practices` | `agent-skills-dd089a8c752c966dee8bf0f27cb625ba193ffd9e` | — | [upstream](https://github.com/vercel-labs/agent-skills/tree/agent-skills-dd089a8c752c966dee8bf0f27cb625ba193ffd9e/skills/react-best-practices) |

@@ -34,6 +34,9 @@ dependencies:
       path: skills/taste-skill
       ref: 12af471f627f866411b4bd785b19646d3672784c
       alias: design-taste-frontend
+    - git: https://github.com/heydamir/unslop.git
+      path: skills/unslop
+      ref: 4652254daff586ff4739849395a127b56f7f8cc7
     - git: https://github.com/nextlevelbuilder/ui-ux-pro-max-skill.git
       path: .claude/skills/ui-ux-pro-max
       ref: 823b0a14d3539b5d78c0efb614426a4fab5983ec
