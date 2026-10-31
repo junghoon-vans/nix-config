@@ -17,6 +17,9 @@ def cell(value):
 
 
 def render_table(rows):
+    rows = [row for row in rows if row.get("change") not in ("Unchanged", "Metadata unavailable")]
+    if not rows:
+        return "No dependency pin changes."
     lines = [
         "| Dependency | Previous version / pin | Next version / pin | Change | Compare |",
         "| --- | --- | --- | --- | --- |",
@@ -34,6 +37,4 @@ def render_table(rows):
             cell(row["dependency"]), cell(row.get("previous")), cell(row.get("next")),
             cell(row.get("change", "Updated")), link,
         ]) + " |")
-    if not rows:
-        lines.append("| — | — | — | No dependency pin changes | — |")
     return "\n".join(lines)

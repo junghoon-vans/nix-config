@@ -105,47 +105,32 @@ class PluginUpdates(unittest.TestCase):
         self.assertFalse(self.run_update())
         self.assertEqual(self.pins_file.read_text(), text)
 
-    def test_no_change_leaves_file_identical_and_reports_full_unchanged_pins(self):
+    def test_no_change_leaves_file_identical_without_dependency_rows(self):
         self.revision = OLD
         body = self.root / "body.md"
         self.assertFalse(self.run_update(body_file=body))
         self.assertEqual(self.pins_file.read_text(), self.original)
         report = body.read_text()
-        self.assertEqual(report.count("| Dependency |"), 1)
-        for plugin_id, (repository, _) in PLUGIN_DEFINITIONS.items():
-            self.assertIn(
-                f"| {plugin_id} | revision {OLD} | revision {OLD} | Unchanged;",
-                report,
-            )
-            self.assertIn(
-                f"https://github.com/{repository}/compare/{OLD}...{OLD}",
-                report,
-            )
-            self.assertIn(f"source hash {OLD_HASH} → {OLD_HASH}", report)
-        self.assertIn("Paseo requirement &gt;=0.12.0-beta.1", report)
+        self.assertNotIn("| Dependency |", report)
+        self.assertIn("No dependency pin changes.", report)
+        for plugin_id in PLUGIN_DEFINITIONS:
+            self.assertNotIn(f"| {plugin_id} |", report)
 
-    def test_report_groups_changed_and_unchanged_plugins_with_full_pins(self):
+    def test_report_omits_unchanged_plugins_and_keeps_changed_full_pins(self):
         retained_repository = PLUGIN_DEFINITIONS["keep-awake"][0]
         self.revisions[retained_repository] = OLD
         body = self.root / "body.md"
         self.assertTrue(self.run_update(body_file=body))
         report = body.read_text()
         self.assertEqual(report.count("| Dependency |"), 1)
+        self.assertNotIn("| keep-awake |", report)
+        self.assertNotIn(f"https://github.com/{retained_repository}/compare/", report)
         for plugin_id, (repository, _) in PLUGIN_DEFINITIONS.items():
-            revision, change, source_hash = (
-                (OLD, "Unchanged", OLD_HASH)
-                if plugin_id == "keep-awake"
-                else (NEW, "Updated", NEW_HASH)
-            )
-            self.assertIn(
-                f"| {plugin_id} | revision {OLD} | revision {revision} | {change};",
-                report,
-            )
-            self.assertIn(
-                f"https://github.com/{repository}/compare/{OLD}...{revision}",
-                report,
-            )
-            self.assertIn(f"source hash {OLD_HASH} → {source_hash}", report)
+            if plugin_id == "keep-awake":
+                continue
+            self.assertIn(f"| {plugin_id} | revision {OLD} | revision {NEW} | Updated;", report)
+            self.assertIn(f"https://github.com/{repository}/compare/{OLD}...{NEW}", report)
+        self.assertIn(f"source hash {OLD_HASH} → {NEW_HASH}", report)
         self.assertIn("Paseo requirement &gt;=0.12.0-beta.1", report)
 
     def test_policy_metadata_is_escaped_in_shared_table(self):

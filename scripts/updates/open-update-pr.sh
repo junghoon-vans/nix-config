@@ -18,16 +18,7 @@ fi
 
 # Capture the authoritative before/after pins before switching or committing.
 # Reporting failures must stop before any GitHub or branch mutation.
-if title="$(python3 -B "$(dirname "${BASH_SOURCE[0]}")/dependency_report.py" --title "${paths[@]}")"; then
-  :
-else
-  status=$?
-  if (( status == 3 )); then
-    printf 'No dependency changes for %s\n' "$branch"
-    exit 0
-  fi
-  exit "$status"
-fi
+title="$(python3 -B "$(dirname "${BASH_SOURCE[0]}")/dependency_report.py" --title "${paths[@]}")"
 body="$(printf '%s' "$body" | python3 -B "$(dirname "${BASH_SOURCE[0]}")/dependency_report.py" "${paths[@]}")"
 
 bot_login="${GH_APP_SLUG:?GH_APP_SLUG must identify the PR GitHub App}[bot]"

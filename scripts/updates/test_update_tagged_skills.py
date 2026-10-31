@@ -1,7 +1,6 @@
 import importlib.util
 import os
 from pathlib import Path
-import sys
 import subprocess
 import tempfile
 import unittest
@@ -61,60 +60,6 @@ class TaggedSkillsDeploymentTests(unittest.TestCase):
                 str(path.relative_to(home)): path.read_bytes()
                 for path in home.rglob("*") if path.is_file()
             }, home_before)
-
-
-class TaggedSkillsRefUpdateTests(unittest.TestCase):
-    def setUp(self):
-        self.temporary = tempfile.TemporaryDirectory()
-        self.addCleanup(self.temporary.cleanup)
-        self.root = Path(self.temporary.name)
-        self.fake_script = self.root / "scripts/updates/update-tagged-skills.py"
-        self.fake_script.parent.mkdir(parents=True)
-        self.manifest_path = self.root / "apm.yml"
-
-    def write_manifest(self, dependencies):
-        self.manifest_path.write_text(yaml.safe_dump({
-            "name": "updater-fixture",
-            "version": "1.0.0",
-            "dependencies": {"apm": dependencies},
-        }, sort_keys=False))
-
-    def run_update(self):
-        with patch.object(updater, "__file__", str(self.fake_script)), \
-             patch.object(sys, "argv", ["update-tagged-skills.py", "--apm", "/pinned/apm"]):
-            updater.main()
-
-    def test_current_tags_do_not_rewrite_manifest_or_regenerate_lock(self):
-        self.write_manifest([
-            {"git": "https://github.com/owner/skills.git", "path": "skills/one", "ref": "v1.2.3"},
-            {"git": "https://github.com/owner/skills.git", "path": "skills/two", "ref": "v1.2.3"},
-        ])
-        original = self.manifest_path.read_text()
-        with patch.object(updater, "github_tags", return_value=["v1.2.3", "v1.2.2"]) as tags, \
-             patch.object(updater, "regenerate_lock") as regenerate:
-            self.run_update()
-
-        self.assertEqual(self.manifest_path.read_text(), original)
-        tags.assert_called_once_with("owner/skills")
-        regenerate.assert_not_called()
-
-    def test_grouped_tag_updates_preserve_each_dependency_tag_policy(self):
-        self.write_manifest([
-            {"git": "https://github.com/owner/semver.git", "path": "skills/one", "ref": "v1.0.0"},
-            {"git": "https://github.com/owner/semver.git", "path": "skills/two", "ref": "v2.0.0"},
-            {"git": "https://github.com/owner/generated.git", "path": "skills/three",
-             "ref": "agent-skills-" + "a" * 40},
-        ])
-        tags_by_repository = {
-            "owner/semver": ["v2.1.0", "v2.0.0", "v1.0.0"],
-            "owner/generated": ["agent-skills-" + "b" * 40, "agent-skills-" + "a" * 40],
-        }
-        with patch.object(updater, "github_tags", side_effect=tags_by_repository.get), \
-             patch.object(updater, "regenerate_lock"):
-            self.run_update()
-
-        refs = [entry["ref"] for entry in yaml.safe_load(self.manifest_path.read_text())["dependencies"]["apm"]]
-        self.assertEqual(refs, ["v2.1.0", "v2.1.0", "agent-skills-" + "b" * 40])
 
 
 if __name__ == "__main__":

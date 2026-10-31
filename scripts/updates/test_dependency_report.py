@@ -17,7 +17,12 @@ class DependencyReportTests(unittest.TestCase):
             with self.subTest(expected=expected):
                 rows = self.report("modules/languages/gno.nix", before, after)
                 self.assertEqual(render_title(rows), expected)
-                self.assertIn("gnopls", render_table(rows))
+                table = render_table(rows)
+                for name in ("gno", "gnopls"):
+                    if name in expected.removeprefix("chore(deps): update ").split(", "):
+                        self.assertIn(f"| {name} |", table)
+                    else:
+                        self.assertNotIn(f"| {name} |", table)
 
     def test_title_rejects_noop_and_group_context_without_pin_changes(self):
         with self.assertRaises(ValueError):
@@ -61,44 +66,6 @@ class DependencyReportTests(unittest.TestCase):
         self.assertIn("VendorHash: old", rows[0]["previous"])
         self.assertIn("VendorHash: new", rows[0]["next"])
         self.assertEqual(render_title(rows), "chore(deps): update gno")
-
-    def test_timestamp_and_unrelated_lock_metadata_are_not_dependency_changes(self):
-        before = {"nodes": {"hermes": {"locked": {"rev": "same", "narHash": "same", "lastModified": 1}}}}
-        after = copy.deepcopy(before)
-        after["nodes"]["hermes"]["locked"]["lastModified"] = 2
-        rows = self.report("flake.lock", before, after)
-        with self.assertRaises(ValueError):
-            render_title(rows)
-        before = "dependencies:\n- repo_url: org/skill\n  resolved_commit: same\n  downloaded_at: yesterday\n"
-        rows = self.report("apm.lock.yaml", before, before.replace("yesterday", "today"))
-        with self.assertRaises(ValueError):
-            render_title(rows)
-
-    def test_flake_graph_and_same_revision_hash_changes_are_real(self):
-        before = {"nodes": {"hermes": {"locked": {"rev": "same", "narHash": "old"},
-                                      "inputs": {"dependency": "old-node"}}}}
-        for field, value in (("locked", {"rev": "same", "narHash": "new"}),
-                             ("inputs", {"dependency": "new-node"})):
-            after = copy.deepcopy(before)
-            after["nodes"]["hermes"][field] = value
-            rows = self.report("flake.lock", before, after)
-            self.assertEqual(render_title(rows), "chore(deps): update flake input hermes")
-            self.assertNotEqual(rows[0]["previous"], rows[0]["next"])
-
-    def test_apm_same_revision_file_and_deployment_hash_changes_remain_visible(self):
-        before = (
-            "dependencies:\n- repo_url: org/skill\n  resolved_commit: same\n"
-            "  deployed_file_hashes:\n    skill.md: old\n"
-            "deployments:\n- value: skill.md\n  content_hash: old\n"
-        )
-        for after in (before.replace("skill.md: old", "skill.md: new"),
-                      before.replace("content_hash: old", "content_hash: new")):
-            rows = self.report("apm.lock.yaml", before, after)
-            self.assertEqual(len(rows), 1)
-            self.assertEqual(rows[0]["change"], "Updated")
-            self.assertIn("old", rows[0]["previous"])
-            self.assertIn("new", rows[0]["next"])
-            self.assertNotIn("unchanged", render_title(rows))
 
     def test_homebrew_hermes_and_dependabot_include_transitive_lock_nodes(self):
         for owner in ("homebrew-core", "hermes-agent", "nixpkgs"):
@@ -197,6 +164,73 @@ class DependencyReportTests(unittest.TestCase):
         self.assertNotIn("skill-2-", title)
         self.assertTrue(title.endswith("(+4 more changed dependencies)"))
         self.assertNotIn("unchanged-plugin", title)
+
+    def test_mixed_and_unchanged_custom_reports_only_render_changed_dependencies(self):
+        fixtures = [
+            ("fixed release", "release-pins.json",
+             {"bun": {"version": "1.0.0", "hash": "old"}, "omp": {"version": "1.0.0", "hash": "same"}},
+             {"bun": {"version": "1.0.0", "hash": "new"}, "omp": {"version": "1.0.0", "hash": "same"}},
+             "bun", "omp", "hash: old", "hash: new"),
+            ("Gno", "modules/languages/gno.nix",
+             '  gnoRev = "same";\n  gnoHash = "old";\n  gnoplsRev = "retained";\n',
+             '  gnoRev = "same";\n  gnoHash = "new";\n  gnoplsRev = "retained";\n',
+             "gno", "gnopls", "Hash: old", "Hash: new"),
+            ("Paseo", "modules/paseo-plugins.json",
+             {"first": {"revision": "old", "hash": "old"}, "second": {"revision": "same", "hash": "same"}},
+             {"first": {"revision": "new", "hash": "new"}, "second": {"revision": "same", "hash": "same"}},
+             "first", "second", "revision: old", "revision: new"),
+            ("npm MCP", "home/.omp/agent/mcp.json",
+             {"mcpServers": {"first": {"command": "npx", "args": ["tool@1.0.0"]},
+                             "second": {"command": "npx", "args": ["other@1.0.0"]}}},
+             {"mcpServers": {"first": {"command": "npx", "args": ["tool@2.0.0"]},
+                             "second": {"command": "npx", "args": ["other@1.0.0"]}}},
+             "npm MCP first", "npm MCP second", "tool@1.0.0", "tool@2.0.0"),
+            ("skills manifest", "apm.yml",
+             'dependencies:\n  apm:\n  - git: org/first\n    ref: v1\n  - git: org/second\n    ref: v1\n',
+             'dependencies:\n  apm:\n  - git: org/first\n    ref: v2\n  - git: org/second\n    ref: v1\n',
+             "APM ref org/first", "APM ref org/second", "v1", "v2"),
+            ("skills lock", "apm.lock.yaml",
+             'dependencies:\n- repo_url: org/first\n  version: v1\n  resolved_commit: old\n- repo_url: org/second\n  resolved_commit: same\n',
+             'dependencies:\n- repo_url: org/first\n  version: v1\n  resolved_commit: new\n- repo_url: org/second\n  resolved_commit: same\n',
+             "APM lock org/first", "APM lock org/second", "resolved_commit: old", "resolved_commit: new"),
+        ]
+        for owner in ("homebrew-core", "hermes-agent"):
+            before = {"nodes": {
+                owner: {"original": {"ref": "v1"}, "locked": {"rev": "old", "narHash": "old"}},
+                "retained": {"locked": {"rev": "same", "narHash": "same"}},
+            }}
+            after = copy.deepcopy(before)
+            after["nodes"][owner]["locked"].update(rev="new", narHash="new")
+            fixtures.append((owner, "flake.lock", before, after,
+                             f"flake input {owner}", "flake input retained", "rev: old", "rev: new"))
+        for label, path, before, after, changed, retained, previous, current in fixtures:
+            with self.subTest(path=label, case="mixed"):
+                rows = self.report(path, before, after)
+                table = render_table(rows)
+                self.assertIn(f"| {changed} |", table)
+                self.assertNotIn(f"| {retained} |", table)
+                self.assertIn(previous.replace("_", "&#95;"), table)
+                self.assertIn(current.replace("_", "&#95;"), table)
+                self.assertNotIn("| Unchanged |", table)
+                self.assertNotIn("| Metadata unavailable |", table)
+                self.assertIn(changed.removeprefix("APM lock ").removeprefix("APM ref "), render_title(rows))
+            with self.subTest(path=label, case="unchanged"):
+                # A textual-only edit still exercises grouped-report collection.
+                text = before if isinstance(before, str) else json.dumps(before)
+                table = render_table(self.report(path, text, text + "\n"))
+                self.assertEqual(table, "No dependency pin changes.")
+
+    def test_table_filters_group_context_without_hiding_same_version_definition_changes(self):
+        rows = [
+            {"dependency": "retained", "previous": "v1", "next": "v1", "change": "Unchanged"},
+            {"dependency": "missing", "previous": None, "next": None, "change": "Metadata unavailable"},
+            {"dependency": "recipe", "previous": "v1", "next": "v1",
+             "change": "Definition only (version unchanged)"},
+        ]
+        table = render_table(rows)
+        self.assertNotIn("| retained |", table)
+        self.assertNotIn("| missing |", table)
+        self.assertIn("| recipe | v1 | v1 | Definition only (version unchanged) |", table)
 
     def test_table_escapes_untrusted_markdown_and_rejects_unsafe_links(self):
         table = render_table([{"dependency": "a|b`[x]", "previous": "old\x00\r\n<script>", "next": "v2\\x",

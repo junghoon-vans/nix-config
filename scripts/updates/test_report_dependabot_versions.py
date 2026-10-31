@@ -194,6 +194,47 @@ class DependabotVersionReportTests(unittest.TestCase):
         self.assertIn(added_revision, body)
         self.assertIn(removed_revision, body)
 
+    def test_action_mixed_report_keeps_real_pin_changes_and_omits_unchanged(self):
+        old_revision, new_revision = "a" * 40, "b" * 40
+        unchanged_revision = "c" * 40
+        metadata_revision = "d" * 40
+        before = workflow(
+            f"      - uses: actions/checkout@{old_revision} # v4.0.0\n"
+            f"      - uses: actions/cache@{metadata_revision} # v3.0.0\n"
+            f"      - uses: actions/setup-node@{unchanged_revision} # v4.0.0\n"
+        )
+        after = workflow(
+            f"      - uses: actions/checkout@{new_revision} # v4.0.0\n"
+            f"      - uses: actions/cache@{metadata_revision} # v3.0.1\n"
+            f"      - uses: actions/setup-node@{unchanged_revision} # v4.0.0\n"
+        )
+        self.fixture(pull_request(), [{"filename": ACTION_FILE, "status": "modified"}], {
+            BASE_SHA: {ACTION_FILE: before},
+            HEAD_SHA: {ACTION_FILE: after},
+        })
+
+        result = self.run_report()
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        patches = self.patches()
+        self.assertEqual(len(patches), 1)
+        body = patches[0]["body"]
+        section = body.split("<!-- dependabot-version-report:start -->", 1)[1].split(
+            "<!-- dependabot-version-report:end -->", 1
+        )[0]
+        self.assertIn(old_revision, section)
+        self.assertIn(new_revision, section)
+        self.assertEqual(section.count("v4.0.0"), 2)
+        self.assertIn("Action revision updated", section)
+        self.assertIn("Action pin metadata updated", section)
+        self.assertIn("actions/checkout", section)
+        self.assertIn("actions/cache", section)
+        self.assertIn("v3.0.0", section)
+        self.assertIn("v3.0.1", section)
+        self.assertNotIn("actions/setup-node", section)
+        self.assertNotIn("| Unchanged |", section)
+        self.assertEqual(sum(line.startswith("| ") for line in section.splitlines()), 4)
+
     def test_noop_report_is_idempotent_and_keeps_existing_body(self):
         content = workflow(f"      - uses: actions/checkout@{'a' * 40}\n")
         self.fixture(
@@ -211,27 +252,11 @@ class DependabotVersionReportTests(unittest.TestCase):
         self.assertEqual(len(patches), 1)
         body = patches[0]["body"]
         self.assertIn("Original PR details", body)
-        self.assertIn("No dependency changes were detected.", body)
+        self.assertIn("No dependency pin changes.", body)
+        self.assertNotIn("No dependency changes were detected.", body)
+        self.assertNotIn("| Dependency |", body)
+        self.assertEqual(body.count("No dependency pin changes."), 1)
         self.assertEqual(body.count("<!-- dependabot-version-report:start -->"), 1)
-
-    def test_action_comment_only_change_is_not_reported_as_dependency_change(self):
-        revision = "a" * 40
-        before = workflow(f"      - uses: actions/checkout@{revision} # v1.0.0\n")
-        after = workflow(f"      - uses: actions/checkout@{revision} # v1.0.1\n")
-        self.fixture(
-            pull_request(),
-            [{"filename": ACTION_FILE, "status": "modified"}],
-            {BASE_SHA: {ACTION_FILE: before}, HEAD_SHA: {ACTION_FILE: after}},
-        )
-
-        result = self.run_report()
-
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(len(self.patches()), 1)
-        body = self.patches()[0]["body"]
-        self.assertIn("No dependency changes were detected.", body)
-        self.assertNotIn("Action pin metadata updated", body)
-        self.assertNotIn(revision, body)
 
     def test_stale_head_is_refused_before_body_patch(self):
         before = workflow(f"      - uses: actions/checkout@{'a' * 40}\n")
@@ -276,6 +301,58 @@ class DependabotVersionReportTests(unittest.TestCase):
         self.assertIn(new_direct, body)
         self.assertIn(old_transitive, body)
         self.assertIn(new_transitive, body)
+
+    def test_nix_mixed_report_keeps_exact_pin_change_and_omits_unchanged_input(self):
+        old_direct, new_direct = "a" * 40, "b" * 40
+        unchanged_transitive = "c" * 40
+        before = json.loads(lockfile(old_direct, unchanged_transitive))
+        after = json.loads(lockfile(new_direct, unchanged_transitive))
+        before["nodes"]["direct"]["locked"]["narHash"] = "sha256-old-direct"
+        after["nodes"]["direct"]["locked"]["narHash"] = "sha256-new-direct"
+        before["nodes"]["direct"]["original"]["ref"] = "v1.2.3"
+        after["nodes"]["direct"]["original"]["ref"] = "v1.2.3"
+        pr = pull_request("dependabot/nix/flake-inputs-abcdef0123")
+        self.fixture(pr, [{"filename": "flake.lock", "status": "modified"}], {
+            BASE_SHA: {"flake.lock": json.dumps(before)},
+            HEAD_SHA: {"flake.lock": json.dumps(after)},
+        })
+
+        result = self.run_report()
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(len(self.patches()), 1)
+        body = self.patches()[0]["body"]
+        section = body.split("<!-- dependabot-version-report:start -->", 1)[1].split(
+            "<!-- dependabot-version-report:end -->", 1
+        )[0]
+        self.assertIn(old_direct, section)
+        self.assertIn(new_direct, section)
+        self.assertIn("narHash: sha256-old-direct", section)
+        self.assertIn("narHash: sha256-new-direct", section)
+        self.assertIn("flake input direct", section)
+        self.assertNotIn("flake input transitive", section)
+        self.assertNotIn("| Unchanged |", section)
+        self.assertNotIn("No dependency pin changes.", section)
+        self.assertEqual(sum(line.startswith("| ") for line in section.splitlines()), 3)
+
+    def test_nix_noop_report_has_no_empty_dependency_row(self):
+        content = lockfile("a" * 40, "c" * 40)
+        pr = pull_request("dependabot/nix/flake-inputs-abcdef0123")
+        self.fixture(pr, [{"filename": "flake.lock", "status": "modified"}], {
+            BASE_SHA: {"flake.lock": content},
+            HEAD_SHA: {"flake.lock": content},
+        })
+
+        result = self.run_report()
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(len(self.patches()), 1)
+        body = self.patches()[0]["body"]
+        section = body.split("<!-- dependabot-version-report:start -->", 1)[1].split(
+            "<!-- dependabot-version-report:end -->", 1
+        )[0]
+        self.assertEqual(section.strip(), "### Dependency version changes\n\nNo dependency pin changes.")
+        self.assertNotIn("| Dependency |", section)
 
 
 if __name__ == "__main__":

@@ -161,12 +161,14 @@ def update(root, dry_run=False, body_file=None, api=github, fetch=prefetch):
         if revision != current:
             plugin.update(revision=revision, hash=artifact_hash)
             changed = True
+        else:
+            continue  # Validation still covers every plugin; the table lists changes only.
         rows.append({
             "dependency": plugin_id,
             "previous": f"revision {current}",
             "next": f"revision {revision}",
             "change": (
-                f"{'Updated' if revision != current else 'Unchanged'}; {policy}; "
+                f"Updated; {policy}; "
                 f"Paseo requirement {requirement}; source hash {old_hash} → {artifact_hash}"
             ),
             "compare": f"https://github.com/{repository}/compare/{current}...{revision}",

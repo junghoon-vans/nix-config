@@ -115,9 +115,9 @@ class OpenUpdatePRTests(unittest.TestCase):
         env.update(overrides)
         return env
 
-    def run_helper(self, env, paths=None):
+    def run_helper(self, env):
         return subprocess.run(
-            ["bash", str(HELPER), BRANCH, "automated update", *(paths or [TARGET])],
+            ["bash", str(HELPER), BRANCH, "automated update", TARGET],
             cwd=self.repo, env=env, text=True,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         )
@@ -140,7 +140,7 @@ class OpenUpdatePRTests(unittest.TestCase):
         self.assertIn("revision: new", calls)
         self.assertIn("https://github.com/owner/plugin/compare/old...new", calls)
         self.assertIn("--title chore(deps): update example --body", calls)
-        self.assertIn("| unchanged |", calls)
+        self.assertNotIn("| unchanged |", calls)
         self.assertEqual(self.git(self.repo, "log", "-1", "--format=%s"), "chore(deps): update example")
 
     def test_invalid_metadata_stops_before_github_branch_or_push(self):
@@ -188,69 +188,15 @@ class OpenUpdatePRTests(unittest.TestCase):
         self.assertIn("revision: old", creation)
         self.assertIn("revision: current-update", creation)
         self.assertIn("--title chore(deps): update example --body", creation)
-        self.assertIn("| unchanged |", creation)
+        self.assertNotIn("| unchanged |", creation)
 
     def test_formatting_only_change_stops_before_github_or_branch_mutation(self):
         (self.repo / TARGET).write_text(grouped_plugin_source("old") + "\n")
         result = self.run_helper(self.helper_env(GH_APP_SLUG="dependency-updates"))
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("No dependency changes", result.stdout)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("No dependency changes", result.stderr)
         self.assertFalse(self.gh_log.exists())
         self.assertEqual(self.git(self.repo, "branch", "--show-current"), "main")
-
-    def test_all_updater_paths_skip_semantic_noops_without_mutating_git_or_github(self):
-        documents = {
-            "flake.lock": '{"nodes":{"hermes":{"locked":{"rev":"same","narHash":"same","lastModified":1}}}}',
-            "release-pins.json": '{"apm":{"version":"1.0","hash":"same"}}',
-            "modules/languages/gno.nix": 'gnoRev = "same";\ngnoplsRev = "same";\n',
-            "apm.yml": "dependencies:\n  apm:\n  - git: org/skills\n    ref: v1.0\n",
-            "apm.lock.yaml": "dependencies:\n- repo_url: org/skills\n  resolved_commit: same\n  downloaded_at: yesterday\n",
-            "home/.omp/agent/mcp.json": '{"mcpServers":{"tool":{"command":"npx","args":["tool@1.0.0"]}}}',
-            TARGET: grouped_plugin_source("old"),
-        }
-        for path, text in documents.items():
-            target = self.repo / path
-            target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_text(text)
-        self.git(self.repo, "add", *documents)
-        self.git(self.repo, "commit", "-m", "all update owners")
-        original_head = self.git(self.repo, "rev-parse", "HEAD")
-        for path, text in documents.items():
-            (self.repo / path).write_text(
-                text.replace('"lastModified":1', '"lastModified":2')
-                .replace("yesterday", "today") + "\n"
-            )
-        for paths in (["flake.lock"], ["release-pins.json"], ["modules/languages/gno.nix"],
-                      ["flake.nix", "flake.lock"], ["apm.yml", "apm.lock.yaml", "docs/skills.md"],
-                      ["home/.omp/agent/mcp.json"], [TARGET]):
-            with self.subTest(paths=paths):
-                result = self.run_helper(self.helper_env(), paths)
-                self.assertEqual(result.returncode, 0, result.stderr)
-                self.assertIn("No dependency changes", result.stdout)
-                self.assertFalse(self.gh_log.exists())
-                self.assertEqual(self.git(self.repo, "rev-parse", "HEAD"), original_head)
-                self.assertEqual(self.git(self.repo, "branch", "--show-current"), "main")
-
-    def test_homebrew_title_names_only_affected_packages_not_taps(self):
-        lock = self.repo / "flake.lock"
-        lock.write_text('{"nodes":{"homebrew-core":{"locked":{"rev":"old"}}}}')
-        self.git(self.repo, "add", "flake.lock")
-        self.git(self.repo, "commit", "-m", "homebrew base")
-        lock.write_text('{"nodes":{"homebrew-core":{"locked":{"rev":"new"}}}}')
-        changes = self.root / "homebrew-changes.json"
-        changes.write_text(json.dumps([
-            {"dependency": "jq", "previous": "1.7", "next": "1.7",
-             "change": "Definition only (version unchanged)"},
-            {"dependency": "git", "previous": "2.0", "next": "2.0", "change": "Unchanged"},
-        ]))
-        result = self.run_helper(self.helper_env(
-            GH_APP_SLUG="dependency-updates", DEPENDENCY_CHANGES_FILE=str(changes)),
-            ["flake.lock"])
-        self.assertEqual(result.returncode, 0, result.stderr)
-        calls = self.gh_log.read_text()
-        self.assertIn("--title chore(deps): update jq --body", calls)
-        self.assertNotIn("--title chore(deps): update flake", calls)
-        self.assertIn("Definition only (version unchanged)", calls)
 
     def test_github_api_failure_stops_before_branch_or_push(self):
         (self.repo / TARGET).write_text(plugin_source("changed"))

@@ -260,14 +260,16 @@ def action_rows(before, after):
         for action, occurrence in sorted(set(old_refs) | set(new_refs)):
             old = old_refs.get((action, occurrence))
             new = new_refs.get((action, occurrence))
-            if old is not None and new is not None and old["revision"] == new["revision"]:
+            if old == new:
                 continue
             if old is None:
                 change = "Action reference added"
             elif new is None:
                 change = "Action reference removed"
-            else:
+            elif old["revision"] != new["revision"]:
                 change = "Action revision updated"
+            else:
+                change = "Action pin metadata updated"
             dependency = f"{path} — {action}"
             if occurrence > 1:
                 dependency += f" (use {occurrence})"
@@ -291,10 +293,7 @@ def _section(rows):
     table = render_table(rows)
     if not isinstance(table, str) or not table.strip():
         raise ValueError("Version table renderer returned no table")
-    lines = [START_MARKER, "### Dependency version changes", "", table.rstrip()]
-    if not rows:
-        lines.extend(["", "No dependency changes were detected."])
-    lines.append(END_MARKER)
+    lines = [START_MARKER, "### Dependency version changes", "", table.rstrip(), END_MARKER]
     return "\n".join(lines)
 
 
