@@ -45,6 +45,27 @@ This automatic registration applies to OMP processes launched from the managed i
 GUI applications do not source `.zshrc`; a GUI launcher must pass `PI_CONFIG_FILES` itself or add
 the same overlay with its OMP launch arguments.
 
+## Hermes search and coding delegation
+
+`modules/hermes.nix` exposes `fast`, `deep`, and `omp` through the official
+`advanced-delegation` model map. `omp` replaces `coder`; there is no compatibility
+alias. Saved prompts or task payloads using `option: coder` must use `option: omp`.
+The provider ID remains `omp-acp` and model selection, authentication, retry settings,
+and approval boundaries are unchanged.
+
+Use `omp` for web search/검색 with actual retrieval and linked sources, as well as
+repository inspection, coding, and verification. Web-only tasks need no repository;
+repository tasks still require an absolute path within the configured roots and an
+isolated worktree for changes. `fast` and `deep` reason over supplied context only.
+
+This route works with the published provider pinned in `flake.lock`; it does not
+install a separately discoverable Hermes search skill. Bundled search-skill support
+in the companion plugin must be published before Nix can pin it. When updating to
+the split repository layout, `providerSource` must select the `model-provider`
+subdirectory rather than the repository root. Never ship a local worktree or an
+unpublished plugin commit as the input. Plugin installation is not OMP installation:
+the executable and its model/search authentication remain external prerequisites.
+
 ## Hermes ACP retry limit
 
 `modules/hermes.nix` generates a Nix-store overlay with `retry.maxRetries: 3` and
