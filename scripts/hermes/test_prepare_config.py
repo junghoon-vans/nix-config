@@ -131,6 +131,23 @@ class HermesRuntimeConfig(unittest.TestCase):
             "command_allowlist": [],
         })
 
+    def test_shared_skill_roots_preserve_existing_paths_without_duplicates(self):
+        self.runtime.write_text(yaml.safe_dump({
+            "skills": {"external_dirs": ["/existing/skills", "/shared/skills"], "disabled": ["local"]},
+        }))
+        self.runtime.chmod(0o600)
+        self.write_defaults(self.defaults_path, {
+            "skills": {"external_dirs": ["/shared/skills", "/new/skills"]},
+        })
+
+        self.check()
+        self.check()
+
+        self.assertEqual(yaml.safe_load(self.runtime.read_text())["skills"], {
+            "external_dirs": ["/existing/skills", "/shared/skills", "/new/skills"],
+            "disabled": ["local"],
+        })
+
     def test_legacy_nix_store_symlink_is_replaced_without_touching_target(self):
         legacy_path = self.store / "previous-config.yaml"
         legacy_content = b"model:\n  provider: old\ncommand_allowlist:\n  - old command\n"

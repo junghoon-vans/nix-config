@@ -11,7 +11,7 @@
     nix-homebrew.inputs.brew-src.url = "github:Homebrew/brew/7.0.11";
     hermes-agent.url = "github:NousResearch/hermes-agent/v0.22.5";
     hermes-omp-acp = {
-      url = "github:junghoon-vans/hermes-omp-acp/v0.2.3";
+      url = "github:junghoon-vans/hermes-omp-acp/b1f0906db83172991e7790691d4eb691f1ec4ffa";
       flake = false;
     };
     hermes-official-plugins = {

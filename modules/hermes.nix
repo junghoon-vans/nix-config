@@ -45,6 +45,7 @@ let
       default = cfg.model;
     };
     providers."omp-acp".stale_timeout_seconds = 1800;
+    skills.external_dirs = [ "${providerSource}/skills" ];
     # This Home Manager-owned profile runs separately from the default host gateway.
     gateway.standalone = true;
     agent = {
@@ -207,6 +208,7 @@ in
           {
             HERMES_INSTALL_ROOT = "${cfg.package}/share/hermes-agent";
             HERMES_BUNDLED_PLUGINS = "${cfg.package}/share/hermes-agent/plugins";
+            HERMES_BUNDLED_SKILLS = "${cfg.package}/share/hermes-agent/skills";
             PYTHONDONTWRITEBYTECODE = "1";
           }
           ''

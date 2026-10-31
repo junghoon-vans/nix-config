@@ -145,6 +145,15 @@ def prepare_runtime_config(home, defaults_path):
     defaults = _load_config(defaults_path.read_bytes(), "the declared Nix Hermes config defaults")
     previous = _load_config(previous_content, "the existing Hermes runtime config")
     result = _overlay_config(previous, defaults)
+    # External skill roots are additive; unlike route lists, Nix must not hide
+    # user-declared skills when connecting the shared provider resources.
+    previous_skills = previous.get("skills", {})
+    declared_skills = defaults.get("skills", {})
+    if isinstance(previous_skills, dict) and isinstance(declared_skills, dict):
+        previous_dirs = previous_skills.get("external_dirs", [])
+        declared_dirs = declared_skills.get("external_dirs")
+        if isinstance(previous_dirs, list) and isinstance(declared_dirs, list):
+            result["skills"]["external_dirs"] = list(dict.fromkeys([*previous_dirs, *declared_dirs]))
     content = yaml.safe_dump(result, sort_keys=False, allow_unicode=True).encode("utf-8")
     if previous_content == content and previous_mode == 0o600:
         if _runtime_state(runtime_path) != state:
