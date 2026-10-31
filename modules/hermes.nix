@@ -17,7 +17,6 @@ let
   providerSource = inputs.hermes-omp-acp;
   delegationSource = "${inputs.hermes-official-plugins}/advanced-delegation";
   hermesPackages = inputs.hermes-agent.packages.${pkgs.stdenv.hostPlatform.system};
-  hermesPkgs = inputs.hermes-agent.inputs.nixpkgs.legacyPackages.${pkgs.stdenv.hostPlatform.system};
   # Hermes 0.22.5 attaches Linux ELF fixups to its Darwin pm artifacts too.
   # Keep the upstream artifact pins, but do not run auto-patchelf on Mach-O.
   pmPackages = lib.mapAttrs' (
@@ -166,18 +165,6 @@ in
       type = lib.types.package;
       default = hermesPackages.messaging.override {
         inherit pmPackages;
-        callPackage =
-          path: args:
-          hermesPkgs.callPackage path (
-            args
-            // lib.optionalAttrs (baseNameOf path == "python.nix") {
-              pythonSrc = pkgs.applyPatches {
-                name = "hermes-nix-service-source";
-                src = args.pythonSrc;
-                patches = [ ../packages/hermes-nix-launchd.patch ];
-              };
-            }
-          );
         version = lib.removePrefix "v" (builtins.fromJSON (builtins.readFile ../flake.lock))
         .nodes.hermes-agent.original.ref;
         extraDependencyGroups = [
@@ -201,9 +188,6 @@ in
 
   config = lib.mkIf cfg.enable {
     environment.systemPackages = [ cfg.package ];
-    environment.etc."hermes/launchd/ai.hermes.gateway-${profileName}.plist".source = "${
-      config.home-manager.users.${user}.home.activationPackage
-    }/LaunchAgents/ai.hermes.gateway-${profileName}.plist";
     assertions = [
       {
         assertion = config.workstation.omp.enable && cfg.repositoryRoots != [ ];
@@ -222,7 +206,10 @@ in
           ''
             ${cfg.package.hermesVenv}/bin/python3 ${../tests/hermes/test_packaged_runtime.py} \
               ${hermesConfig} ${providerSource} ${delegationSource} ${lib.escapeShellArg cfg.package.version} \
-              ${lib.getExe config.workstation.omp.package}
+              ${lib.getExe config.workstation.omp.package} \
+              ${
+                config.home-manager.users.${user}.home.activationPackage
+              }/LaunchAgents/org.nixos.hermes.gateway-${profileName}.plist
             touch "$out"
           '';
     };
@@ -256,7 +243,8 @@ in
       launchd.agents.hermes = {
         enable = true;
         config = {
-          Label = "ai.hermes.gateway-${profileName}";
+          # Outside Hermes's ai.hermes.gateway-* namespace: only Home Manager owns this job.
+          Label = "org.nixos.hermes.gateway-${profileName}";
           ProgramArguments = [
             (lib.getExe cfg.package)
             "--profile"

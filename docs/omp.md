@@ -66,6 +66,45 @@ Hermes launch arguments override that control and send exactly four. The check a
 the minimum backoff intervals without imposing scheduling-sensitive upper bounds. No live model
 account or workstation activation is needed.
 
+## Hermes gateway service ownership
+
+Home Manager owns the `org.nixos.hermes.gateway-omp-worker` LaunchAgent definition, installation,
+and activation. The agent launches the packaged Hermes CLI with
+`--profile omp-worker gateway run --external-supervisor` and keeps
+`HERMES_HOME=~/.hermes/profiles/omp-worker`; launchd owns process lifetime and restart. There is no
+runtime plist under `/etc/hermes/launchd`.
+
+Hermes's built-in service-management commands derive the canonical
+`ai.hermes.gateway-omp-worker` label, not this custom job. Do not use `hermes gateway install`
+or `uninstall` to manage it: installation can create a second, independently owned service.
+`gateway stop` can still terminate the profile's process without unloading the custom job.
+`hermes --profile omp-worker gateway restart` recognizes an externally supervised running
+gateway, requests a graceful exit, and waits for launchd to bring up its replacement; it does
+not own the custom service definition. Use launchctl for authoritative service status and restart.
+
+Inspect the loaded LaunchAgent in the logged-in user's GUI domain:
+
+```sh
+launchctl print "gui/$(id -u)/org.nixos.hermes.gateway-omp-worker"
+```
+
+To force launchd to restart it:
+
+```sh
+launchctl kickstart -k "gui/$(id -u)/org.nixos.hermes.gateway-omp-worker"
+```
+
+During a Home Manager transition from the old managed label, activation processes the new or updated
+agent before cleaning up agents removed from the previous generation. Home Manager boots out and
+removes the old plist only if its installed bytes still match that previous-generation definition;
+it preserves a diverged plist. The old and new agents may therefore overlap briefly. Hermes's
+gateway host-lock conflict exits with status 75, which remains retryable with
+`KeepAlive.SuccessfulExit=false`; this LaunchAgent also uses a 30-second `ThrottleInterval`.
+A diverged old plist, or a canonical service not tracked by the previous Home Manager generation,
+is not automatically deleted. Review such a competing service and obtain approval for manual
+cleanup before activation; do not remove other profiles' services. No activation or live service
+migration is performed by a build.
+
 ## Skill ownership
 
 APM owns generated global skills. Project-local skills stay with their project. Use a local overlay
