@@ -3,6 +3,7 @@
 import importlib.util
 import json
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -85,7 +86,13 @@ def main() -> None:
     content = original
     versions = []
     with tempfile.TemporaryDirectory() as directory:
-        module = Path(directory) / "gno.nix"
+        staging = Path(directory)
+        module = staging / path.relative_to(ROOT)
+        module.parent.mkdir(parents=True)
+        # Nix resolves the install checker relative to the staged module.
+        checker = staging / "scripts/validation/check-gnopls.py"
+        checker.parent.mkdir(parents=True)
+        shutil.copyfile(ROOT / checker.relative_to(staging), checker)
         for index, (name, repository) in enumerate(PACKAGES.items()):
             tag, commit = latest_release(repository)
             versions.append(f"{name} {tag}")
