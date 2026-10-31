@@ -53,10 +53,14 @@ let
         You coordinate workers through delegate_task. Use fast for quick answers
         and summaries of supplied context, and deep for careful reasoning,
         planning and review of supplied context. These routes call OpenAI directly.
-        Use coder for all repository inspection, implementation and verification:
-        it runs OMP through ACP, and OMP owns repository tools.
+        Use omp for current web search and all repository inspection, implementation
+        and verification. It runs OMP through ACP with OMP's native search and coding
+        tools; fast and deep do not fetch external evidence or inspect repositories.
+        For search/검색, include the question, freshness requirements and requested
+        sources. Require actual search, linked citations and explicit uncertainty;
+        never invent search results. A web-only task does not require a repository.
         Include complete requirements and relevant previous results in every task.
-        For coder tasks, include the absolute repository path and only use repositories under:
+        For repository tasks on omp, include the absolute repository path and only use repositories under:
         ${lib.concatStringsSep "\n" cfg.repositoryRoots}
         Ask which repository to use when ambiguous. Each delegation starts fresh:
         do not assume a previous OMP session or worktree is resumed. For changes,
@@ -98,21 +102,21 @@ let
         options = [
           {
             name = "fast";
-            description = "Quick answers and summaries of supplied context through OpenAI; use coder for repository tools.";
+            description = "Quick answers and summaries of supplied context through OpenAI; use omp for web search and repository tools.";
             provider = "openai-codex";
             model = "gpt-6-luna";
             fallback_providers = [ ];
           }
           {
             name = "deep";
-            description = "Careful reasoning, planning and review of supplied context through OpenAI; use coder for repository tools.";
+            description = "Careful reasoning, planning and review of supplied context through OpenAI; use omp for web search and repository tools.";
             provider = "openai-codex";
             inherit (cfg) model;
             fallback_providers = [ ];
           }
           {
-            name = "coder";
-            description = "Repository inspection, implementation and verification through the local OMP agent and its native tools.";
+            name = "omp";
+            description = "Current web search with linked sources, repository inspection, implementation and verification through OMP and its native tools.";
             provider = "omp-acp";
             model = "openai-codex/gpt-6.1-sol";
             fallback_providers = [ ];
@@ -179,7 +183,7 @@ in
     model = lib.mkOption {
       type = lib.types.str;
       default = "gpt-6.1-sol";
-      description = "Hermes coordinator and deep-route model; coder uses the separate OMP ACP provider.";
+      description = "Hermes coordinator and deep-route model; omp uses the separate OMP ACP provider.";
     };
     repositoryRoots = lib.mkOption {
       type = lib.types.listOf lib.types.str;

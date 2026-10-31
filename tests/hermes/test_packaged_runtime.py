@@ -419,7 +419,7 @@ class PackagedHermesIntegration(unittest.TestCase):
         self.assertIn("delegate_task", functions, "delegate_task is missing from Slack tools")
         self.assertFalse({"omp_task", "omp_status", "omp_cancel"} & functions.keys())
         properties = functions["delegate_task"]["parameters"]["properties"]["tasks"]["items"]["properties"]
-        self.assertEqual(properties.get("option", {}).get("enum"), ["fast", "deep", "coder"])
+        self.assertEqual(properties.get("option", {}).get("enum"), ["fast", "deep", "omp"])
 
     def test_slack_delegation_schema(self):
         self.check_slack_tools(self.config)
@@ -443,49 +443,49 @@ class PackagedHermesIntegration(unittest.TestCase):
                 self.assertEqual(route.get("provider"), "openai-codex")
                 self.assertFalse(route.get("base_url"))
 
-    def resolve_coder(self, config):
+    def resolve_omp(self, config):
         from tools.delegate_tool_routes import resolve_task_routes
         from agent.delegation_registry import backend_status
         backend, error = backend_status("model_map")
         self.assertFalse(error)
         self.assertIsNotNone(backend)
-        route = backend.route_task({"option": "coder"}, config["delegation"])
-        self.assertEqual(route.get("provider"), "omp-acp", "coder must use omp-acp")
+        route = backend.route_task({"option": "omp"}, config["delegation"])
+        self.assertEqual(route.get("provider"), "omp-acp", "omp must use omp-acp")
         routes, error = resolve_task_routes(
-            [{"goal": "Inspect the repository", "option": "coder"},
-             {"goal": "Refuse an unknown route", "option": "unknown-route"}],
+            [{"goal": "Search current primary sources", "option": "omp"},
+             {"goal": "Refuse the removed coder route", "option": "coder"}],
             config["delegation"], None,
         )
         self.assertFalse(error)
         self.assertEqual(len(routes), 2)
         self.assertFalse(routes[0].error, str(routes[0].error))
-        self.assertTrue(routes[1].error, "Unknown delegation options must be refused")
-        coder = routes[0]
-        credentials = coder.creds
-        self.assertEqual(coder.backend, "model_map")
-        self.assertEqual(credentials.get("provider"), "omp-acp", "coder must use omp-acp")
-        self.assertEqual(credentials.get("model"), coder.routing_cfg["model"])
+        self.assertTrue(routes[1].error, "The removed coder option must be refused")
+        omp = routes[0]
+        credentials = omp.creds
+        self.assertEqual(omp.backend, "model_map")
+        self.assertEqual(credentials.get("provider"), "omp-acp", "omp must use omp-acp")
+        self.assertEqual(credentials.get("model"), omp.routing_cfg["model"])
         command = credentials.get("command")
-        self.assertTrue(command, "coder lost its packaged OMP executable")
+        self.assertTrue(command, "omp lost its packaged OMP executable")
         self.assertEqual(Path(command).resolve(), Path(self.expected_command).resolve())
         self.assertTrue(os.access(command, os.X_OK))
         settings = config["plugins"]["entries"]["omp-acp-provider"]["settings"]
         self.assertEqual(credentials.get("args"), settings["args"])
         return credentials
 
-    def test_coder_dispatch_and_unknown_route_refusal(self):
-        self.resolve_coder(self.config)
+    def test_omp_dispatch_and_removed_coder_refusal(self):
+        self.resolve_omp(self.config)
 
-    def test_wrong_coder_provider_is_rejected(self):
+    def test_wrong_omp_provider_is_rejected(self):
         config = copy.deepcopy(self.config)
         options = config["delegation"]["backends"]["model_map"]["options"]
-        next(option for option in options if option["name"] == "coder")["provider"] = "openai-codex"
-        with self.assertRaisesRegex(AssertionError, "coder must use omp-acp"):
-            self.resolve_coder(config)
+        next(option for option in options if option["name"] == "omp")["provider"] = "openai-codex"
+        with self.assertRaisesRegex(AssertionError, "omp must use omp-acp"):
+            self.resolve_omp(config)
 
     def test_native_acp_capacity_retries(self):
         from providers import get_provider_profile
-        credentials = self.resolve_coder(self.config)
+        credentials = self.resolve_omp(self.config)
         check_acp_retries(get_provider_profile("omp-acp"), credentials["command"], credentials["args"], self.root)
 
 
