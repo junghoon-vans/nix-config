@@ -82,8 +82,15 @@ let
         "cronjob"
         "session_search"
         "memory"
+        "skills"
       ];
-      cli = [ "delegation" ];
+      cli = [
+        "delegation"
+        "cronjob"
+        "session_search"
+        "memory"
+        "skills"
+      ];
     };
     platforms.slack = {
       enabled = true;

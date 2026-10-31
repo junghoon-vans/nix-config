@@ -465,27 +465,38 @@ class PackagedHermesIntegration(unittest.TestCase):
         self.assertIsNone(get_provider_request_timeout("omp-acp"))
         self.assertIsNone(get_provider_stale_timeout("openai-codex"))
 
-    def check_slack_tools(self, config):
+    def check_platform_tools(self, config, platform):
         import model_tools
         from hermes_cli.tools_config import _get_platform_tools
-        definitions = model_tools.get_tool_definitions(
-            enabled_toolsets=sorted(_get_platform_tools(config, "slack")),
-            quiet_mode=True, skip_tool_search_assembly=True,
-        )
+        # Match the platform's live session; cron is unavailable in batch mode.
+        session_env = {
+            "HERMES_GATEWAY_SESSION": "1" if platform == "slack" else "0",
+            "HERMES_INTERACTIVE": "1" if platform == "cli" else "0",
+        }
+        # Inspect the raw catalog: tool-search assembly may defer schemas from
+        # the initially visible list without removing their availability.
+        with patch.dict(os.environ, session_env):
+            definitions = model_tools.get_tool_definitions(
+                enabled_toolsets=sorted(_get_platform_tools(config, platform)),
+                quiet_mode=False, skip_tool_search_assembly=True,
+            )
         functions = {tool["function"]["name"]: tool["function"] for tool in definitions}
-        self.assertIn("delegate_task", functions, "delegate_task is missing from Slack tools")
+        required = {
+            "delegate_task", "cronjob_manage", "session_search", "memory",
+            "skills_list", "skill_view", "skill_manage",
+        }
+        self.assertFalse(
+            required - functions.keys(),
+            f"{platform} raw tools missing: {sorted(required - functions.keys())}",
+        )
         self.assertFalse({"omp_task", "omp_status", "omp_cancel"} & functions.keys())
         properties = functions["delegate_task"]["parameters"]["properties"]["tasks"]["items"]["properties"]
         self.assertEqual(properties.get("option", {}).get("enum"), ["fast", "deep", "omp"])
 
-    def test_slack_delegation_schema(self):
-        self.check_slack_tools(self.config)
-
-    def test_missing_slack_delegation_is_rejected(self):
-        config = copy.deepcopy(self.config)
-        config["platform_toolsets"]["slack"] = ["memory"]
-        with self.assertRaisesRegex(AssertionError, "delegate_task is missing"):
-            self.check_slack_tools(config)
+    def test_platform_coordinator_raw_tools(self):
+        for platform in ("slack", "cli"):
+            with self.subTest(platform=platform):
+                self.check_platform_tools(self.config, platform)
 
     def test_direct_openai_routes(self):
         from agent.delegation_registry import backend_status
