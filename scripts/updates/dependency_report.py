@@ -156,8 +156,33 @@ def collect_rows(before, after):
     return rows
 
 
+def render_title(rows):
+    """Name changed dependencies only; grouped context belongs in the body."""
+    names = []
+    for item in rows:
+        if item["change"] in ("Unchanged", "Metadata unavailable"):
+            continue
+        name = item["dependency"]
+        if name.startswith(("APM ref ", "APM lock ")):
+            name = re.sub(r"^APM (?:ref|lock) ", "APM ", name)
+            name = name.replace("https://github.com/", "").replace(".git /", " /")
+        name = " ".join(name.split())
+        if name not in names:
+            names.append(name)
+    if not names:
+        raise ValueError("No dependency changes; refusing an unchanged update title")
+    prefix = "chore(deps): update "
+    # GitHub limits PR titles to 256 characters. Keep full identities in the body.
+    for count in range(len(names), 0, -1):
+        suffix = f" (+{len(names) - count} more changed dependencies)" if count < len(names) else ""
+        title = prefix + ", ".join(names[:count]) + suffix
+        if len(title) <= 256:
+            return title
+    return prefix + f"{len(names)} changed dependencies"
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--title", action="store_true", help="Print a changed-dependency title instead of the body")
     parser.add_argument("paths", nargs="+")
     args = parser.parse_args()
     before, after = {}, {}
@@ -174,6 +199,13 @@ def main():
     rows = collect_rows(before, after)
     if not rows:
         parser.error("Changed update paths contain no reportable dependency metadata; refusing an incomplete PR body")
+    try:
+        title = render_title(rows)
+    except ValueError as error:
+        parser.error(str(error))
+    if args.title:
+        print(title)
+        return
     context = sys.stdin.read()
     print(context.rstrip() + "\n\n## Dependency versions and pins\n\n" + render_table(rows))
 

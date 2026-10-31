@@ -2,11 +2,31 @@ import copy
 import json
 import unittest
 
-from dependency_report import collect_rows
+from dependency_report import collect_rows, render_title
 from version_table import render_table
 
 
 class DependencyReportTests(unittest.TestCase):
+    def test_titles_include_only_changed_gno_components(self):
+        before = '  gnoRev = "old-gno";\n  gnoplsRev = "old-gnopls";\n'
+        for after, expected in (
+            (before.replace('"old-gno"', '"new-gno"'), "chore(deps): update gno"),
+            (before.replace("old-gnopls", "new-gnopls"), "chore(deps): update gnopls"),
+            (before.replace("old-", "new-"), "chore(deps): update gno, gnopls"),
+        ):
+            with self.subTest(expected=expected):
+                rows = self.report("modules/languages/gno.nix", before, after)
+                self.assertEqual(render_title(rows), expected)
+                self.assertIn("gnopls", render_table(rows))
+
+    def test_title_rejects_noop_and_group_context_without_pin_changes(self):
+        with self.assertRaises(ValueError):
+            render_title([])
+        before = '  gnoRev = "same";\n  gnoplsRev = "same";\n'
+        rows = self.report("modules/languages/gno.nix", before, before + "# formatting only\n")
+        with self.assertRaises(ValueError):
+            render_title(rows)
+
     def report(self, path, before, after):
         if not isinstance(before, str):
             before = json.dumps(before)
@@ -23,6 +43,7 @@ class DependencyReportTests(unittest.TestCase):
                 self.assertEqual(rows[0]["previous"], "hash: old; version: 1.0.0")
                 self.assertEqual(rows[0]["next"], "hash: new; version: 2.0.0")
                 self.assertTrue(rows[0]["compare"].endswith(f"/{tag}1.0.0...{tag}2.0.0"))
+                self.assertEqual(render_title(rows), f"chore(deps): update {name}")
 
     def test_gno_group_reports_full_revision_and_unchanged_gnopls(self):
         before = '  gnoRev = "' + "a" * 40 + '";\n  gnoplsRev = "' + "c" * 40 + '";\n'
@@ -39,6 +60,7 @@ class DependencyReportTests(unittest.TestCase):
         self.assertEqual(rows[0]["change"], "Updated")
         self.assertIn("VendorHash: old", rows[0]["previous"])
         self.assertIn("VendorHash: new", rows[0]["next"])
+        self.assertEqual(render_title(rows), "chore(deps): update gno")
 
     def test_homebrew_hermes_and_dependabot_include_transitive_lock_nodes(self):
         for owner in ("homebrew-core", "hermes-agent", "nixpkgs"):
@@ -56,6 +78,7 @@ class DependencyReportTests(unittest.TestCase):
                 self.assertIn("https://example.test/old", rows[1]["previous"])
                 self.assertIn("https://example.test/new", rows[1]["next"])
                 self.assertIsNone(rows[1]["compare"])
+                self.assertEqual(render_title(rows), f"chore(deps): update flake input {owner}, flake input transitive_2")
     def test_hermes_tag_and_missing_lock_version_metadata_stay_distinct(self):
         old = {"nodes": {"hermes-agent": {"original": {"ref": "v0.20.0"},
                                          "locked": {"type": "github", "owner": "NousResearch", "repo": "hermes-agent", "rev": "old"}}}}
@@ -82,12 +105,14 @@ class DependencyReportTests(unittest.TestCase):
         self.assertIn("@org/tool@1.1.0", rows[0]["next"])
         self.assertIn("another@2.0.0", rows[1]["previous"])
         self.assertIn("another@3.0.0", rows[1]["next"])
+        self.assertEqual(render_title(rows), "chore(deps): update npm MCP first, npm MCP second")
 
     def test_tagged_skills_show_manifest_refs_and_lock_only_dependency_changes(self):
         before = 'dependencies:\n  apm:\n  - git: https://github.com/org/skills.git\n    path: skills/a\n    ref: v1.0.0\n'
         manifest_rows = self.report("apm.yml", before, before.replace("v1.0.0", "v2.0.0"))
         self.assertEqual(manifest_rows[0]["previous"], "v1.0.0")
         self.assertEqual(manifest_rows[0]["next"], "v2.0.0")
+        self.assertEqual(render_title(manifest_rows), "chore(deps): update APM org/skills / skills/a")
         before = 'dependencies:\n- repo_url: org/skills\n  virtual_path: skills/a\n  resolved_commit: old\n  version: unknown\n- repo_url: org/skills\n  virtual_path: skills/transitive\n  resolved_commit: old-transitive\n'
         after = before.replace("resolved_commit: old\n", "resolved_commit: new\n").replace("old-transitive", "new-transitive")
         rows = self.report("apm.lock.yaml", before, after)
@@ -95,6 +120,8 @@ class DependencyReportTests(unittest.TestCase):
         self.assertIn("resolved_commit: old", rows[0]["previous"])
         self.assertIn("resolved_commit: new", rows[0]["next"])
         self.assertIn("new-transitive", rows[1]["next"])
+        self.assertEqual(render_title(manifest_rows + rows),
+                         "chore(deps): update APM org/skills / skills/a, APM org/skills / skills/transitive")
 
     def test_plugins_include_grouped_unchanged_members_without_fabricated_versions(self):
         old = {"first": {"repository": "org/plugin", "revision": "a" * 40, "hash": "old"},
@@ -105,6 +132,7 @@ class DependencyReportTests(unittest.TestCase):
         self.assertIn("revision: " + "a" * 40, rows[0]["previous"])
         self.assertIn("revision: " + "b" * 40, rows[0]["next"])
         self.assertEqual(rows[1]["change"], "Unchanged")
+        self.assertEqual(render_title(rows), "chore(deps): update first")
 
     def test_added_removed_missing_metadata_and_noop(self):
         rows = self.report("release-pins.json", {"gone": {"hash": "old"}}, {"new": {"hash": "new"}})
@@ -120,6 +148,17 @@ class DependencyReportTests(unittest.TestCase):
         self.assertEqual(rows[0]["change"], "Added")
         self.assertIn("rev: exact-pin", rows[0]["next"])
         self.assertIsNone(rows[0]["compare"])
+        self.assertEqual(render_title(rows), "chore(deps): update flake input unknown")
+
+    def test_long_titles_keep_only_complete_changed_names_with_overflow_count(self):
+        rows = [{"dependency": f"skill-{index}-" + "x" * 70, "change": "Updated"} for index in range(6)]
+        title = render_title(rows + [{"dependency": "unchanged-plugin", "change": "Unchanged"}])
+        self.assertLessEqual(len(title), 256)
+        self.assertIn("skill-0-", title)
+        self.assertIn("skill-1-", title)
+        self.assertNotIn("skill-2-", title)
+        self.assertTrue(title.endswith("(+4 more changed dependencies)"))
+        self.assertNotIn("unchanged-plugin", title)
 
     def test_table_escapes_untrusted_markdown_and_rejects_unsafe_links(self):
         table = render_table([{"dependency": "a|b`[x]", "previous": "old\x00\r\n<script>", "next": "v2\\x",

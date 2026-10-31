@@ -17,6 +17,12 @@ TARGET = "modules/paseo-plugins.json"
 def plugin_source(revision):
     return json.dumps({"example": {"repository": "owner/plugin", "revision": revision, "hash": "sha256-test"}})
 
+
+def grouped_plugin_source(revision):
+    plugins = json.loads(plugin_source(revision))
+    plugins["unchanged"] = {"repository": "owner/other", "revision": "same", "hash": "same"}
+    return json.dumps(plugins)
+
 MOCK_GH = """#!/bin/sh
 set -eu
 printf '%s\\n' "$*" >> "$GH_TEST_LOG"
@@ -82,7 +88,7 @@ class OpenUpdatePRTests(unittest.TestCase):
         self.git(self.repo, "config", "user.email", "test@example.invalid")
         target = self.repo / TARGET
         target.parent.mkdir(parents=True)
-        target.write_text(plugin_source("old"))
+        target.write_text(grouped_plugin_source("old"))
         self.git(self.repo, "add", TARGET)
         self.git(self.repo, "commit", "-m", "initial")
         self.git(self.repo, "remote", "add", "origin", str(self.origin))
@@ -111,7 +117,7 @@ class OpenUpdatePRTests(unittest.TestCase):
 
     def run_helper(self, env):
         return subprocess.run(
-            ["bash", str(HELPER), BRANCH, "chore(deps): update plugins", "automated update", TARGET],
+            ["bash", str(HELPER), BRANCH, "automated update", TARGET],
             cwd=self.repo, env=env, text=True,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         )
@@ -124,7 +130,7 @@ class OpenUpdatePRTests(unittest.TestCase):
         self.assertEqual(self.git(self.repo, "branch", "--list", BRANCH), "")
 
     def test_new_pr_body_preserves_context_and_contains_before_after_pins(self):
-        (self.repo / TARGET).write_text(plugin_source("new"))
+        (self.repo / TARGET).write_text(grouped_plugin_source("new"))
         result = self.run_helper(self.helper_env(GH_APP_SLUG="dependency-updates"))
         self.assertEqual(result.returncode, 0, result.stderr)
         calls = self.gh_log.read_text()
@@ -133,6 +139,9 @@ class OpenUpdatePRTests(unittest.TestCase):
         self.assertIn("revision: old", calls)
         self.assertIn("revision: new", calls)
         self.assertIn("https://github.com/owner/plugin/compare/old...new", calls)
+        self.assertIn("--title chore(deps): update example --body", calls)
+        self.assertIn("| unchanged |", calls)
+        self.assertEqual(self.git(self.repo, "log", "-1", "--format=%s"), "chore(deps): update example")
 
     def test_invalid_metadata_stops_before_github_branch_or_push(self):
         (self.repo / TARGET).write_text("not json")
@@ -145,7 +154,7 @@ class OpenUpdatePRTests(unittest.TestCase):
     def test_existing_remote_branch_updates_open_pr_without_creating_another(self):
         target = self.repo / TARGET
         self.git(self.repo, "switch", "-c", BRANCH)
-        target.write_text(plugin_source("previous-update"))
+        target.write_text(grouped_plugin_source("previous-update"))
         self.git(self.repo, "add", TARGET)
         self.git(self.repo, "commit", "-m", "previous update")
         self.git(self.repo, "push", "--set-upstream", "origin", BRANCH)
@@ -158,7 +167,7 @@ class OpenUpdatePRTests(unittest.TestCase):
         previous_remote_commit = self.git(
             self.root, f"--git-dir={self.origin}", "rev-parse", f"refs/heads/{BRANCH}",
         )
-        target.write_text(plugin_source("current-update"))
+        target.write_text(grouped_plugin_source("current-update"))
 
         result = self.run_helper(self.helper_env(GH_APP_SLUG="dependency-updates", GH_PR_COUNT="1"))
 
@@ -178,6 +187,16 @@ class OpenUpdatePRTests(unittest.TestCase):
         self.assertIn("| example |", creation)
         self.assertIn("revision: old", creation)
         self.assertIn("revision: current-update", creation)
+        self.assertIn("--title chore(deps): update example --body", creation)
+        self.assertIn("| unchanged |", creation)
+
+    def test_formatting_only_change_stops_before_github_or_branch_mutation(self):
+        (self.repo / TARGET).write_text(grouped_plugin_source("old") + "\n")
+        result = self.run_helper(self.helper_env(GH_APP_SLUG="dependency-updates"))
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("No dependency changes", result.stderr)
+        self.assertFalse(self.gh_log.exists())
+        self.assertEqual(self.git(self.repo, "branch", "--show-current"), "main")
 
     def test_github_api_failure_stops_before_branch_or_push(self):
         (self.repo / TARGET).write_text(plugin_source("changed"))
