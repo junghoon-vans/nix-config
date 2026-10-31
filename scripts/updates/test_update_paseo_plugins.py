@@ -51,6 +51,8 @@ class PluginUpdates(unittest.TestCase):
         self.original = self.pins_file.read_text()
         (self.root / "release-pins.json").write_text(json.dumps({"paseo": {"version": "0.13.2"}}))
         self.revision = NEW
+        self.revisions = {}
+        self.branch = "main"
         self.sources = {}
         self.manifests = {}
         for plugin_id, (repository, directory) in PLUGIN_DEFINITIONS.items():
@@ -71,10 +73,11 @@ class PluginUpdates(unittest.TestCase):
         if "/releases?" in path:
             return []
         if "/commits/" in path:
-            return {"sha": self.revision}
+            repository = path.split("repos/", 1)[1].split("/commits/", 1)[0]
+            return {"sha": self.revisions.get(repository, self.revision)}
         if "/compare/" in path:
             return {"status": "ahead"}
-        return {"default_branch": "main"}
+        return {"default_branch": self.branch}
 
     def fetch(self, url):
         self.fetch_calls.append(url)
@@ -102,10 +105,41 @@ class PluginUpdates(unittest.TestCase):
         self.assertFalse(self.run_update())
         self.assertEqual(self.pins_file.read_text(), text)
 
-    def test_no_change_leaves_file_identical(self):
+    def test_no_change_leaves_file_identical_without_dependency_rows(self):
         self.revision = OLD
-        self.assertFalse(self.run_update())
+        body = self.root / "body.md"
+        self.assertFalse(self.run_update(body_file=body))
         self.assertEqual(self.pins_file.read_text(), self.original)
+        report = body.read_text()
+        self.assertNotIn("| Dependency |", report)
+        self.assertIn("No dependency pin changes.", report)
+        for plugin_id in PLUGIN_DEFINITIONS:
+            self.assertNotIn(f"| {plugin_id} |", report)
+
+    def test_report_omits_unchanged_plugins_and_keeps_changed_full_pins(self):
+        retained_repository = PLUGIN_DEFINITIONS["keep-awake"][0]
+        self.revisions[retained_repository] = OLD
+        body = self.root / "body.md"
+        self.assertTrue(self.run_update(body_file=body))
+        report = body.read_text()
+        self.assertEqual(report.count("| Dependency |"), 1)
+        self.assertNotIn("| keep-awake |", report)
+        self.assertNotIn(f"https://github.com/{retained_repository}/compare/", report)
+        for plugin_id, (repository, _) in PLUGIN_DEFINITIONS.items():
+            if plugin_id == "keep-awake":
+                continue
+            self.assertIn(f"| {plugin_id} | revision {OLD} | revision {NEW} | Updated;", report)
+            self.assertIn(f"https://github.com/{repository}/compare/{OLD}...{NEW}", report)
+        self.assertIn(f"source hash {OLD_HASH} → {NEW_HASH}", report)
+        self.assertIn("Paseo requirement &gt;=0.12.0-beta.1", report)
+
+    def test_policy_metadata_is_escaped_in_shared_table(self):
+        self.branch = "feature|_name"
+        body = self.root / "body.md"
+        self.assertTrue(self.run_update(body_file=body))
+        report = body.read_text()
+        self.assertIn("feature&#124;&#95;name", report)
+        self.assertNotIn(self.branch, report)
 
     def test_dry_run_inspects_without_writing(self):
         body = self.root / "body.md"

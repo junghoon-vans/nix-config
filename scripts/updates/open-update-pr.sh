@@ -2,20 +2,24 @@
 
 set -euo pipefail
 
-if (( $# < 4 )); then
-  printf 'Usage: %s BRANCH TITLE BODY PATH...\n' "$0" >&2
+if (( $# < 3 )); then
+  printf 'Usage: %s BRANCH BODY PATH...\n' "$0" >&2
   exit 2
 fi
 
 branch="$1"
-title="$2"
-body="$3"
-paths=("${@:4}")
+body="$2"
+paths=("${@:3}")
 
 if git diff --quiet -- "${paths[@]}"; then
   printf 'No dependency changes for %s\n' "$branch"
   exit 0
 fi
+
+# Capture the authoritative before/after pins before switching or committing.
+# Reporting failures must stop before any GitHub or branch mutation.
+title="$(python3 -B "$(dirname "${BASH_SOURCE[0]}")/dependency_report.py" --title "${paths[@]}")"
+body="$(printf '%s' "$body" | python3 -B "$(dirname "${BASH_SOURCE[0]}")/dependency_report.py" "${paths[@]}")"
 
 bot_login="${GH_APP_SLUG:?GH_APP_SLUG must identify the PR GitHub App}[bot]"
 bot_id="$(gh api "users/$bot_login" --jq '.id')"

@@ -2,11 +2,18 @@
 """Update Homebrew tap pins and compare versions of declared packages."""
 
 import argparse
+import importlib.util
 import json
 import os
 import re
 from pathlib import Path
 import subprocess
+
+TABLE_SPEC = importlib.util.spec_from_file_location(
+    "version_table", Path(__file__).with_name("version_table.py")
+)
+VERSION_TABLE = importlib.util.module_from_spec(TABLE_SPEC)
+TABLE_SPEC.loader.exec_module(VERSION_TABLE)
 
 
 TAPS = {"homebrew-core": "Formula", "homebrew-cask": "Casks", "hashicorp-tap": "Formula"}
@@ -115,7 +122,7 @@ def summarize(before, after, declared, brew="brew"):
         "## Homebrew tap update",
         "",
         "Updates only " + ", ".join(f"`{tap}`" for tap in TAPS) + " in `flake.lock`.",
-        "Tables include only Homebrew packages declared by the Nix host configurations.",
+        "Package rows include only Homebrew packages declared by the Nix host configurations.",
         "Versions come from the pinned definitions, not the currently installed packages.",
         "Formula versions include Homebrew revisions (`_N`); cask versions target Apple Silicon.",
         "No local Homebrew update, upgrade, cleanup, or activation is performed.",
@@ -133,44 +140,54 @@ def summarize(before, after, declared, brew="brew"):
         candidate_packages_by_tap[tap] = candidate_packages
         candidate_versions_by_tap[tap] = candidate_versions(tap, candidate_paths, brew)
 
+    has_report = False
     for tap, directory in TAPS.items():
         old = before["nodes"][tap]["locked"]
         new = after["nodes"][tap]["locked"]
-        lines.extend(["", f"### {tap}", ""])
-        if old == new:
-            lines.append("No changes.")
-            continue
-        url = f"https://github.com/{new['owner']}/{new['repo']}"
-        lines.append(
-            f"[{old['rev'][:12]} → {new['rev'][:12]}]"
-            f"({url}/compare/{old['rev']}...{new['rev']})"
-        )
-        old_packages = packages(prefetch(old), directory)
         new_packages = candidate_packages_by_tap[tap]
-        names = set(declared[tap])
-        changed = sorted(
+        old_packages = (
+            new_packages if old == new else packages(prefetch(old), directory)
+        )
+        names = sorted(set(declared[tap]))
+        changed = [
             name for name in names
             if name not in old_packages or name not in new_packages
             or old_packages[name].read_bytes() != new_packages[name].read_bytes()
-        )
-        if not changed:
-            lines.extend(["", "No declared package changes."])
-            continue
-        old_versions = versions(
-            tap,
-            {name: old_packages[name] for name in changed if name in old_packages},
-            brew,
-        )
+        ]
+        old_paths = {
+            name: old_packages[name] for name in changed if name in old_packages
+        }
+        old_versions = versions(tap, old_paths, brew) if old_paths else {}
         new_versions = candidate_versions_by_tap[tap]
-        lines.extend([
-            "", "| Package | Before | After | Change |",
-            "| --- | --- | --- | --- |",
-        ])
-        for name in changed:
-            previous = old_versions.get(name)
-            current = new_versions.get(name)
-            if previous is None and current is None:
-                change = "Unavailable in both pinned taps"
+        compare = (
+            f"https://github.com/{new['owner']}/{new['repo']}/compare/"
+            f"{old['rev']}...{new['rev']}"
+        )
+        rows = [{
+            "dependency": f"{tap} tap",
+            "previous": f"revision {old['rev']}",
+            "next": f"revision {new['rev']}",
+            "change": "Unchanged" if old == new else "Updated",
+            "compare": compare,
+        }]
+        for name in names:
+            old_present = name in old_packages
+            new_present = name in new_packages
+            same_definition = (
+                old_present
+                and new_present
+                and old_packages[name].read_bytes() == new_packages[name].read_bytes()
+            )
+            previous = (
+                new_versions.get(name)
+                if same_definition
+                else old_versions.get(name) if old_present else None
+            )
+            current = new_versions.get(name) if new_present else None
+            if same_definition:
+                change = "Unchanged"
+            elif previous is None and current is None:
+                continue
             elif previous is None:
                 change = "Added"
             elif current is None:
@@ -179,10 +196,21 @@ def summarize(before, after, declared, brew="brew"):
                 change = "Definition only (version unchanged)"
             else:
                 change = "Version / revision"
-            lines.append(
-                f"| `{name}` | {f'`{previous}`' if previous is not None else '—'} "
-                f"| {f'`{current}`' if current is not None else '—'} | {change} |"
-            )
+            rows.append({
+                "dependency": name,
+                "previous": previous,
+                "next": current,
+                "change": change,
+                "compare": compare,
+            })
+        if any(
+            row["change"] not in {"Unchanged", "Metadata unavailable"}
+            for row in rows
+        ):
+            lines.extend(["", f"### {tap}", "", VERSION_TABLE.render_table(rows)])
+            has_report = True
+    if not has_report:
+        lines.extend(["", VERSION_TABLE.render_table([])])
     lines.extend(["", "Review, merge, and workstation activation remain manual.", ""])
     return "\n".join(lines)
 
