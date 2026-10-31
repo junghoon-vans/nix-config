@@ -45,7 +45,10 @@ let
       default = cfg.model;
     };
     providers."omp-acp".stale_timeout_seconds = 1800;
-    skills.external_dirs = [ "${providerSource}/skills" ];
+    skills.external_dirs = [
+      "${providerSource}/skills"
+      "${home}/.agents/skills"
+    ];
     # This Home Manager-owned profile runs separately from the default host gateway.
     gateway.standalone = true;
     agent = {
