@@ -229,6 +229,7 @@ in
       home = {
         file = {
           "${profilePath}/config.nix.yaml".source = hermesConfig;
+          "${profilePath}/SOUL.md".source = ../home/.hermes/profiles/omp-worker/SOUL.md;
           # Partial overlay for the profile's default English UI; keep the scheduler's name intact.
           "${profilePath}/locales/en.yaml".source = yaml.generate "hermes-slack-locale.yaml" {
             platform.slack.handoff.seed = "*{name}*";
