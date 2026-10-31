@@ -17,6 +17,10 @@ if git diff --quiet -- "${paths[@]}"; then
   exit 0
 fi
 
+# Capture the authoritative before/after pins before switching or committing.
+# Reporting failures must stop before any GitHub or branch mutation.
+body="$(printf '%s' "$body" | python3 -B "$(dirname "${BASH_SOURCE[0]}")/dependency_report.py" "${paths[@]}")"
+
 bot_login="${GH_APP_SLUG:?GH_APP_SLUG must identify the PR GitHub App}[bot]"
 bot_id="$(gh api "users/$bot_login" --jq '.id')"
 git config user.name "$bot_login"

@@ -1,3 +1,4 @@
+import html
 import importlib.util
 import json
 import os
@@ -11,7 +12,16 @@ spec = importlib.util.spec_from_file_location("update_homebrew", Path(__file__).
 updater = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(updater)
 
+OLD_REVISION = "a" * 40
+NEW_REVISION = "b" * 40
 LOCK = json.loads((Path(__file__).resolve().parents[2] / "flake.lock").read_text())
+
+
+def table_entries(body):
+    return [
+        tuple(html.unescape(value.strip()) for value in line.strip("|").split("|"))[:4]
+        for line in body.splitlines() if line.startswith("|")
+    ]
 
 
 def lock(rev, brew_version=LOCK["nodes"]["brew-src"]["original"]["ref"]):
@@ -84,7 +94,9 @@ class HomebrewSummaryTests(unittest.TestCase):
         with patch.object(
             updater,
             "prefetch",
-            side_effect=lambda node: (self.old if node["rev"] == "old" else self.new) / node["repo"],
+            side_effect=lambda node: (
+                self.old if node["rev"] in ("old", OLD_REVISION) else self.new
+            ) / node["repo"],
         ):
             return updater.summarize(lock(before), lock(after), self.declared, self.brew)
 
@@ -94,8 +106,9 @@ class HomebrewSummaryTests(unittest.TestCase):
         self.definition(self.old, "homebrew-cask", cask("2.0.0"))
         self.definition(self.new, "homebrew-cask", cask("2.1.0"))
         body = self.summary()
-        self.assertIn("| `example` | `1.2.0_1` | `1.3.0_2` | Version / revision |", body)
-        self.assertIn("| `example` | `2.0.0` | `2.1.0` | Version / revision |", body)
+        entries = table_entries(body)
+        self.assertIn(("example", "1.2.0_1", "1.3.0_2", "Version / revision"), entries)
+        self.assertIn(("example", "2.0.0", "2.1.0", "Version / revision"), entries)
         self.assertNotIn("9.9.9", body)
 
     def test_cask_zap_not_required_parses_with_selected_runtime(self):
@@ -106,7 +119,7 @@ class HomebrewSummaryTests(unittest.TestCase):
             '  app "Example.app"\n  zap :not_required\n',
         )
         self.definition(self.new, "homebrew-cask", candidate)
-        self.assertIn("| `example` | — | `2.1.0` | Added |", self.summary())
+        self.assertIn("example | Not present / metadata unavailable | 2.1.0 | Added", self.summary())
 
     def test_revision_only_and_definition_only_changes_are_distinguished(self):
         for tap in updater.TAPS:
@@ -114,19 +127,19 @@ class HomebrewSummaryTests(unittest.TestCase):
         self.declared["homebrew-core"] = ["example"]
         self.definition(self.old, "homebrew-core", formula("1.0", 1))
         self.definition(self.new, "homebrew-core", formula("1.0", 2))
-        self.assertIn("| `example` | `1.0_1` | `1.0_2` | Version / revision |", self.summary())
+        self.assertIn(("example", "1.0_1", "1.0_2", "Version / revision"), table_entries(self.summary()))
         self.definition(self.new, "homebrew-core", formula("1.0", 1, "New description"))
-        self.assertIn("| `example` | `1.0_1` | `1.0_1` | Definition only (version unchanged) |", self.summary())
+        self.assertIn(("example", "1.0_1", "1.0_1", "Definition only (version unchanged)"), table_entries(self.summary()))
 
     def test_declared_additions_removals_and_unchanged_packages(self):
         self.declared["homebrew-cask"] = []
         self.declared["hashicorp-tap"] = []
         self.definition(self.new, "homebrew-core", formula("1.0"))
-        self.assertIn("| `example` | — | `1.0` | Added |", self.summary())
+        self.assertIn("example | Not present / metadata unavailable | 1.0 | Added", self.summary())
         self.definition(self.old, "homebrew-core", formula("1.0"))
-        self.assertNotIn("| `example`", self.summary())
+        self.assertIn("example | 1.0 | 1.0 | Unchanged", self.summary())
         (self.new / "homebrew-core/Formula/e/example.rb").unlink()
-        self.assertIn("| `example` | `1.0` | — | Removed |", self.summary())
+        self.assertIn("example | 1.0 | Not present / metadata unavailable | Removed", self.summary())
 
     def test_unchanged_incompatible_declared_definition_is_rejected(self):
         self.declared = {tap: [] for tap in updater.TAPS}
@@ -153,7 +166,7 @@ class HomebrewSummaryTests(unittest.TestCase):
             "class Unrelated < Formula\n  future_homebrew_dsl :unsupported\nend\n",
             "unrelated",
         )
-        self.assertIn("No declared package changes.", self.summary())
+        self.assertIn("example | 1.0 | 1.0 | Unchanged", self.summary())
 
     def test_built_runtime_reports_locked_release_exactly(self):
         self.assertEqual(
@@ -173,7 +186,8 @@ class HomebrewSummaryTests(unittest.TestCase):
     def test_declaration_missing_from_both_pins_is_not_reported_as_added(self):
         self.declared["homebrew-cask"] = []
         self.assertIn(
-            "| `example` | — | — | Unavailable in both pinned taps |",
+            "example | Not present / metadata unavailable | Not present / metadata unavailable "
+            "| Unavailable in both pinned taps",
             self.summary(),
         )
 
@@ -186,9 +200,55 @@ class HomebrewSummaryTests(unittest.TestCase):
             directory = root / "hashicorp-tap/Formula"
             (directory / "example.rb").write_text(formula(version))
         body = self.summary()
-        self.assertIn("### hashicorp-tap", body)
-        self.assertIn("| `example` | `1.15.0` | `1.16.0` | Version / revision |", body)
-        self.assertNotIn("`0.15.0`", body)
+        self.assertIn("example | 1.15.0 | 1.16.0 | Version / revision", body)
+        self.assertNotIn("0.15.0", body)
+    def test_grouped_tap_rows_show_full_revisions_and_unchanged_components(self):
+        self.declared = {tap: [] for tap in updater.TAPS}
+        before = lock(OLD_REVISION)
+        after = lock(OLD_REVISION)
+        after["nodes"]["homebrew-core"]["locked"]["rev"] = NEW_REVISION
+        with patch.object(
+            updater,
+            "prefetch",
+            side_effect=lambda node: (
+                self.old if node["rev"] == OLD_REVISION else self.new
+            ) / node["repo"],
+        ):
+            body = updater.summarize(before, after, self.declared, self.brew)
+
+        self.assertIn(
+            f"| homebrew-core tap | revision {OLD_REVISION} | revision {NEW_REVISION} "
+            f"| Updated | [Compare](https://github.com/homebrew/homebrew-core/compare/"
+            f"{OLD_REVISION}...{NEW_REVISION}) |",
+            body,
+        )
+        for tap in ("homebrew-cask", "hashicorp-tap"):
+            self.assertIn(
+                f"| {tap} tap | revision {OLD_REVISION} | revision {OLD_REVISION} "
+                "| Unchanged |",
+                body,
+            )
+        self.assertEqual(body.count("| Dependency |"), len(updater.TAPS))
+
+    def test_declared_package_names_are_escaped_in_shared_table(self):
+        self.declared = {tap: [] for tap in updater.TAPS}
+        package = "special|`[name]_*"
+        self.declared["homebrew-core"] = [package]
+        self.definition(self.old, "homebrew-core", formula("1.0"), package)
+        self.definition(self.new, "homebrew-core", formula("1.0"), package)
+        with patch.object(
+            updater,
+            "versions",
+            side_effect=lambda tap, paths, brew: {
+                name: "1.0" for name in paths
+            },
+        ):
+            body = self.summary()
+
+        self.assertIn("special&#124;&#96;&#91;name&#93;&#95;&#42; | 1.0 | 1.0 | Unchanged", body)
+        self.assertNotIn(package + " |", body)
+
+
 
 
 

@@ -7,11 +7,18 @@ or across divergent history. Unsupported manifest requirements fail closed.
 """
 
 import argparse
+import importlib.util
 import json
 import re
 import subprocess
 from pathlib import Path
 from urllib.parse import quote
+
+TABLE_SPEC = importlib.util.spec_from_file_location(
+    "version_table", Path(__file__).with_name("version_table.py")
+)
+VERSION_TABLE = importlib.util.module_from_spec(TABLE_SPEC)
+TABLE_SPEC.loader.exec_module(VERSION_TABLE)
 
 SHA = r"[0-9a-f]{40}"
 HASH = r"sha256-[A-Za-z0-9+/]{43}="
@@ -154,12 +161,21 @@ def update(root, dry_run=False, body_file=None, api=github, fetch=prefetch):
         if revision != current:
             plugin.update(revision=revision, hash=artifact_hash)
             changed = True
-        rows.append(f"- {plugin_id}: `{current}` → `{revision}`; {policy}; Paseo `{requirement}`; `{artifact_hash}`")
+        rows.append({
+            "dependency": plugin_id,
+            "previous": f"revision {current}",
+            "next": f"revision {revision}",
+            "change": (
+                f"{'Updated' if revision != current else 'Unchanged'}; {policy}; "
+                f"Paseo requirement {requirement}; source hash {old_hash} → {artifact_hash}"
+            ),
+            "compare": f"https://github.com/{repository}/compare/{current}...{revision}",
+        })
     body = "\n".join([
         "## Paseo plugin source updates", "",
         "Policy: latest stable GitHub release; default-branch HEAD only when no stable releases exist.",
         "Pins never move backwards or across divergent history. All sources remain full commit SHA + unpacked Nix SHA-256.",
-        "", *rows, "",
+        "", VERSION_TABLE.render_table(rows), "",
         f"Manifest IDs, source entrypoints and requirements checked against pinned Paseo {paseo_version}.",
         "Source inspection and hashing only; plugin code was not executed. Review and activation remain manual.", "",
     ])
