@@ -174,6 +174,32 @@ class PackagedHermesIntegration(unittest.TestCase):
 
         cls.config = YAML(typ="safe").load(Path(defaults_path).read_text())
         cls.provider_source = Path(provider_source)
+        cls.apm_skill_dir = cls.root / ".agents" / "skills" / "hermes-apm-fixture"
+        cls.apm_skill_dir.mkdir(parents=True)
+        cls.apm_skill_content = (
+            "---\n"
+            "name: hermes-apm-fixture\n"
+            "description: Isolated APM skill used by the packaged Hermes regression.\n"
+            "---\n"
+            "\n"
+            "# APM fixture\n"
+            "\n"
+            "This skill is exposed only through the generated common skills root.\n"
+        )
+        (cls.apm_skill_dir / "SKILL.md").write_text(cls.apm_skill_content)
+        global_roots = [
+            path
+            for path in cls.config["skills"]["external_dirs"]
+            if Path(path).parts[-2:] == (".agents", "skills")
+        ]
+        if len(global_roots) != 1:
+            raise RuntimeError("generated Hermes config must declare the common .agents/skills root once")
+        # Redirect only the generated common root into the disposable HOME.
+        isolated_global_root = str(cls.root / ".agents" / "skills")
+        cls.config["skills"]["external_dirs"] = [
+            isolated_global_root if path == global_roots[0] else path
+            for path in cls.config["skills"]["external_dirs"]
+        ]
         (home / "config.yaml").write_text(json.dumps(cls.config))
         (home / "config.yaml").chmod(0o600)
         import providers
@@ -197,7 +223,7 @@ class PackagedHermesIntegration(unittest.TestCase):
     def test_packaged_version(self):
         self.assertEqual(self.version, self.expected_version)
 
-    def test_nix_omp_web_search_skill_is_discoverable_without_hiding_bundled_skills(self):
+    def test_generated_config_discovers_apm_and_provider_skills_without_hiding_bundled_skills(self):
         from tools.skills_sync import sync_skills
         from tools.skills_tool import skill_view, skills_list
 
@@ -205,16 +231,27 @@ class PackagedHermesIntegration(unittest.TestCase):
         listing = json.loads(skills_list())
         self.assertTrue(listing.get("success"), listing)
         names = {skill["name"] for skill in listing["skills"]}
+        self.assertIn("hermes-apm-fixture", names)
         self.assertIn("omp-web-search", names)
         self.assertIn("github", names)
         self.assertIn("hermes-agent", names)
-        view = json.loads(skill_view("omp-web-search", preprocess=False))
-        self.assertTrue(view.get("success"), view)
-        expected = self.provider_source / "skills/omp-web-search/SKILL.md"
-        self.assertEqual(Path(view["skill_dir"]).resolve(), expected.parent.resolve())
-        self.assertEqual(view["content"], expected.read_text())
+
+        apm_view = json.loads(skill_view("hermes-apm-fixture", preprocess=False))
+        self.assertTrue(apm_view.get("success"), apm_view)
+        expected_apm = self.apm_skill_dir / "SKILL.md"
+        self.assertEqual(Path(apm_view["skill_dir"]).resolve(), self.apm_skill_dir.resolve())
+        self.assertEqual(apm_view["content"], self.apm_skill_content)
+
+        provider_view = json.loads(skill_view("omp-web-search", preprocess=False))
+        self.assertTrue(provider_view.get("success"), provider_view)
+        expected_provider = self.provider_source / "skills/omp-web-search/SKILL.md"
+        self.assertEqual(Path(provider_view["skill_dir"]).resolve(), expected_provider.parent.resolve())
+        self.assertEqual(provider_view["content"], expected_provider.read_text())
         self.assertEqual(self.resolve_omp(self.config)["provider"], "omp-acp")
-        print(f"Generated-config skills: omp-web-search, github, hermes-agent; omp-web-search source: {expected}")
+        print(
+            "Generated-config skills: hermes-apm-fixture, omp-web-search, github, hermes-agent; "
+            f"APM fixture: {expected_apm}; provider source: {expected_provider}"
+        )
 
     def test_home_manager_agent_is_outside_upstream_service_ownership(self):
         from hermes_cli import gateway
