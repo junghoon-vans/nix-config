@@ -197,7 +197,7 @@ class PackagedHermesIntegration(unittest.TestCase):
     def test_packaged_version(self):
         self.assertEqual(self.version, self.expected_version)
 
-    def test_nix_search_skill_is_discoverable_without_hiding_bundled_skills(self):
+    def test_nix_omp_web_search_skill_is_discoverable_without_hiding_bundled_skills(self):
         from tools.skills_sync import sync_skills
         from tools.skills_tool import skill_view, skills_list
 
@@ -205,16 +205,16 @@ class PackagedHermesIntegration(unittest.TestCase):
         listing = json.loads(skills_list())
         self.assertTrue(listing.get("success"), listing)
         names = {skill["name"] for skill in listing["skills"]}
-        self.assertIn("search", names)
+        self.assertIn("omp-web-search", names)
         self.assertIn("github", names)
         self.assertIn("hermes-agent", names)
-        view = json.loads(skill_view("search", preprocess=False))
+        view = json.loads(skill_view("omp-web-search", preprocess=False))
         self.assertTrue(view.get("success"), view)
-        expected = self.provider_source / "skills/search/SKILL.md"
+        expected = self.provider_source / "skills/omp-web-search/SKILL.md"
         self.assertEqual(Path(view["skill_dir"]).resolve(), expected.parent.resolve())
         self.assertEqual(view["content"], expected.read_text())
         self.assertEqual(self.resolve_omp(self.config)["provider"], "omp-acp")
-        print(f"Generated-config skills: search, github, hermes-agent; search source: {expected}")
+        print(f"Generated-config skills: omp-web-search, github, hermes-agent; omp-web-search source: {expected}")
 
     def test_home_manager_agent_is_outside_upstream_service_ownership(self):
         from hermes_cli import gateway
