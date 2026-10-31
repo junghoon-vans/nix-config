@@ -25,7 +25,7 @@ class HermesRuntimeConfig(unittest.TestCase):
         self.store.mkdir()
         self.defaults_path = self.store / "hermes-config.yaml"
         self.defaults = {
-            "model": {"provider": "openai-codex", "default": "openai/gpt-6.1-sol"},
+            "model": {"provider": "openai-codex", "default": "gpt-6.1-sol"},
             "approvals": {"mode": "manual", "unattended_mode": "deny"},
             "plugins": {"enabled": ["omp-acp-provider", "advanced-delegation"]},
         }

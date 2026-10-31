@@ -98,7 +98,7 @@ let
             name = "fast";
             description = "Quick answers and summaries of supplied context through OpenAI; use coder for repository tools.";
             provider = "openai-codex";
-            model = "openai/gpt-6-luna";
+            model = "gpt-6-luna";
             fallback_providers = [ ];
           }
           {
@@ -176,7 +176,7 @@ in
     };
     model = lib.mkOption {
       type = lib.types.str;
-      default = "openai/gpt-6.1-sol";
+      default = "gpt-6.1-sol";
       description = "Hermes coordinator and deep-route model; coder uses the separate OMP ACP provider.";
     };
     repositoryRoots = lib.mkOption {
@@ -206,7 +206,10 @@ in
           ''
             ${cfg.package.hermesVenv}/bin/python3 ${../tests/hermes/test_packaged_runtime.py} \
               ${hermesConfig} ${providerSource} ${delegationSource} ${lib.escapeShellArg cfg.package.version} \
-              ${lib.getExe config.workstation.omp.package}
+              ${lib.getExe config.workstation.omp.package} \
+              ${
+                config.home-manager.users.${user}.home.activationPackage
+              }/LaunchAgents/org.nixos.hermes.gateway-${profileName}.plist
             touch "$out"
           '';
     };
@@ -240,7 +243,8 @@ in
       launchd.agents.hermes = {
         enable = true;
         config = {
-          Label = "ai.hermes.gateway-${profileName}";
+          # Outside Hermes's ai.hermes.gateway-* namespace: only Home Manager owns this job.
+          Label = "org.nixos.hermes.gateway-${profileName}";
           ProgramArguments = [
             (lib.getExe cfg.package)
             "--profile"

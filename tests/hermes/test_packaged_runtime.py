@@ -2,16 +2,19 @@
 """Check packaged Hermes routes and native ACP retry limits without live credentials."""
 
 import base64
+import copy
 from contextlib import closing
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import os
+import plistlib
 from pathlib import Path
+import shlex
+import subprocess
 import sys
 import tempfile
 import threading
 import time
-import copy
 import unittest
 from unittest.mock import patch
 
@@ -129,14 +132,35 @@ def check_acp_retries(profile, command, configured_args, root):
             thread.join(timeout=5)
 
 
+def _launchd_command_from_definition(definition):
+    arguments = list(definition["ProgramArguments"])
+    if arguments[:2] == ["/bin/sh", "-c"]:
+        shell_arguments = shlex.split(arguments[2])
+        try:
+            exec_index = shell_arguments.index("exec")
+        except ValueError as error:
+            raise AssertionError("Home Manager launchd wrapper has no exec command") from error
+        return shell_arguments[exec_index + 1:]
+    return arguments
+
+
 class PackagedHermesIntegration(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        defaults_path, provider_source, delegation_source, cls.expected_version, cls.expected_command = INPUTS
+        (
+            defaults_path,
+            provider_source,
+            delegation_source,
+            cls.expected_version,
+            cls.expected_command,
+            launchd_plist,
+        ) = INPUTS
+        cls.launchd_plist = Path(launchd_plist)
         temporary = tempfile.TemporaryDirectory(prefix="hermes-runtime-check-")
         cls.addClassCleanup(temporary.cleanup)
         cls.root = Path(temporary.name)
         home = cls.root / ".hermes/profiles/omp-worker"
+        cls.home = home
         home.mkdir(parents=True, mode=0o700)
         os.environ.update(HOME=str(cls.root), HERMES_HOME=str(home), HERMES_REAL_HOME=str(cls.root))
         for name in ("HERMES_OMP_ACP_COMMAND", "HERMES_OMP_ACP_ARGS", "HERMES_OMP_ACP_MCP_ENABLED"):
@@ -171,6 +195,183 @@ class PackagedHermesIntegration(unittest.TestCase):
 
     def test_packaged_version(self):
         self.assertEqual(self.version, self.expected_version)
+
+    def test_home_manager_agent_is_outside_upstream_service_ownership(self):
+        from hermes_cli import gateway
+
+        fixture_bytes = self.launchd_plist.read_bytes()
+        definition = plistlib.loads(fixture_bytes)
+        label = "org.nixos.hermes.gateway-omp-worker"
+        self.assertEqual(definition.get("Label"), label)
+        self.assertEqual(
+            _launchd_command_from_definition(definition)[1:6],
+            ["--profile", "omp-worker", "gateway", "run", "--external-supervisor"],
+        )
+        profile_home = Path(definition["EnvironmentVariables"]["HERMES_HOME"])
+        self.assertEqual(profile_home.parts[-3:], (".hermes", "profiles", "omp-worker"))
+        self.assertEqual(definition.get("KeepAlive"), {"SuccessfulExit": False})
+        self.assertEqual(definition.get("ThrottleInterval"), 30)
+
+        agents = self.root / "Library/LaunchAgents"
+        agents.mkdir(parents=True, exist_ok=True)
+        custom_plist = agents / f"{label}.plist"
+        custom_plist.write_bytes(fixture_bytes)
+        canonical_plist = agents / "ai.hermes.gateway-omp-worker.plist"
+        self.assertEqual(gateway.get_launchd_label(), "ai.hermes.gateway-omp-worker")
+
+        launchctl_calls = []
+
+        def launchctl(command, **_kwargs):
+            command = list(command)
+            launchctl_calls.append(command)
+            if command[:2] == ["launchctl", "print"]:
+                self.assertEqual(command[2].rsplit("/", 1)[-1], "ai.hermes.gateway-omp-worker")
+                return subprocess.CompletedProcess(command, 113, stdout="", stderr="service not found")
+            if command == ["launchctl", "list"]:
+                return subprocess.CompletedProcess(
+                    command, 0, stdout=f"58321\t0\t{label}\n", stderr=""
+                )
+            self.fail(f"unexpected launchctl query: {command}")
+
+        with (
+            patch.object(gateway, "supports_systemd_services", return_value=False),
+            patch.object(gateway, "is_macos", return_value=True),
+            patch.object(gateway, "get_launchd_plist_path", return_value=canonical_plist),
+            patch.object(gateway, "launchd_gateway_labels_for_install", return_value=[]),
+            patch.object(gateway.subprocess, "run", side_effect=launchctl),
+        ):
+            self.assertIsNone(gateway._installed_service_kind_for(lambda: False))
+            self.assertEqual(gateway._get_service_pids(all_profiles=True), set())
+
+        self.assertEqual(custom_plist.read_bytes(), fixture_bytes)
+        self.assertTrue(any(command == ["launchctl", "list"] for command in launchctl_calls))
+        self.assertFalse(any(command[1] in {"bootstrap", "bootout", "kickstart"} for command in launchctl_calls))
+
+    def test_profile_override_and_external_supervisor_restart(self):
+        from types import SimpleNamespace
+
+        from gateway import control_socket
+        from hermes_cli import gateway
+
+        definition = plistlib.loads(self.launchd_plist.read_bytes())
+        command = _launchd_command_from_definition(definition)
+        argv = ["hermes", *command[1:]]
+        probe_env = os.environ.copy()
+        probe_env.update(
+            HOME=str(self.root),
+            HERMES_HOME=str(self.home),
+            HERMES_REAL_HOME=str(self.root),
+        )
+        probe = (
+            f"import os, sys; sys.argv = {argv!r}; "
+            "import hermes_cli.main; "
+            "print('RESOLVED_HERMES_HOME=' + os.environ['HERMES_HOME'])"
+        )
+        profile_probe = subprocess.run(
+            [sys.executable, "-c", probe],
+            env=probe_env,
+            capture_output=True,
+            text=True,
+            timeout=45,
+            check=False,
+        )
+        self.assertEqual(profile_probe.returncode, 0, profile_probe.stderr)
+        resolved = next(
+            line.partition("=")[2]
+            for line in profile_probe.stdout.splitlines()
+            if line.startswith("RESOLVED_HERMES_HOME=")
+        )
+        self.assertEqual(Path(resolved), self.home)
+
+        supervised_pid = 58321
+        previous_argv = sys.argv
+        marker_names = (
+            "INVOCATION_ID",
+            "XPC_SERVICE_NAME",
+            "LAUNCHD_SOCKET",
+            "HERMES_LAUNCHD_LABEL",
+            "HERMES_DESKTOP_MANAGED",
+            "HERMES_S6_SUPERVISED_CHILD",
+            "HERMES_GATEWAY_EXTERNAL_SUPERVISOR",
+        )
+        cleared_markers = {name: "" for name in marker_names}
+
+        try:
+            with patch.dict(os.environ, cleared_markers):
+                sys.argv = argv
+                run_args = SimpleNamespace(
+                    external_supervisor="--external-supervisor" in argv,
+                    verbose=0,
+                    quiet=False,
+                    replace=False,
+                    force=False,
+                    idle_exit=False,
+                )
+                with (
+                    patch.object(gateway, "_maybe_redirect_run_to_s6_supervision", return_value=False),
+                    patch.object(gateway, "run_gateway"),
+                ):
+                    gateway._cmd_run(run_args)
+                self.assertEqual(os.environ["HERMES_GATEWAY_EXTERNAL_SUPERVISOR"], "1")
+                self.assertEqual(control_socket._detect_supervisor(), "external")
+
+                from gateway import status
+
+                with (
+                    patch.object(
+                        status,
+                        "_build_pid_record",
+                        return_value={
+                            "kind": "gateway",
+                            "pid": supervised_pid,
+                            "start_time": 1.0,
+                            "hermes_home": str(self.home),
+                        },
+                    ),
+                    patch.object(status, "_get_code_identity_fields", return_value={}),
+                    patch.object(status, "_profile_label_for_home", return_value="omp-worker"),
+                    patch.object(status, "read_runtime_status", return_value=None),
+                ):
+                    identity = control_socket.build_identify_payload()
+                self.assertEqual(identity["launch_supervisor"], "external")
+                with (
+                    patch.object(gateway, "_capture_gateway_argv", return_value=argv),
+                    patch.object(
+                        gateway,
+                        "launch_detached_profile_gateway_restart",
+                        side_effect=AssertionError("external supervisor owns update restart"),
+                    ),
+                    patch.object(
+                        gateway,
+                        "launch_detached_gateway_restart_by_cmdline",
+                        side_effect=AssertionError("external supervisor owns update restart"),
+                    ),
+                ):
+                    self.assertEqual(
+                        gateway._prepare_profile_gateway_update_restart("omp-worker", supervised_pid),
+                        "external-supervisor",
+                    )
+        finally:
+            sys.argv = previous_argv
+
+    def test_supervised_restart_exit_remains_retryable_under_launchd(self):
+        from types import SimpleNamespace
+
+        from gateway.restart import GATEWAY_SERVICE_RESTART_EXIT_CODE, map_fatal_config_exit_for_launchd
+        from gateway.run_shutdown import _resolve_gateway_exit_verdict
+
+        runner = SimpleNamespace(
+            should_exit_with_failure=False,
+            exit_reason=None,
+            exit_code=None,
+            _restart_via_service=True,
+        )
+        with self.assertRaises(SystemExit) as failure:
+            _resolve_gateway_exit_verdict(runner, signal_initiated_shutdown=False)
+        self.assertEqual(failure.exception.code, GATEWAY_SERVICE_RESTART_EXIT_CODE)
+        self.assertEqual(GATEWAY_SERVICE_RESTART_EXIT_CODE, 75)
+        self.assertEqual(map_fatal_config_exit_for_launchd(75), 75)
+        self.assertEqual(map_fatal_config_exit_for_launchd(78), 0)
 
     def test_provider_auth_snapshot_without_cache_expiry(self):
         from hermes_cli.auth import PROVIDER_REGISTRY
@@ -265,6 +466,6 @@ class PackagedHermesIntegration(unittest.TestCase):
 
 if __name__ == "__main__":
     INPUTS = sys.argv[1:]
-    if len(INPUTS) != 5:
-        raise SystemExit("usage: test_packaged_runtime.py CONFIG PROVIDER DELEGATION VERSION OMP")
+    if len(INPUTS) != 6:
+        raise SystemExit("usage: test_packaged_runtime.py CONFIG PROVIDER DELEGATION VERSION OMP LAUNCHD_PLIST")
     unittest.main(argv=[sys.argv[0]], verbosity=2)
