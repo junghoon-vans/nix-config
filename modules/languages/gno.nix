@@ -6,9 +6,9 @@
 }:
 
 let
-  gnoRev = "07e44776c26187830b7dcbd2454991b5a1960378";
+  gnoRev = "e4c2e7d9fe0f6f7aeeda54885ca1fe5cea991319";
   gnoplsRev = "c06cbb3d2dc5dc986647340b97478ff176ab25e5";
-  gnoHash = "sha256-k+OLBHhUbDQNWt6hRgeMJxZxnhBiZcwAdAzfNt0u0Uk=";
+  gnoHash = "sha256-CKtQuzGWHmgDVXRMG/LlRMwlyNuit96S50RJ1vjO1YI=";
   gnoVendorHash = "sha256-e1g2y3igU88Z6wkBC7+ab/cxj2Wx2Q2izz8ZDJWzuOQ=";
   gnoplsHash = "sha256-x8xEgj6YNnEpviw2vG5fQMh6wZw/JZKVNnkGI0XsAMg=";
   gnoplsVendorHash = "sha256-BD5lx+iTrj4GInH1gIyjj6B+DLPv3VGs5OpnvM0jFok=";
