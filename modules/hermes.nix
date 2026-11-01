@@ -18,15 +18,16 @@ let
   profilePath = ".hermes/profiles/${profileName}";
   profileHome = "${home}/${profilePath}";
   yaml = pkgs.formats.yaml { };
-  providerPackages = hermesPackages.messaging.python.pkgs.overrideScope inputs.hermes-omp-acp.overlays.python;
-  # Hermes's sealed ACP group already supplies the supported SDK. Propagating a
-  # second copy would shadow core dependencies and fail its collision guard.
-  providerPackage = providerPackages.hermes-omp-acp.overridePythonAttrs (old: {
-    dependencies = [ ];
-    # Retain wheel dependency/import validation at build time, without adding
-    # the SDK or its dependencies to the Hermes runtime's PYTHONPATH.
-    nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ providerPackages.agent-client-protocol ];
-  });
+  hermesBase = hermesPackages.messaging.override {
+    inherit pmPackages;
+    version = lib.removePrefix "v" (builtins.fromJSON (builtins.readFile ../flake.lock))
+    .nodes.hermes-agent.original.ref;
+    extraDependencyGroups = [
+      "messaging"
+      "acp"
+    ];
+  };
+  providerPackage = inputs.hermes-omp-acp.lib.mkHermesPlugin { hermes = hermesBase; };
   providerResources = "${providerPackage}/share/hermes-omp-acp";
   runtimeProbe = pkgs.writeTextDir "sitecustomize.py" ''
     import os
@@ -215,16 +216,7 @@ in
     enable = lib.mkEnableOption "the local Slack to OMP ACP gateway";
     package = lib.mkOption {
       type = lib.types.package;
-      default = hermesPackages.messaging.override {
-        inherit pmPackages;
-        extraPythonPackages = [ providerPackage ];
-        version = lib.removePrefix "v" (builtins.fromJSON (builtins.readFile ../flake.lock))
-        .nodes.hermes-agent.original.ref;
-        extraDependencyGroups = [
-          "messaging"
-          "acp"
-        ];
-      };
+      default = hermesBase.override { extraPythonPackages = [ providerPackage ]; };
       description = "Upstream Hermes messaging package with its official ACP dependency group.";
     };
     model = lib.mkOption {

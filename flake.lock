@@ -103,17 +103,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1793540972,
-        "narHash": "sha256-jMp3FRygDnlVhMgbMFmsLP+P+j93tDKfg3gK0uo99HQ=",
+        "lastModified": 1793545260,
+        "narHash": "sha256-c9OnQ8hUiDeopQULv82N+GcU4ANHokceHo6eguyEYF8=",
         "owner": "junghoon-vans",
         "repo": "hermes-omp-acp",
-        "rev": "ead2c18f206887379575a18ab737b80936da0303",
+        "rev": "bbd9997925ce9dcb3ee5f7e47791c48e8a1eeabe",
         "type": "github"
       },
       "original": {
         "owner": "junghoon-vans",
-        "ref": "v0.3.0",
         "repo": "hermes-omp-acp",
+        "rev": "bbd9997925ce9dcb3ee5f7e47791c48e8a1eeabe",
         "type": "github"
       }
     },
