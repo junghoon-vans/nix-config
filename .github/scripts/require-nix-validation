@@ -4,6 +4,8 @@ set -euo pipefail
 
 : "${CHANGES_RESULT:?CHANGES_RESULT must be set}"
 : "${CONFIGURATION_CHANGED:?CONFIGURATION_CHANGED must be set}"
+: "${SKILLS_ONLY:?SKILLS_ONLY must be set}"
+: "${APM_RESULT:?APM_RESULT must be set}"
 : "${CHECKS_RESULT:?CHECKS_RESULT must be set}"
 : "${EVALUATE_RESULT:?EVALUATE_RESULT must be set}"
 
@@ -12,13 +14,19 @@ if [ "$CHANGES_RESULT" != "success" ]; then
   exit 1
 fi
 
-if [ "$CONFIGURATION_CHANGED" = "true" ] && { [ "$CHECKS_RESULT" != "success" ] || [ "$EVALUATE_RESULT" != "success" ]; }; then
-  printf 'Nix configuration validation failed: checks=%s evaluate=%s\n' "$CHECKS_RESULT" "$EVALUATE_RESULT" >&2
-  exit 1
-fi
-
-if [ "$CONFIGURATION_CHANGED" = "true" ]; then
+if [ "$SKILLS_ONLY" = true ] && [ "$CONFIGURATION_CHANGED" = false ]; then
+  if [ "$APM_RESULT" != success ]; then
+    printf 'APM validation failed: apm=%s\n' "$APM_RESULT" >&2
+    exit 1
+  fi
+  printf 'Skills-only APM validation passed; full macOS/Nix validation skipped.\n'
+elif [ "$SKILLS_ONLY" = false ] && [ "$CONFIGURATION_CHANGED" = true ]; then
+  if [ "$CHECKS_RESULT" != success ] || [ "$EVALUATE_RESULT" != success ]; then
+    printf 'Nix configuration validation failed: checks=%s evaluate=%s\n' "$CHECKS_RESULT" "$EVALUATE_RESULT" >&2
+    exit 1
+  fi
   printf 'Nix configuration validation passed.\n'
 else
-  printf 'No configuration-source changes; full macOS/Nix validation skipped.\n'
+  printf 'Invalid change classification.\n' >&2
+  exit 1
 fi

@@ -10,25 +10,24 @@ if ! git diff --quiet "$base_sha" "$head_sha" -- release-pins.json; then
   python3 -B scripts/validation/check-release-pins.py
 fi
 
-if git diff --quiet "$base_sha" "$head_sha" -- \
-  .github/workflows/validate.yml \
-  .github/scripts/detect-nix-config-changes \
-  .github/scripts/require-nix-validation \
-  apm.yml \
-  apm.lock.yaml \
-  Makefile \
-  flake.nix \
-  flake.lock \
-  release-pins.json \
-  docs/apps.md \
-  hosts \
-  modules \
-  packages \
-  patches \
-  home \
-  scripts \
-  tests \
-  ':(exclude)scripts/validation'; then
+# Disable rename detection so both sides of moves must satisfy the allowlist.
+# Unknown paths, mixed changes and empty diffs take the full validation path.
+skills_only=false
+changed_paths=$(mktemp)
+trap 'rm -f "$changed_paths"' EXIT
+git diff --name-only --no-renames -z "$base_sha" "$head_sha" > "$changed_paths"
+if [ -s "$changed_paths" ]; then
+  skills_only=true
+  while IFS= read -r -d '' path; do
+    case "$path" in
+      apm.yml|apm.lock.yaml|docs/skills.md|skills/*) ;;
+      *) skills_only=false; break ;;
+    esac
+  done < "$changed_paths"
+fi
+
+printf 'skills_only=%s\n' "$skills_only" >> "$GITHUB_OUTPUT"
+if [ "$skills_only" = true ]; then
   printf 'configuration_changed=false\n' >> "$GITHUB_OUTPUT"
 else
   printf 'configuration_changed=true\n' >> "$GITHUB_OUTPUT"
