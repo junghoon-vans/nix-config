@@ -1,6 +1,13 @@
 lockfile_version: '1'
 apm_version: 0.35.0
 dependencies:
+- repo_url: _local/humanize-korean
+  name: humanize-korean
+  version: unknown
+  package_type: claude_skill
+  source: local
+  local_path: ./skills/humanize-korean
+  content_hash: sha256:08cf4830ec38e762afbe68f56183810b71e74263f7c53789fcd7fbf487e08ee8
 - repo_url: _local/jira-cloud-formatting
   name: jira-cloud-formatting
   version: unknown
@@ -196,6 +203,21 @@ dependencies:
   skill_subset:
   - humanizer
   declared_license: MIT
+- repo_url: chrisryugj/kordoc
+  name: kordoc
+  host: github.com
+  resolved_commit: a3e7d7d85e58539507436f51ca7c38156eb15e43
+  resolved_ref: a3e7d7d85e58539507436f51ca7c38156eb15e43
+  version: unknown
+  virtual_path: plugins/kordoc/skills/kordoc
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .agents/skills/kordoc
+  - .agents/skills/kordoc/SKILL.md
+  deployed_file_hashes:
+    .agents/skills/kordoc/SKILL.md: sha256:9988c58bc422070e2bbb9a62ab6751e5faa9a20e192f01998068e57cdebe1cdf
+  content_hash: sha256:4e906cb03232633fbbf31ddb4072b17205d5c28c8a5a8582b606977fa4d9be76
 - repo_url: cloudflare/security-audit-skill
   name: security-audit
   host: github.com
@@ -5733,6 +5755,24 @@ deployments:
   - owl-listener/designpowers/skills/inspiration-scouting
   active_owner: owl-listener/designpowers/skills/inspiration-scouting
   content_hash: sha256:1404d7ea5b7f2324065d46a3db77c3c6a4f10db5bb70829ef05be0dfdd0bcc14
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/kordoc
+  runtime: null
+  scope: project
+  owners:
+  - chrisryugj/kordoc/plugins/kordoc/skills/kordoc
+  active_owner: chrisryugj/kordoc/plugins/kordoc/skills/kordoc
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/kordoc/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - chrisryugj/kordoc/plugins/kordoc/skills/kordoc
+  active_owner: chrisryugj/kordoc/plugins/kordoc/skills/kordoc
+  content_hash: sha256:9988c58bc422070e2bbb9a62ab6751e5faa9a20e192f01998068e57cdebe1cdf
 - kind: project-relative
   target: agent-skills
   value: .agents/skills/mcp-builder

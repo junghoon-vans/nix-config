@@ -9,7 +9,7 @@ Names use explicit skill selectors, then aliases, then the final path component.
 Source links use the declared ref and package path; selectors identify package exports,
 not inferred repository directories. See [APM management](apm.md) for deployment and updates.
 
-Declared skills: 35.
+Declared skills: 37.
 
 | Skill | Repository | Package path | Ref | Skill selector | Source |
 | --- | --- | --- | --- | --- | --- |
@@ -24,10 +24,12 @@ Declared skills: 35.
 | `gh-fix-ci` | https://github.com/openai/skills | `skills/.curated/gh-fix-ci` | `49f948faa9258a0c61caceaf225e179651397431` | — | [upstream](https://github.com/openai/skills/tree/49f948faa9258a0c61caceaf225e179651397431/skills/.curated/gh-fix-ci) |
 | `git-commit` | https://github.com/github/awesome-copilot | `skills/git-commit` | `7568a482ce2df38f8965ab5336a3220db796a4ba` | — | [upstream](https://github.com/github/awesome-copilot/tree/7568a482ce2df38f8965ab5336a3220db796a4ba/skills/git-commit) |
 | `helm-chart-scaffolding` | https://github.com/wshobson/agents | `plugins/kubernetes-operations/skills/helm-chart-scaffolding` | `4236bb91f8395b0435f1d8b8baf9e8e4c69a8620` | — | [upstream](https://github.com/wshobson/agents/tree/4236bb91f8395b0435f1d8b8baf9e8e4c69a8620/plugins/kubernetes-operations/skills/helm-chart-scaffolding) |
+| `humanize-korean` | local | `./skills/humanize-korean` | `—` | — | [local](../skills/humanize-korean) |
 | `humanizer` | https://github.com/blader/humanizer | `.` | `225a6f39ac85f76ee48dbad772ea4abe4ed6c9d8` | humanizer | [upstream](https://github.com/blader/humanizer/tree/225a6f39ac85f76ee48dbad772ea4abe4ed6c9d8) |
 | `incident-response` | https://github.com/anthropics/knowledge-work-plugins | `engineering/skills/incident-response` | `bdf7160f2b33598fb0cb3860027e033cbaec7ce6` | — | [upstream](https://github.com/anthropics/knowledge-work-plugins/tree/bdf7160f2b33598fb0cb3860027e033cbaec7ce6/engineering/skills/incident-response) |
 | `inspiration-scouting` | https://github.com/Owl-Listener/designpowers | `skills/inspiration-scouting` | `cb00757da9d554591fa78d27aa1854d60a05c4f7` | — | [upstream](https://github.com/Owl-Listener/designpowers/tree/cb00757da9d554591fa78d27aa1854d60a05c4f7/skills/inspiration-scouting) |
 | `jira-cloud-formatting` | local | `./skills/jira-cloud-formatting` | `—` | — | [local](../skills/jira-cloud-formatting) |
+| `kordoc` | https://github.com/chrisryugj/kordoc | `plugins/kordoc/skills/kordoc` | `a3e7d7d85e58539507436f51ca7c38156eb15e43` | — | [upstream](https://github.com/chrisryugj/kordoc/tree/a3e7d7d85e58539507436f51ca7c38156eb15e43/plugins/kordoc/skills/kordoc) |
 | `mcp-builder` | https://github.com/anthropics/skills | `skills/mcp-builder` | `34040c9c568585f6929bedeaad110ad08f079624` | — | [upstream](https://github.com/anthropics/skills/tree/34040c9c568585f6929bedeaad110ad08f079624/skills/mcp-builder) |
 | `mysql` | https://github.com/planetscale/database-skills | `skills/mysql` | `73b20b7eb64716d8c7100c054f0677c0c6e77e30` | — | [upstream](https://github.com/planetscale/database-skills/tree/73b20b7eb64716d8c7100c054f0677c0c6e77e30/skills/mysql) |
 | `notion-research-documentation` | https://github.com/openai/skills | `skills/.curated/notion-research-documentation` | `49f948faa9258a0c61caceaf225e179651397431` | — | [upstream](https://github.com/openai/skills/tree/49f948faa9258a0c61caceaf225e179651397431/skills/.curated/notion-research-documentation) |
