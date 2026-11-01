@@ -148,6 +148,56 @@ class HermesRuntimeConfig(unittest.TestCase):
             "disabled": ["local"],
         })
 
+    def test_managed_server_generations_replace_remove_and_preserve_local_state(self):
+        local = {"command": "local-mcp", "env": {"LOCAL_SETTING": "keep"}}
+        self.runtime.write_text(yaml.safe_dump({
+            "mcp_servers": {
+                "local": local,
+                "notion": {"command": "stale-notion"},
+                "github": {"tools": {"exclude": ["get_me"]}},
+                "retired": {"command": "retired-mcp"},
+                "fresh": {"command": "stale-fresh", "headers": {"Authorization": "old"}},
+            },
+            "nix_managed_mcp_servers": ["retired"],
+            "skills": {"external_dirs": ["/local/skills"]},
+            "command_allowlist": ["git status"],
+        }))
+        self.runtime.chmod(0o600)
+        auth = self.home / "mcp-oauth-tokens.json"
+        auth.write_text('{"synthetic": "untouched"}')
+        declared = {"fresh": {"url": "https://example.invalid/new-mcp", "tools": {"include": ["read"]}}}
+        self.write_defaults(self.defaults_path, {
+            **self.defaults,
+            "mcp_servers": declared,
+            "nix_managed_mcp_servers": ["fresh"],
+        })
+        self.check()
+        result = yaml.safe_load(self.runtime.read_text())
+        self.assertEqual(result["mcp_servers"], {"local": local, **declared})
+        self.assertEqual(result["skills"], {"external_dirs": ["/local/skills"]})
+        self.assertEqual(result["command_allowlist"], ["git status"])
+
+        # The current ownership list is sufficient to remove a dynamically
+        # introduced server on the next generation, without hard-coded names.
+        self.write_defaults(self.defaults_path, {
+            **self.defaults, "mcp_servers": {}, "nix_managed_mcp_servers": [],
+        })
+        self.check()
+        self.assertEqual(yaml.safe_load(self.runtime.read_text())["mcp_servers"], {"local": local})
+        before = self.runtime.stat()
+        self.check()
+        self.assertEqual(self.runtime.stat().st_ino, before.st_ino)
+        self.assertEqual(auth.read_text(), '{"synthetic": "untouched"}')
+
+    def test_invalid_managed_ownership_does_not_modify_profile(self):
+        self.runtime.write_text("mcp_servers: {}\n")
+        self.runtime.chmod(0o600)
+        before = self.runtime.read_bytes()
+        self.write_defaults(self.defaults_path, {"nix_managed_mcp_servers": "github"})
+        with self.assertRaisesRegex(RuntimeError, "list of server names"):
+            self.check()
+        self.assertEqual(self.runtime.read_bytes(), before)
+
     def test_legacy_nix_store_symlink_is_replaced_without_touching_target(self):
         legacy_path = self.store / "previous-config.yaml"
         legacy_content = b"model:\n  provider: old\ncommand_allowlist:\n  - old command\n"

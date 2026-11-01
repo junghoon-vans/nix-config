@@ -8,6 +8,10 @@
 
 let
   cfg = config.workstation.hermes;
+  asideCli = import ./mcp/aside-cli.nix { inherit pkgs; };
+  mcpRegistry = import ./mcp/registry.nix {
+    asideCommand = lib.getExe asideCli;
+  };
   user = config.system.primaryUser;
   home = config.users.users.${user}.home;
   profileName = "omp-worker";
@@ -74,6 +78,8 @@ let
         Push, deployment and permission changes require explicit user approval.
         Additional OMP permission requests are denied, not relayed to Slack.
         Report blocked operations and ask how to proceed; do not escalate permissions.
+
+        ${mcpRegistry.awareness}
       '';
     };
     platform_toolsets = {
@@ -83,6 +89,11 @@ let
         "session_search"
         "memory"
         "skills"
+        "notion"
+        "github"
+        "context7"
+        "atlassian"
+        "aside"
       ];
       cli = [
         "delegation"
@@ -90,6 +101,11 @@ let
         "session_search"
         "memory"
         "skills"
+        "notion"
+        "github"
+        "context7"
+        "atlassian"
+        "aside"
       ];
     };
     platforms.slack = {
@@ -165,7 +181,8 @@ let
     unauthorized_dm_behavior = "ignore";
     kanban.dispatch_in_gateway = false;
     cron.wrap_response = false;
-    mcp_servers = { };
+    mcp_servers = mcpRegistry.hermes;
+    nix_managed_mcp_servers = mcpRegistry.managedHermesServers;
     display = {
       tool_progress = "all";
       long_running_notifications = true;
