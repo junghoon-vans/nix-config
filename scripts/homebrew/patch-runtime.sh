@@ -22,12 +22,14 @@ substituteInPlace "$out/Library/Homebrew/cmd/update.sh" \
 # Use nix-homebrew's system Ruby and expose its fiddle gem to Homebrew's bundle.
 ruby_sh="$out/Library/Homebrew/utils/ruby.sh"
 bundler_setup_rb="$out/Library/Homebrew/vendor/bundle/bundler/setup.rb"
-if [[ -e "$ruby_sh" ]] && grep -F 'setup-ruby-path' "$ruby_sh" >/dev/null; then
-  chmod u+w "$ruby_sh" "$bundler_setup_rb"
-  printf 'setup-ruby-path() { export HOMEBREW_RUBY_PATH="%s"; }\n' "$ruby" >>"$ruby_sh"
-  printf '$:.unshift "%s/%s/gems/fiddle-%s/lib"\n' \
-    "$fiddle" "$gem_path" "$fiddle_version" >>"$bundler_setup_rb"
+if [[ ! -f "$ruby_sh" ]] || ! grep -Fq 'setup-ruby-path()' "$ruby_sh"; then
+  printf 'Expected setup-ruby-path() patch anchor in %s\n' "$ruby_sh" >&2
+  exit 1
 fi
+chmod u+w "$ruby_sh" "$bundler_setup_rb"
+printf 'setup-ruby-path() { export HOMEBREW_RUBY_PATH="%s"; }\n' "$ruby" >>"$ruby_sh"
+printf '$:.unshift "%s/%s/gems/fiddle-%s/lib"\n' \
+  "$fiddle" "$gem_path" "$fiddle_version" >>"$bundler_setup_rb"
 
 # Homebrew sets its version through set-homebrew-version-from-git;
 # replace that call so a source archive reports the tag pinned in flake.lock.
