@@ -19,15 +19,13 @@ import unittest
 from unittest.mock import patch
 
 
-def check_provider_dependencies(provider_source):
+def check_provider_dependencies():
     from importlib import metadata
-    import tomllib
     from packaging.requirements import Requirement
 
-    pyproject_path = Path(provider_source) / "pyproject.toml"
-    project = tomllib.loads(pyproject_path.read_text())["project"]
+    distribution = metadata.distribution("hermes-omp-acp")
     unsatisfied = []
-    for declared in project.get("dependencies", []):
+    for declared in distribution.requires or []:
         requirement = Requirement(declared)
         if requirement.marker and not requirement.marker.evaluate():
             continue
@@ -48,7 +46,7 @@ def check_provider_dependencies(provider_source):
         details = "\n  ".join(unsatisfied)
         raise RuntimeError(
             f"Packaged Python environment does not satisfy provider dependencies "
-            f"from {pyproject_path}:\n  {details}"
+            f"from {distribution.metadata['Name']}:\n  {details}"
         )
 
 
@@ -165,11 +163,10 @@ class PackagedHermesIntegration(unittest.TestCase):
         os.environ.update(HOME=str(cls.root), HERMES_HOME=str(home), HERMES_REAL_HOME=str(cls.root))
         for name in ("HERMES_OMP_ACP_COMMAND", "HERMES_OMP_ACP_ARGS", "HERMES_OMP_ACP_MCP_ENABLED"):
             os.environ.pop(name, None)
-        check_provider_dependencies(provider_source)
+        check_provider_dependencies()
         # Complete the profile before ANY Hermes import can snapshot provider discovery.
         (home / "plugins").mkdir()
-        for name, source in (("omp-acp-provider", provider_source), ("advanced-delegation", delegation_source)):
-            (home / "plugins" / name).symlink_to(source, target_is_directory=True)
+        (home / "plugins" / "advanced-delegation").symlink_to(delegation_source, target_is_directory=True)
         from ruamel.yaml import YAML
 
         cls.config = YAML(typ="safe").load(Path(defaults_path).read_text())
@@ -222,6 +219,22 @@ class PackagedHermesIntegration(unittest.TestCase):
 
     def test_packaged_version(self):
         self.assertEqual(self.version, self.expected_version)
+
+    def test_installed_provider_discovery(self):
+        from importlib import metadata
+        from hermes_omp_acp.skill_resources import skill_directory
+
+        self.assertEqual(metadata.version("hermes-omp-acp"), "0.3.0")
+        self.assertEqual(metadata.version("agent-client-protocol"), "0.9.0")
+        entries = [
+            entry for entry in metadata.entry_points(group="hermes_agent.plugins")
+            if entry.dist.metadata["Name"] == "hermes-omp-acp"
+        ]
+        self.assertCountEqual(
+            [entry.name for entry in entries], ["omp-acp-provider", "omp-acp-skills"]
+        )
+        self.assertFalse((self.home / "plugins" / "omp-acp-provider").exists())
+        self.assertEqual(skill_directory().resolve(), (self.provider_source / "skills").resolve())
 
     def test_generated_config_discovers_apm_and_provider_skills_without_hiding_bundled_skills(self):
         from tools.skills_sync import sync_skills

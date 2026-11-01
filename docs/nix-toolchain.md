@@ -33,7 +33,7 @@ keep compatibility-sensitive revisions and dependency hashes in their Nix module
 | gnopls | `gnoplsRev` | `modules/languages/gno.nix` | Source build with pinned Go dependencies |
 | Zed Gno WASI adapter | Release URL and hash | `modules/home-manager.nix` | Architecture-independent WebAssembly |
 | gnomcp | `release-pins.json` | `modules/mcp/gnomcp.nix` | Local stdio MCP server |
-| Hermes | Tagged `hermes-agent` and `hermes-omp-acp` inputs + `flake.lock` hashes | `flake.nix`, `modules/hermes.nix` | Upstream messaging package with ACP SDK and external delegator; Apple Silicon macOS |
+| Hermes | Tagged `hermes-agent`, commit-pinned `hermes-omp-acp` + `flake.lock` hashes | `flake.nix`, `modules/hermes.nix` | Upstream messaging package with ACP SDK and external delegator; Apple Silicon macOS |
 
 Gno tools are built from a pinned commit rather than mutable `chain/mainnet` assets. The dependency
 cache uses `proxyVendor` to retain the C sources needed for gnokey Ledger support. Installed
@@ -41,20 +41,27 @@ binaries report their source commit.
 
 ### Hermes
 
-Hermes and its messaging dependencies come from the upstream `hermes-agent` input. The
-external `hermes-omp-acp` non-flake input supplies the `omp-acp-provider` plugin, pinned to
-the release tag declared in `flake.nix`. `flake.lock` records the immutable revision and
-source integrity hash; no credentials are needed for this source.
-The upstream package extension uses
-`messaging.override { extraDependencyGroups = [ "messaging" "acp" ]; }`, installing the
-official ACP SDK into the real Hermes virtual environment without custom `PYTHONPATH`
-injection or a local SDK patch. The provider supports the SDK pinned by upstream Hermes.
+Hermes and its messaging dependencies come from the upstream `hermes-agent` input.
+The commit-pinned `hermes-omp-acp` flake supplies the installed `omp-acp-provider`
+entry point and bundled skills. `flake.lock` records its immutable revision and
+integrity hash. Its upstream `lib.mkHermesPlugin { hermes = hermesBase; }` factory
+builds with the Hermes interpreter and validates the provider's wheel requirements
+against that host's sealed environment. Only the provider distribution is added
+through `extraPythonPackages`; no consumer dependency overrides are needed.
+The official ACP SDK comes from Hermes's sealed `messaging` and `acp` dependency
+groups, avoiding a duplicate SDK on the launcher's `PYTHONPATH`. The runtime check
+launches that installed wrapper and verifies distribution requirements,
+entry-point discovery, skills and loopback ACP. The provider commit includes the
+sealed-runtime factory missing from its previous release tag; changing this pin
+does not publish a new release.
 Upstream Hermes supports Apple Silicon macOS as a Tier 2 platform.
 
 The gateway uses the named `omp-worker` profile at `~/.hermes/profiles/omp-worker`, not the
 default profile. `omp-worker` is a profile name; the provider plugin ID remains
-`omp-acp-provider`. Home Manager owns the profile's `config.nix.yaml`,
-`plugins/omp-acp-provider`, and official `plugins/advanced-delegation` links.
+`omp-acp-provider`. Home Manager owns the profile's `config.nix.yaml` and official
+`plugins/advanced-delegation` link. The former `plugins/omp-acp-provider` source link
+is no longer managed: discovery uses the installed Python entry point instead.
+On activation Home Manager removes its old managed link; no activation is needed to build.
 The private `.env`, authentication, sessions, and memories remain user-managed.
 Logs also live under this profile. The launchd label follows Hermes's
 official profile convention: `ai.hermes.gateway-omp-worker`.
