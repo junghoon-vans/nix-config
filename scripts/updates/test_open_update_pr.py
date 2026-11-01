@@ -12,6 +12,12 @@ import json
 HELPER = Path(__file__).resolve().with_name("open-update-pr.sh")
 BRANCH = "automation/update-paseo-plugins"
 TARGET = "modules/paseo-plugins.json"
+KAKAO_BRANCH = "automation/update-kakaotalk-patcher"
+KAKAO_TARGET = "packages/kakaotalk-patcher.nix"
+KAKAO_OLD_REVISION = "5eb55199f3aa0c9680b8d080c7d5221a4725d627"
+KAKAO_NEW_REVISION = "0123456789abcdef0123456789abcdef01234567"
+KAKAO_OLD_VERSION = f"26.9.0-2006-{KAKAO_OLD_REVISION[:7]}"
+KAKAO_NEW_VERSION = f"26.9.0-2006-{KAKAO_NEW_REVISION[:7]}"
 
 
 def plugin_source(revision):
@@ -22,6 +28,20 @@ def grouped_plugin_source(revision):
     plugins = json.loads(plugin_source(revision))
     plugins["unchanged"] = {"repository": "owner/other", "revision": "same", "hash": "same"}
     return json.dumps(plugins)
+
+
+def kakaotalk_source(version, revision, artifact_hash):
+    return f'''{{
+  version = "{version}";
+  src = fetchFromGitHub {{
+    owner = "betive37";
+    repo = "mac-kakaotalk-adblock";
+    rev = "{revision}";
+    hash = "{artifact_hash}";
+  }};
+}}
+'''
+
 
 MOCK_GH = """#!/bin/sh
 set -eu
@@ -89,7 +109,10 @@ class OpenUpdatePRTests(unittest.TestCase):
         target = self.repo / TARGET
         target.parent.mkdir(parents=True)
         target.write_text(grouped_plugin_source("old"))
-        self.git(self.repo, "add", TARGET)
+        package = self.repo / KAKAO_TARGET
+        package.parent.mkdir()
+        package.write_text(kakaotalk_source(KAKAO_OLD_VERSION, KAKAO_OLD_REVISION, "sha256-old"))
+        self.git(self.repo, "add", TARGET, KAKAO_TARGET)
         self.git(self.repo, "commit", "-m", "initial")
         self.git(self.repo, "remote", "add", "origin", str(self.origin))
         self.git(self.repo, "push", "--set-upstream", "origin", "main")
@@ -115,9 +138,9 @@ class OpenUpdatePRTests(unittest.TestCase):
         env.update(overrides)
         return env
 
-    def run_helper(self, env):
+    def run_helper(self, env, branch=BRANCH, body="automated update", target=TARGET):
         return subprocess.run(
-            ["bash", str(HELPER), BRANCH, "automated update", TARGET],
+            ["bash", str(HELPER), branch, body, target],
             cwd=self.repo, env=env, text=True,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         )
@@ -142,6 +165,35 @@ class OpenUpdatePRTests(unittest.TestCase):
         self.assertIn("--title chore(deps): update example --body", calls)
         self.assertNotIn("| unchanged |", calls)
         self.assertEqual(self.git(self.repo, "log", "-1", "--format=%s"), "chore(deps): update example")
+
+    def test_kakaotalk_patcher_report_requires_manual_review_without_auto_merge(self):
+        (self.repo / KAKAO_TARGET).write_text(
+            kakaotalk_source(KAKAO_NEW_VERSION, KAKAO_NEW_REVISION, "sha256-new"),
+        )
+
+        result = self.run_helper(
+            self.helper_env(GH_APP_SLUG="dependency-updates"),
+            branch=KAKAO_BRANCH, body="KakaoTalk patcher update for manual review",
+            target=KAKAO_TARGET,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        calls = self.gh_log.read_text()
+        self.assertIn("--title chore(deps): update kakaotalk-patcher --body", calls)
+        self.assertIn("KakaoTalk patcher update for manual review", calls)
+        for pin in (KAKAO_OLD_VERSION, KAKAO_NEW_VERSION,
+                    KAKAO_OLD_REVISION, KAKAO_NEW_REVISION,
+                    "sha256-old", "sha256-new"):
+            self.assertIn(pin, calls)
+        self.assertIn(
+            "https://github.com/betive37/mac-kakaotalk-adblock/compare/"
+            f"{KAKAO_OLD_REVISION}...{KAKAO_NEW_REVISION}",
+            calls,
+        )
+        self.assertIn("Manual review required", result.stdout)
+        self.assertNotIn("graphql", calls)
+        self.assertNotIn("pr view", calls)
+        self.assertFalse((self.root / "mutations.jsonl").exists())
 
     def test_invalid_metadata_stops_before_github_branch_or_push(self):
         (self.repo / TARGET).write_text("not json")

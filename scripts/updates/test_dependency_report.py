@@ -50,6 +50,42 @@ class DependencyReportTests(unittest.TestCase):
                 self.assertTrue(rows[0]["compare"].endswith(f"/{tag}1.0.0...{tag}2.0.0"))
                 self.assertEqual(render_title(rows), f"chore(deps): update {name}")
 
+    def test_kakaotalk_patcher_reports_version_revision_and_hash_changes(self):
+        old_revision = "5eb55199f3aa0c9680b8d080c7d5221a4725d627"
+        new_revision = "0123456789abcdef0123456789abcdef01234567"
+        old_version = f"26.9.0-2006-{old_revision[:7]}"
+        new_version = f"26.9.0-2006-{new_revision[:7]}"
+        before = f'''
+  version = "{old_version}";
+  src = fetchFromGitHub {{
+    owner = "betive37";
+    repo = "mac-kakaotalk-adblock";
+    rev = "{old_revision}";
+    hash = "sha256-old";
+  }};
+'''
+        after = before.replace(old_version, new_version).replace(
+            old_revision, new_revision,
+        ).replace("sha256-old", "sha256-new")
+
+        rows = self.report("packages/kakaotalk-patcher.nix", before, after)
+
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["dependency"], "kakaotalk-patcher")
+        self.assertEqual(rows[0]["previous"],
+                         f"hash: sha256-old; owner: betive37; repo: mac-kakaotalk-adblock; "
+                         f"rev: {old_revision}; version: {old_version}")
+        self.assertEqual(rows[0]["next"],
+                         f"hash: sha256-new; owner: betive37; repo: mac-kakaotalk-adblock; "
+                         f"rev: {new_revision}; version: {new_version}")
+        self.assertTrue(rows[0]["compare"].endswith(f"/{old_revision}...{new_revision}"))
+        self.assertEqual(render_title(rows), "chore(deps): update kakaotalk-patcher")
+        table = render_table(rows)
+        for pin in (old_version, new_version, old_revision, new_revision,
+                    "sha256-old", "sha256-new"):
+            self.assertIn(pin, table)
+
+
     def test_gno_group_reports_full_revision_and_unchanged_gnopls(self):
         before = '  gnoRev = "' + "a" * 40 + '";\n  gnoplsRev = "' + "c" * 40 + '";\n'
         rows = self.report("modules/languages/gno.nix", before, before.replace("a" * 40, "b" * 40))

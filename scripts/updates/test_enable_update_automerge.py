@@ -156,6 +156,16 @@ class EnableUpdateAutomergeTests(unittest.TestCase):
                 self.assert_refused(branch=branch)
         self.assert_refused(head="not-a-sha")
 
+    def test_kakaotalk_patcher_branch_is_rejected_for_manual_review(self):
+        branch = "automation/update-kakaotalk-patcher"
+        self.fixture["pr"]["head"]["ref"] = branch
+        self.fixture["pr"]["changed_files"] = 1
+        self.fixture["pages"] = [[{
+            "filename": "packages/kakaotalk-patcher.nix", "status": "modified",
+        }]]
+
+        self.assert_refused(branch=branch)
+
     def test_out_of_scope_empty_incomplete_and_non_modified_files_never_mutate(self):
         cases = [
             [], [{"filename": "flake.lock", "status": "modified"}],
