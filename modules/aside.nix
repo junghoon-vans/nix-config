@@ -1,12 +1,7 @@
 { lib, pkgs, ... }:
 
 let
-  asideCli = pkgs.writeShellApplication {
-    name = "aside";
-    text = ''
-      exec "$HOME/.aside/cli/Aside CLI.app/Contents/MacOS/aside" "$@"
-    '';
-  };
+  asideCli = import ./mcp/aside-cli.nix { inherit pkgs; };
   mcpRegistry = import ./mcp/registry.nix {
     asideCommand = lib.getExe asideCli;
   };

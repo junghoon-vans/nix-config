@@ -1,5 +1,5 @@
 {
-  asideCommand ? "aside",
+  asideCommand,
 }:
 let
   ompTransport = builtins.fromJSON (builtins.readFile ../../home/.omp/agent/mcp.json);
@@ -13,7 +13,7 @@ let
     aside = "logged-in browser automation";
   };
 in
-{
+rec {
   omp = ompTransport // {
     mcpServers = ompTransport.mcpServers // {
       aside = ompTransport.mcpServers.aside // {
@@ -23,6 +23,17 @@ in
   };
 
   hermes = {
+    context7 = {
+      url = ompTransport.mcpServers.context7.url;
+      tools = {
+        include = [
+          "resolve-library-id"
+          "query-docs"
+        ];
+        resources = false;
+        prompts = false;
+      };
+    };
     notion = {
       url = ompTransport.mcpServers.notion.url;
       auth = "oauth";
@@ -62,25 +73,64 @@ in
         prompts = false;
       };
     };
+    atlassian = {
+      url = ompTransport.mcpServers.atlassian.url;
+      auth = "oauth";
+      tools = {
+        include = [
+          "atlassianUserInfo"
+          "getAccessibleAtlassianResources"
+          "getJiraIssue"
+          "searchJiraIssuesUsingJql"
+          "getConfluenceContent"
+          "searchConfluence"
+        ];
+        resources = false;
+        prompts = false;
+      };
+    };
+    aside = {
+      command = asideCommand;
+      args = [ "mcp" ];
+      trust = "untrusted";
+      sampling.enabled = false;
+      tools = {
+        include = [
+          "browser_profiles"
+          "exec"
+          "repl"
+          "memory_search"
+        ];
+        resources = false;
+        prompts = false;
+      };
+    };
   };
 
-  managedHermesServers = [
-    "notion"
-    "github"
-  ];
+  managedHermesServers = builtins.attrNames hermes;
 
   awareness = ''
     Native Hermes Notion tools read documents; native GitHub tools inspect PRs and CI.
     Their client allowlists are read-only, not proof of narrower OAuth/token permissions.
+    Native Hermes Context7 tools resolve library IDs and retrieve framework documentation.
+    Native Hermes Atlassian tools are allowlisted for identity/site discovery and Jira/
+    Confluence read/search only; no write or destructive tools are enabled.
+    Native Hermes Aside exposes browser profiles, browser control, and memory search.
+    Before browser submissions, destructive actions, purchases, or messages, obtain the
+    user's explicit confirmation. Preserve the logged-in session and existing tabs; do not
+    log out, clear browser data, switch profiles, or close unrelated tabs.
     OMP is configured with these MCP capabilities:
     ${builtins.concatStringsSep "\n" (
       builtins.map (name: "- ${name}: ${capabilities.${name}}") (
         builtins.attrNames ompTransport.mcpServers
       )
     )}
-    Configured does not mean authenticated. Authentication and live discovery are unverified;
-    verify actual tool availability and access in the delegated OMP session before claiming
-    success. Use delegate_task with option omp for these additional capabilities and
-    approved writes. Never copy OAuth state or tokens between clients or profiles.
+    Configured does not mean authenticated. Native Hermes discovery and authentication are
+    unverified; verify actual native tool availability and access in the active profile
+    before claiming success. The Atlassian allowlist uses v2 catalog tool names while its
+    shared OMP URL remains v1/authv2; v1 discovery and authentication are unverified.
+    Likewise verify OMP connectivity in its delegated session; offline fixtures are not
+    live evidence. Use delegate_task with option omp for gnomcp, ux-ui-gates, repository
+    work, and approved writes. Never copy OAuth state or tokens between clients or profiles.
   '';
 }

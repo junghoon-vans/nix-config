@@ -153,9 +153,10 @@ class HermesRuntimeConfig(unittest.TestCase):
         self.runtime.write_text(yaml.safe_dump({
             "mcp_servers": {
                 "local": local,
-                "notion": {"command": "stale", "headers": {"Authorization": "old"}},
+                "notion": {"command": "stale-notion"},
                 "github": {"tools": {"exclude": ["get_me"]}},
                 "retired": {"command": "retired-mcp"},
+                "fresh": {"command": "stale-fresh", "headers": {"Authorization": "old"}},
             },
             "nix_managed_mcp_servers": ["retired"],
             "skills": {"external_dirs": ["/local/skills"]},
@@ -164,11 +165,11 @@ class HermesRuntimeConfig(unittest.TestCase):
         self.runtime.chmod(0o600)
         auth = self.home / "mcp-oauth-tokens.json"
         auth.write_text('{"synthetic": "untouched"}')
-        declared = {"notion": {"url": "https://mcp.notion.com/mcp", "auth": "oauth"}}
+        declared = {"fresh": {"url": "https://example.invalid/new-mcp", "tools": {"include": ["read"]}}}
         self.write_defaults(self.defaults_path, {
             **self.defaults,
             "mcp_servers": declared,
-            "nix_managed_mcp_servers": ["notion"],
+            "nix_managed_mcp_servers": ["fresh"],
         })
         self.check()
         result = yaml.safe_load(self.runtime.read_text())
@@ -176,15 +177,8 @@ class HermesRuntimeConfig(unittest.TestCase):
         self.assertEqual(result["skills"], {"external_dirs": ["/local/skills"]})
         self.assertEqual(result["command_allowlist"], ["git status"])
 
-        # A newly introduced name must be remembered for the next removal, not
-        # hard-coded into the preparer. Reusing a name replaces the whole entry.
-        added = {"fresh": {"command": "new-mcp", "tools": {"include": ["read"]}}}
-        self.write_defaults(self.defaults_path, {
-            **self.defaults, "mcp_servers": added, "nix_managed_mcp_servers": ["fresh"],
-        })
-        self.check()
-        self.assertEqual(yaml.safe_load(self.runtime.read_text())["mcp_servers"],
-                         {"local": local, **added})
+        # The current ownership list is sufficient to remove a dynamically
+        # introduced server on the next generation, without hard-coded names.
         self.write_defaults(self.defaults_path, {
             **self.defaults, "mcp_servers": {}, "nix_managed_mcp_servers": [],
         })

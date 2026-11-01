@@ -494,6 +494,16 @@ class PackagedHermesIntegration(unittest.TestCase):
                 "actions_get",
                 "get_job_logs",
             ),
+            "context7": ("resolve-library-id", "query-docs"),
+            "atlassian": (
+                "atlassianUserInfo",
+                "getAccessibleAtlassianResources",
+                "getJiraIssue",
+                "searchJiraIssuesUsingJql",
+                "getConfluenceContent",
+                "searchConfluence",
+            ),
+            "aside": ("browser_profiles", "exec", "repl", "memory_search"),
         }
         expected_registered_tools = {
             "notion": {
@@ -514,9 +524,27 @@ class PackagedHermesIntegration(unittest.TestCase):
                 "mcp__github__actions_get",
                 "mcp__github__get_job_logs",
             },
+            "context7": {
+                "mcp__context7__resolve_library_id",
+                "mcp__context7__query_docs",
+            },
+            "atlassian": {
+                "mcp__atlassian__atlassianUserInfo",
+                "mcp__atlassian__getAccessibleAtlassianResources",
+                "mcp__atlassian__getJiraIssue",
+                "mcp__atlassian__searchJiraIssuesUsingJql",
+                "mcp__atlassian__getConfluenceContent",
+                "mcp__atlassian__searchConfluence",
+            },
+            "aside": {
+                "mcp__aside__browser_profiles",
+                "mcp__aside__exec",
+                "mcp__aside__repl",
+                "mcp__aside__memory_search",
+            },
         }
-        # Deliberately independent of the configured include lists: discovery
-        # includes both writes and unrelated reads that policy must reject.
+        # Fixed vendor-discovery fixtures, deliberately separate from both
+        # configured includes and expected registry names.
         discovered_tools = {
             "notion": (
                 "notion-search",
@@ -526,6 +554,7 @@ class PackagedHermesIntegration(unittest.TestCase):
                 "notion-query-data-sources",
                 "notion-get-comments",
                 "create_page",
+                "update_page",
                 "search_people",
             ),
             "github": (
@@ -540,17 +569,65 @@ class PackagedHermesIntegration(unittest.TestCase):
                 "create_issue",
                 "search_commits",
             ),
+            "context7": ("resolve-library-id", "query-docs"),
+            "atlassian": (
+                "atlassianUserInfo",
+                "getAccessibleAtlassianResources",
+                "getJiraIssue",
+                "searchJiraIssuesUsingJql",
+                "getConfluenceContent",
+                "searchConfluence",
+                "executeWrite",
+                "executeDestructive",
+            ),
+            "aside": ("browser_profiles", "exec", "repl", "memory_search"),
         }
-        write_tools = {"create_page", "create_issue"}
+        excluded_mutation_tools = {
+            "notion": {"create_page", "update_page"},
+            "github": {"create_issue"},
+            "atlassian": {"executeWrite", "executeDestructive"},
+        }
+        excluded_registered_tools = {
+            "notion": {
+                "mcp__notion__create_page",
+                "mcp__notion__update_page",
+            },
+            "github": {"mcp__github__create_issue"},
+            "atlassian": {
+                "mcp__atlassian__executeWrite",
+                "mcp__atlassian__executeDestructive",
+            },
+        }
+        for name, excluded in excluded_mutation_tools.items():
+            self.assertTrue(excluded <= set(discovered_tools[name]))
+        write_tools = {
+            "create_page",
+            "update_page",
+            "create_issue",
+            "executeWrite",
+            "executeDestructive",
+            "exec",
+            "repl",
+        }
+        for name, excluded in excluded_registered_tools.items():
+            self.assertTrue(excluded.isdisjoint(set(expected_registered_tools[name])))
 
         servers = self.config["mcp_servers"]
         self.assertEqual(set(servers), set(expected_native_tools))
         notion = servers["notion"]
         github = servers["github"]
+        context7 = servers["context7"]
+        atlassian = servers["atlassian"]
+        aside = servers["aside"]
         self.assertEqual(notion["url"], "https://mcp.notion.com/mcp")
         self.assertEqual(notion["auth"], "oauth")
         self.assertEqual(github["url"], "https://api.githubcopilot.com/mcp/")
         self.assertEqual(github.get("protocol"), "stateless")
+        self.assertEqual(context7["url"], "https://mcp.context7.com/mcp")
+        self.assertEqual(atlassian["url"], "https://mcp.atlassian.com/v1/mcp/authv2")
+        self.assertEqual(atlassian["auth"], "oauth")
+        self.assertEqual(aside["trust"], "untrusted")
+        self.assertFalse(aside["sampling"]["enabled"])
         for name, server_config in servers.items():
             self.assertCountEqual(
                 server_config["tools"]["include"], expected_native_tools[name]
@@ -608,6 +685,11 @@ class PackagedHermesIntegration(unittest.TestCase):
             if name == "notion":
                 allowed |= allowed_resource_tools
             self.assertEqual(registered, allowed, f"{name} MCP registration policy")
+            if name in excluded_registered_tools:
+                self.assertTrue(
+                    excluded_registered_tools[name].isdisjoint(registered),
+                    f"{name} exposed a mutation tool",
+                )
 
         selection_config = {
             **self.config,
@@ -616,7 +698,7 @@ class PackagedHermesIntegration(unittest.TestCase):
         for platform in ("cli", "slack"):
             with self.subTest(platform=platform):
                 selected = _get_platform_tools(selection_config, platform)
-                self.assertTrue({"delegation", "notion", "github"} <= selected)
+                self.assertTrue({"delegation", *servers} <= selected)
                 self.assertNotIn("user-local", selected)
                 session_env = {
                     "HERMES_GATEWAY_SESSION": "1" if platform == "slack" else "0",

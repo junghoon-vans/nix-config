@@ -8,7 +8,10 @@
 
 let
   cfg = config.workstation.hermes;
-  mcpRegistry = import ./mcp/registry.nix { };
+  asideCli = import ./mcp/aside-cli.nix { inherit pkgs; };
+  mcpRegistry = import ./mcp/registry.nix {
+    asideCommand = lib.getExe asideCli;
+  };
   user = config.system.primaryUser;
   home = config.users.users.${user}.home;
   profileName = "omp-worker";
@@ -88,6 +91,9 @@ let
         "skills"
         "notion"
         "github"
+        "context7"
+        "atlassian"
+        "aside"
       ];
       cli = [
         "delegation"
@@ -97,6 +103,9 @@ let
         "skills"
         "notion"
         "github"
+        "context7"
+        "atlassian"
+        "aside"
       ];
     };
     platforms.slack = {
