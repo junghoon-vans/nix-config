@@ -36,7 +36,11 @@ else
   gh pr edit "$branch" --title "$title" --body "$body"
 fi
 
-python3 -B "$(dirname "${BASH_SOURCE[0]}")/enable-update-automerge.py" \
-  --number "$(gh pr view "$branch" --json number --jq '.number')" \
-  --branch "$branch" \
-  --head "$(git rev-parse HEAD)"
+if [[ "$branch" == "automation/update-kakaotalk-patcher" ]]; then
+  printf 'Manual review required for %s; auto-merge was not enabled\n' "$branch"
+else
+  python3 -B "$(dirname "${BASH_SOURCE[0]}")/enable-update-automerge.py" \
+    --number "$(gh pr view "$branch" --json number --jq '.number')" \
+    --branch "$branch" \
+    --head "$(git rev-parse HEAD)"
+fi

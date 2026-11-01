@@ -21,6 +21,7 @@ SPEC.loader.exec_module(fixed_release)
 PATHS = (
     "flake.lock", "release-pins.json", "modules/languages/gno.nix",
     "home/.omp/agent/mcp.json", "apm.yml", "apm.lock.yaml", "modules/paseo-plugins.json",
+    "packages/kakaotalk-patcher.nix",
 )
 
 
@@ -56,6 +57,36 @@ def flake_pin(node):
     if reference := node.get("original", {}).get("ref"):
         locked["declared ref"] = reference
     return pin(locked)
+
+
+def kakaotalk_patcher_pin(text):
+    if text is None:
+        return None
+
+    source = re.search(
+        r"^[ \t]*src[ \t]*=[ \t]*fetchFromGitHub[ \t]*\{(.*?)^[ \t]*\};[ \t]*$",
+        text, re.MULTILINE | re.DOTALL,
+    )
+    if source is None:
+        raise ValueError("KakaoTalk patcher package is missing its fetchFromGitHub source")
+
+    def string_field(declarations, name):
+        match = re.search(
+            r"^[ \t]*" + re.escape(name) + r'[ \t]*=[ \t]*"([^"\n]+)";[ \t]*$',
+            declarations, re.MULTILINE,
+        )
+        return match.group(1) if match else None
+
+    values = {
+        "version": string_field(text, "version"),
+        **{
+            name: string_field(source.group(1), name)
+            for name in ("owner", "repo", "rev", "hash")
+        },
+    }
+    if any(value is None for value in values.values()):
+        raise ValueError("KakaoTalk patcher package is missing pinned version or source metadata")
+    return values
 
 
 def collect_rows(before, after):
@@ -118,6 +149,14 @@ def collect_rows(before, after):
                 a, b = source(old_text), source(new_text)
                 rows.append(row(name, pin(a), pin(b), repository,
                                 (a or {}).get("Rev"), (b or {}).get("Rev")))
+        elif path == "packages/kakaotalk-patcher.nix":
+            a, b = kakaotalk_patcher_pin(old_text), kakaotalk_patcher_pin(new_text)
+            source = b or a or {}
+            repository = f"{source['owner']}/{source['repo']}" if source else None
+            rows.append(row(
+                "kakaotalk-patcher", pin(a), pin(b), repository,
+                (a or {}).get("rev"), (b or {}).get("rev"),
+            ))
         else:
             # Only tagged-skills uses YAML; its CI already installs the pinned parser.
             import yaml

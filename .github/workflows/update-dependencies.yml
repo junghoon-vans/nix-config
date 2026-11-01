@@ -118,6 +118,46 @@ jobs:
             "Automated latest stable GitHub release update for Gno and gnopls. Pins release commits and recalculates source and Go dependency hashes. Builds and smoke-checks gno, gnokey, and gnopls against the shared GNOROOT before opening this PR. Normal PR validation evaluates and builds both Darwin hosts. Trusted CI updates request SQUASH auto-merge after required validation. Activation remains manual." \
             modules/languages/gno.nix
 
+  kakaotalk-patcher:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
+      - name: Test transactional patcher updates
+        run: python3 -B -m unittest discover -s scripts/updates -p 'test_update_kakaotalk_patcher.py'
+      - name: Resolve immutable upstream pin and validate staged package
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 -B scripts/updates/update-kakaotalk-patcher.py
+      - name: Check candidate repository
+        run: |
+          python3 -B scripts/validation/check-doc-version-drift.py
+          make check
+      # Do not expose the write credential while checking upstream code.
+      - name: Create repository-scoped update token
+        id: app-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: ${{ vars.DEPENDENCY_UPDATES_APP_CLIENT_ID }}
+          private-key: ${{ secrets.DEPENDENCY_UPDATES_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+      - name: Open manual-review patcher update pull request
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+        run: |
+          gh auth setup-git
+          scripts/updates/open-update-pr.sh \
+            automation/update-kakaotalk-patcher \
+            "Automated upstream patcher update with immutable commit and Nix source hash. Staged package build, adapter safety tests, CLI help smoke checks and repository checks passed before this PR. Supported target changes fail closed for manual adapter integration. Review upstream validation changes before merging; auto-merge is disabled for this branch. No app is installed, launched or patched by this workflow. Activation remains manual; an existing patched app requires explicit rollback before changing patcher packages." \
+            packages/kakaotalk-patcher.nix
+
   hermes:
     runs-on: macos-15
     timeout-minutes: 30
