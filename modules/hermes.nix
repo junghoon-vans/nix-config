@@ -18,7 +18,25 @@ let
   profilePath = ".hermes/profiles/${profileName}";
   profileHome = "${home}/${profilePath}";
   yaml = pkgs.formats.yaml { };
-  providerSource = inputs.hermes-omp-acp;
+  providerPackages = hermesPackages.messaging.python.pkgs.overrideScope inputs.hermes-omp-acp.overlays.python;
+  # Hermes's sealed ACP group already supplies the supported SDK. Propagating a
+  # second copy would shadow core dependencies and fail its collision guard.
+  providerPackage = providerPackages.hermes-omp-acp.overridePythonAttrs (old: {
+    dependencies = [ ];
+    # Retain wheel dependency/import validation at build time, without adding
+    # the SDK or its dependencies to the Hermes runtime's PYTHONPATH.
+    nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ providerPackages.agent-client-protocol ];
+  });
+  providerResources = "${providerPackage}/share/hermes-omp-acp";
+  runtimeProbe = pkgs.writeTextDir "sitecustomize.py" ''
+    import os
+    import sys
+
+    if os.environ.pop("HERMES_RUNTIME_PROBE", None):
+        os.execv(sys.executable, [
+            sys.executable, "${../tests/hermes/test_packaged_runtime.py}", *sys.argv[1:]
+        ])
+  '';
   delegationSource = "${inputs.hermes-official-plugins}/advanced-delegation";
   hermesPackages = inputs.hermes-agent.packages.${pkgs.stdenv.hostPlatform.system};
   # Hermes 0.22.5 attaches Linux ELF fixups to its Darwin pm artifacts too.
@@ -50,7 +68,7 @@ let
     };
     providers."omp-acp".stale_timeout_seconds = 1800;
     skills.external_dirs = [
-      "${providerSource}/skills"
+      "${providerResources}/skills"
       "${home}/.agents/skills"
     ];
     # This Home Manager-owned profile runs separately from the default host gateway.
@@ -199,6 +217,7 @@ in
       type = lib.types.package;
       default = hermesPackages.messaging.override {
         inherit pmPackages;
+        extraPythonPackages = [ providerPackage ];
         version = lib.removePrefix "v" (builtins.fromJSON (builtins.readFile ../flake.lock))
         .nodes.hermes-agent.original.ref;
         extraDependencyGroups = [
@@ -237,10 +256,13 @@ in
             HERMES_BUNDLED_PLUGINS = "${cfg.package}/share/hermes-agent/plugins";
             HERMES_BUNDLED_SKILLS = "${cfg.package}/share/hermes-agent/skills";
             PYTHONDONTWRITEBYTECODE = "1";
+            # Exercise the installed launcher, including its extraPythonPackages.
+            PYTHONPATH = runtimeProbe;
+            HERMES_RUNTIME_PROBE = "1";
           }
           ''
-            ${cfg.package.hermesVenv}/bin/python3 ${../tests/hermes/test_packaged_runtime.py} \
-              ${hermesConfig} ${providerSource} ${delegationSource} ${lib.escapeShellArg cfg.package.version} \
+            ${lib.getExe cfg.package} \
+              ${hermesConfig} ${providerResources} ${delegationSource} ${lib.escapeShellArg cfg.package.version} \
               ${lib.getExe config.workstation.omp.package} \
               ${
                 config.home-manager.users.${user}.home.activationPackage
@@ -258,7 +280,6 @@ in
           "${profilePath}/locales/en.yaml".source = yaml.generate "hermes-slack-locale.yaml" {
             platform.slack.handoff.seed = "*{name}*";
           };
-          "${profilePath}/plugins/omp-acp-provider".source = providerSource;
           "${profilePath}/plugins/advanced-delegation".source = delegationSource;
         };
         activation = {

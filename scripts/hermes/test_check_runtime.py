@@ -19,15 +19,16 @@ class HermesRuntimeDependencies(unittest.TestCase):
     def setUp(self):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
-        self.provider_source = Path(temporary.name) / "provider"
-        self.provider_source.mkdir()
-        self.pyproject = self.provider_source / "pyproject.toml"
+        self.provider_source = Path(temporary.name)
+        self.dist_info = self.provider_source / "hermes_omp_acp-0.0.dist-info"
+        self.dist_info.mkdir()
+        sys.path.insert(0, str(self.provider_source))
+        self.addCleanup(sys.path.remove, str(self.provider_source))
 
     def write_dependencies(self, *dependencies):
-        declared = ",\n".join(f"    {json.dumps(item)}" for item in dependencies)
-        self.pyproject.write_text(
-            '[project]\nname = "runtime-check-fixture"\nversion = "1.0"\n'
-            f"dependencies = [\n{declared}\n]\n"
+        self.dist_info.joinpath("METADATA").write_text(
+            "Metadata-Version: 2.1\nName: hermes-omp-acp\nVersion: 0.0\n"
+            + "".join(f"Requires-Dist: {item}\n" for item in dependencies)
         )
 
     def test_reports_only_unsatisfied_active_dependencies(self):
@@ -42,7 +43,7 @@ class HermesRuntimeDependencies(unittest.TestCase):
         )
 
         with self.assertRaises(RuntimeError) as failure:
-            MODULE.check_provider_dependencies(self.provider_source)
+            MODULE.check_provider_dependencies()
 
         message = str(failure.exception)
         self.assertIn(missing, message)
@@ -57,7 +58,7 @@ class HermesRuntimeDependencies(unittest.TestCase):
         self.write_dependencies(required)
 
         with self.assertRaises(RuntimeError) as failure:
-            MODULE.check_provider_dependencies(self.provider_source)
+            MODULE.check_provider_dependencies()
 
         message = str(failure.exception)
         self.assertIn("PyYAML", message)
