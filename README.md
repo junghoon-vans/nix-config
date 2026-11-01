@@ -1,6 +1,16 @@
 # nix-config
 
-Declarative configuration for Junghoon's Apple Silicon macOS workstations.
+My macOS workstation and personal AI agent harness, managed with Nix.
+
+- **Workstation:** Apple Silicon macOS, with apps, shell, editor, and development
+  tools declared through nix-darwin and Home Manager.
+- **Agent harness:** Oh My Pi (OMP) role-based model routing, shared skills and MCP
+  integrations, Zed and Paseo entry points, and a launchd-managed Hermes Slack gateway.
+
+This is my personal setup, not a drop-in configuration for other machines. Review
+the host and user settings before activating; credentials and machine-local state
+stay separate from the repository. The harness declares agent orchestration, not
+an OS sandbox or a guarantee that every service is running.
 
 ## Get started
 

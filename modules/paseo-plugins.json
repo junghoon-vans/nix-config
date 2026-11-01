@@ -1,0 +1,42 @@
+{
+  "paseo-bots": {
+    "source": "github",
+    "repository": "oliexe/paseo-bots",
+    "directory": "",
+    "revision": "39a700006c204aef25de4e0db11419b6f75ac814",
+    "hash": "sha256-bVKoX3NcKCSpq2MHRdGWG3aaWVGnTKVPitSDNLOwyYg=",
+    "enabled": true
+  },
+  "paseo-jira": {
+    "source": "github",
+    "repository": "tranhuywin/paseo-jira",
+    "directory": "",
+    "revision": "9af1c40c8265f71b69660ea7bc9f34d07ef737ff",
+    "hash": "sha256-j+CYfHnpS9uwhFAZycdA+e2erYPF7fXq2xK2/iwEQK8=",
+    "enabled": true
+  },
+  "resources": {
+    "source": "github",
+    "repository": "ZedObaia/paseo-plugins",
+    "directory": "plugins/resources",
+    "revision": "fb4ffb82afb368a38e55bd0773a6007e7bf0c1a9",
+    "hash": "sha256-f8wRWP4XJ4WfOvDqSSTQBmgKayPtcTXgiiaa3u7TmFU=",
+    "enabled": true
+  },
+  "keep-awake": {
+    "source": "github",
+    "repository": "hichamboushaba/paseo-plugins",
+    "directory": "keep-awake",
+    "revision": "39a286dbe2166fb1e925420abc4a8a123be5bd7b",
+    "hash": "sha256-Cdl4auMV9QvTW23amW2G+IewHQr5xzZhrfx9zhyP29o=",
+    "enabled": true
+  },
+  "inline-image-preview": {
+    "source": "github",
+    "repository": "FutureGadget/paseo-inline-image-preview",
+    "directory": "",
+    "revision": "f8b892c5171215cf6f403b1882525907f8294a14",
+    "hash": "sha256-bydWf8mWaaMudEjWMLQ9LO/I3ekrw7KlI9vxoqjZGXs=",
+    "enabled": true
+  }
+}

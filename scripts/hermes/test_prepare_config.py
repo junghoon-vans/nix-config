@@ -25,7 +25,7 @@ class HermesRuntimeConfig(unittest.TestCase):
         self.store.mkdir()
         self.defaults_path = self.store / "hermes-config.yaml"
         self.defaults = {
-            "model": {"provider": "openai-codex", "default": "openai/gpt-6.1-sol"},
+            "model": {"provider": "openai-codex", "default": "gpt-6.1-sol"},
             "approvals": {"mode": "manual", "unattended_mode": "deny"},
             "plugins": {"enabled": ["omp-acp-provider", "advanced-delegation"]},
         }
@@ -131,93 +131,78 @@ class HermesRuntimeConfig(unittest.TestCase):
             "command_allowlist": [],
         })
 
-    def test_undeclared_owned_mcp_servers_are_removed_and_local_state_is_preserved(self):
-        local_servers = {
-            "local": {
-                "command": "local-mcp",
-                "env": {"TOKEN": "synthetic-local-secret"},
-            },
-        }
-        local_profile = {
-            "model": "local-profile-model",
-            "api_key": "synthetic-profile-secret",
-        }
+    def test_shared_skill_roots_preserve_existing_paths_without_duplicates(self):
         self.runtime.write_text(yaml.safe_dump({
-            "mcp_servers": {
-                **local_servers,
-                "notion": {"command": "old-notion", "headers": {"Authorization": "old"}},
-                "github": {"command": "old-github", "filter": {"repos": ["old/repo"]}},
-            },
-            "profiles": {"work": local_profile},
-            "api_key": "synthetic-local-secret",
-            "command_allowlist": ["git status"],
-        }))
-        self.runtime.chmod(0o600)
-
-        self.check()
-
-        self.assertEqual(yaml.safe_load(self.runtime.read_text()), {
-            **self.defaults,
-            "mcp_servers": local_servers,
-            "profiles": {"work": local_profile},
-            "api_key": "synthetic-local-secret",
-            "command_allowlist": ["git status"],
-        })
-
-    def test_declared_owned_mcp_servers_replace_whole_entries_idempotently(self):
-        local_server = {
-            "command": "local-mcp",
-            "env": {"TOKEN": "synthetic-local-secret"},
-        }
-        declared_servers = {
-            "notion": {
-                "url": "https://notion.example/mcp",
-                "headers": {"Authorization": "new-notion-secret"},
-            },
-            "github": {
-                "url": "https://github.example/mcp",
-                "filters": {"repos": ["new/repo"]},
-            },
-        }
-        self.runtime.write_text(yaml.safe_dump({
-            "mcp_servers": {
-                "local": local_server,
-                "notion": {
-                    "command": "old-notion",
-                    "args": ["--stale"],
-                    "headers": {"Authorization": "old-notion-secret"},
-                    "filters": {"repos": ["old/repo"]},
-                },
-                "github": {
-                    "command": "old-github",
-                    "headers": {"Authorization": "old-github-secret"},
-                    "filter": {"repos": ["old/repo"]},
-                },
-            },
-            "profiles": {"work": {"model": "local-profile-model"}},
+            "skills": {"external_dirs": ["/existing/skills", "/shared/skills"], "disabled": ["local"]},
         }))
         self.runtime.chmod(0o600)
         self.write_defaults(self.defaults_path, {
-            **self.defaults,
-            "mcp_servers": declared_servers,
+            "skills": {"external_dirs": ["/shared/skills", "/new/skills"]},
         })
 
         self.check()
-        first_stat = self.runtime.stat()
-        expected = {
-            **self.defaults,
-            "mcp_servers": {"local": local_server, **declared_servers},
-            "profiles": {"work": {"model": "local-profile-model"}},
-        }
-        first_content = self.runtime.read_bytes()
-        self.assertEqual(yaml.safe_load(first_content), expected)
-
         self.check()
 
-        repeated_stat = self.runtime.stat()
-        self.assertEqual(self.runtime.read_bytes(), first_content)
-        self.assertEqual(repeated_stat.st_ino, first_stat.st_ino)
-        self.assertEqual(repeated_stat.st_mtime_ns, first_stat.st_mtime_ns)
+        self.assertEqual(yaml.safe_load(self.runtime.read_text())["skills"], {
+            "external_dirs": ["/existing/skills", "/shared/skills", "/new/skills"],
+            "disabled": ["local"],
+        })
+
+    def test_managed_server_generations_replace_remove_and_preserve_local_state(self):
+        local = {"command": "local-mcp", "env": {"LOCAL_SETTING": "keep"}}
+        self.runtime.write_text(yaml.safe_dump({
+            "mcp_servers": {
+                "local": local,
+                "notion": {"command": "stale", "headers": {"Authorization": "old"}},
+                "github": {"tools": {"exclude": ["get_me"]}},
+                "retired": {"command": "retired-mcp"},
+            },
+            "nix_managed_mcp_servers": ["retired"],
+            "skills": {"external_dirs": ["/local/skills"]},
+            "command_allowlist": ["git status"],
+        }))
+        self.runtime.chmod(0o600)
+        auth = self.home / "mcp-oauth-tokens.json"
+        auth.write_text('{"synthetic": "untouched"}')
+        declared = {"notion": {"url": "https://mcp.notion.com/mcp", "auth": "oauth"}}
+        self.write_defaults(self.defaults_path, {
+            **self.defaults,
+            "mcp_servers": declared,
+            "nix_managed_mcp_servers": ["notion"],
+        })
+        self.check()
+        result = yaml.safe_load(self.runtime.read_text())
+        self.assertEqual(result["mcp_servers"], {"local": local, **declared})
+        self.assertEqual(result["skills"], {"external_dirs": ["/local/skills"]})
+        self.assertEqual(result["command_allowlist"], ["git status"])
+
+        # A newly introduced name must be remembered for the next removal, not
+        # hard-coded into the preparer. Reusing a name replaces the whole entry.
+        added = {"fresh": {"command": "new-mcp", "tools": {"include": ["read"]}}}
+        self.write_defaults(self.defaults_path, {
+            **self.defaults, "mcp_servers": added, "nix_managed_mcp_servers": ["fresh"],
+        })
+        self.check()
+        self.assertEqual(yaml.safe_load(self.runtime.read_text())["mcp_servers"],
+                         {"local": local, **added})
+        self.write_defaults(self.defaults_path, {
+            **self.defaults, "mcp_servers": {}, "nix_managed_mcp_servers": [],
+        })
+        self.check()
+        self.assertEqual(yaml.safe_load(self.runtime.read_text())["mcp_servers"], {"local": local})
+        before = self.runtime.stat()
+        self.check()
+        self.assertEqual(self.runtime.stat().st_ino, before.st_ino)
+        self.assertEqual(auth.read_text(), '{"synthetic": "untouched"}')
+
+    def test_invalid_managed_ownership_does_not_modify_profile(self):
+        self.runtime.write_text("mcp_servers: {}\n")
+        self.runtime.chmod(0o600)
+        before = self.runtime.read_bytes()
+        self.write_defaults(self.defaults_path, {"nix_managed_mcp_servers": "github"})
+        with self.assertRaisesRegex(RuntimeError, "list of server names"):
+            self.check()
+        self.assertEqual(self.runtime.read_bytes(), before)
 
     def test_legacy_nix_store_symlink_is_replaced_without_touching_target(self):
         legacy_path = self.store / "previous-config.yaml"

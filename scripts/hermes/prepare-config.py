@@ -11,7 +11,6 @@ import tempfile
 
 NIX_STORE_ROOT = Path("/nix/store")
 RUNTIME_CONFIG_NAME = "config.yaml"
-OWNED_MCP_SERVER_NAMES = ("notion", "github")
 
 
 def _signature(info):
@@ -103,16 +102,24 @@ def _load_config(content, description):
     return value
 
 
-def _remove_owned_mcp_servers(previous):
-    servers = previous.get("mcp_servers")
-    if not isinstance(servers, dict):
-        return previous
+def _managed_mcp_names(config):
+    names = config.get("nix_managed_mcp_servers", [])
+    if not isinstance(names, list) or any(not isinstance(name, str) for name in names):
+        raise RuntimeError("nix_managed_mcp_servers must be a list of server names.")
+    return names
 
+
+def _replace_managed_mcp(previous, defaults):
+    # Remember the previous generation's ownership, not its credentials. The
+    # historical names also migrate profiles prepared before bookkeeping existed.
+    names = set(_managed_mcp_names(previous)) | set(_managed_mcp_names(defaults))
+    names.update(("notion", "github"))
     result = dict(previous)
-    servers = dict(servers)
-    for name in OWNED_MCP_SERVER_NAMES:
-        servers.pop(name, None)
-    result["mcp_servers"] = servers
+    servers = previous.get("mcp_servers")
+    if isinstance(servers, dict):
+        result["mcp_servers"] = {
+            name: value for name, value in servers.items() if name not in names
+        }
     return result
 
 
@@ -158,7 +165,18 @@ def prepare_runtime_config(home, defaults_path):
         raise RuntimeError("The declared Nix Hermes config defaults are unavailable.")
     defaults = _load_config(defaults_path.read_bytes(), "the declared Nix Hermes config defaults")
     previous = _load_config(previous_content, "the existing Hermes runtime config")
-    result = _overlay_config(_remove_owned_mcp_servers(previous), defaults)
+    result = _overlay_config(_replace_managed_mcp(previous, defaults), defaults)
+    if "nix_managed_mcp_servers" in previous or "nix_managed_mcp_servers" in defaults:
+        result["nix_managed_mcp_servers"] = _managed_mcp_names(defaults)
+    # External skill roots are additive; unlike route lists, Nix must not hide
+    # user-declared skills when connecting the shared provider resources.
+    previous_skills = previous.get("skills", {})
+    declared_skills = defaults.get("skills", {})
+    if isinstance(previous_skills, dict) and isinstance(declared_skills, dict):
+        previous_dirs = previous_skills.get("external_dirs", [])
+        declared_dirs = declared_skills.get("external_dirs")
+        if isinstance(previous_dirs, list) and isinstance(declared_dirs, list):
+            result["skills"]["external_dirs"] = list(dict.fromkeys([*previous_dirs, *declared_dirs]))
     content = yaml.safe_dump(result, sort_keys=False, allow_unicode=True).encode("utf-8")
     if previous_content == content and previous_mode == 0o600:
         if _runtime_state(runtime_path) != state:

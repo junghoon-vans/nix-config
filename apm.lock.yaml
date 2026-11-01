@@ -1,5 +1,5 @@
 lockfile_version: '1'
-apm_version: 0.34.0
+apm_version: 0.35.0
 dependencies:
 - repo_url: _local/jira-cloud-formatting
   name: jira-cloud-formatting
@@ -160,7 +160,6 @@ dependencies:
   version: 3.1.0
   package_type: hybrid
   deployed_files:
-  - .agents/skills/6f6399248ff9bd19
   - .agents/skills/humanizer
   - .agents/skills/humanizer/.claude-plugin/marketplace.json
   - .agents/skills/humanizer/.claude-plugin/plugin.json
@@ -297,6 +296,45 @@ dependencies:
   deployed_file_hashes:
     .agents/skills/git-commit/SKILL.md: sha256:554d1a3c6d95f15bc1170160659ecdc9a9958b64f377f3988941b672c249b13f
   content_hash: sha256:2607fc60629b82b257136dd2a7a373f0a4466c0b49df7746d845d59313c99b21
+- repo_url: heydamir/unslop
+  name: unslop
+  host: github.com
+  resolved_commit: 4652254daff586ff4739849395a127b56f7f8cc7
+  resolved_ref: 4652254daff586ff4739849395a127b56f7f8cc7
+  version: unknown
+  virtual_path: skills/unslop
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .agents/skills/unslop
+  - .agents/skills/unslop/SKILL.md
+  - .agents/skills/unslop/references/effects.md
+  - .agents/skills/unslop/references/refs.md
+  - .agents/skills/unslop/references/refs/beacon-engraving.webp
+  - .agents/skills/unslop/references/refs/meadow-3d.webp
+  - .agents/skills/unslop/references/refs/story-dashboard-frames.webp
+  - .agents/skills/unslop/references/refs/unslop-dashboard-after.webp
+  - .agents/skills/unslop/references/refs/unslop-hero-after.webp
+  - .agents/skills/unslop/references/signs.md
+  - .agents/skills/unslop/references/tokens.md
+  - .agents/skills/unslop/references/visuals.md
+  - .agents/skills/unslop/scripts/snapshot.mjs
+  - .agents/skills/unslop/scripts/story.mjs
+  deployed_file_hashes:
+    .agents/skills/unslop/SKILL.md: sha256:5039a0146128fa25ccf0d8cad33c9cf42d15bbb17145615f5685873e372758dd
+    .agents/skills/unslop/references/effects.md: sha256:ded4f679e22843a8f68860e6cda0396fa8b8fa27202400e08337143b485c86a4
+    .agents/skills/unslop/references/refs.md: sha256:12a70ce17d574914ea69eb0809e5a9605de044df1b66619159c6d0b38d6b8353
+    .agents/skills/unslop/references/refs/beacon-engraving.webp: sha256:44e7680e9c944f03c8fe45df999bdf74077a106925a8189eebf89e751e306e5b
+    .agents/skills/unslop/references/refs/meadow-3d.webp: sha256:84f526b68021a06fc6d32f162406fab6cc8074da1ef76d2ae4530e1b58219b14
+    .agents/skills/unslop/references/refs/story-dashboard-frames.webp: sha256:cfbf837e40b7626d5a5789dbce54f5c197aab303aa350d13a042048310717137
+    .agents/skills/unslop/references/refs/unslop-dashboard-after.webp: sha256:48067794f86b43dab20515b3810f245d67bff05d10bfa83c0f5885bee93cea52
+    .agents/skills/unslop/references/refs/unslop-hero-after.webp: sha256:92b2d796c5b6116a2039f5ca2b0f3edf700c92b41846b11b9501a4e32f72af6e
+    .agents/skills/unslop/references/signs.md: sha256:6250d3c222c2aaa4ef4f31557d99d249e5be86d8720cd1157df14798caf1c8c4
+    .agents/skills/unslop/references/tokens.md: sha256:988b754612b3e2d42d87b1bbaca0b4a61f3e07a2b2eef782d3614e8fdb6db5b0
+    .agents/skills/unslop/references/visuals.md: sha256:7247da579d2d95ace1e051b867c757bd1e05aa02f3ab8dea0ead4cd4bf14d7d7
+    .agents/skills/unslop/scripts/snapshot.mjs: sha256:a0cd251b9e58655709558cffab29b1685cd1465a5dc5499c5181fe4185cdd3ab
+    .agents/skills/unslop/scripts/story.mjs: sha256:ed83ac65c92290378fe874ebc3f7e61aab51a9128628f2057651dfb0f01c1815
+  content_hash: sha256:6590d540174fea4363d385964eafaac017ce4e867b00a1f597611d9b72682d52
 - repo_url: jakubantalik/transitions.dev
   materialization_repo_url: Jakubantalik/transitions.dev
   name: transitions-dev
@@ -409,6 +447,99 @@ dependencies:
     .agents/skills/use-modern-go/scripts/run-tool.ps1: sha256:7bd7bd8c8394e9cdbd290251b143e54639e527d52a1099135f1ba91edb5a677b
     .agents/skills/use-modern-go/scripts/run-tool.sh: sha256:a593b2484834fc7d068e7cbe1a09f92b149ed61b9a07556ea50790d95f50a25b
   content_hash: sha256:17fc96614baa7a671f1421a7412942af2b745681042f1030fc045fc5f93b35e5
+- repo_url: leonxlnx/taste-skill
+  materialization_repo_url: Leonxlnx/taste-skill
+  alias: design-taste-frontend
+  name: design-taste-frontend
+  host: github.com
+  resolved_commit: 12af471f627f866411b4bd785b19646d3672784c
+  resolved_ref: 12af471f627f866411b4bd785b19646d3672784c
+  version: unknown
+  virtual_path: skills/taste-skill
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .agents/skills/design-taste-frontend
+  - .agents/skills/design-taste-frontend/README.md
+  - .agents/skills/design-taste-frontend/SKILL.md
+  - .agents/skills/design-taste-frontend/assets/app.css
+  - .agents/skills/design-taste-frontend/assets/base.css
+  - .agents/skills/design-taste-frontend/assets/base.js
+  - .agents/skills/design-taste-frontend/assets/charts.js
+  - .agents/skills/design-taste-frontend/assets/scenes/stage.css
+  - .agents/skills/design-taste-frontend/assets/scenes/stage.js
+  - .agents/skills/design-taste-frontend/evals/evals.json
+  - .agents/skills/design-taste-frontend/library/app.json
+  - .agents/skills/design-taste-frontend/library/directions.json
+  - .agents/skills/design-taste-frontend/library/heroes.json
+  - .agents/skills/design-taste-frontend/library/motions.json
+  - .agents/skills/design-taste-frontend/library/palettes.json
+  - .agents/skills/design-taste-frontend/library/photos.json
+  - .agents/skills/design-taste-frontend/library/sections.json
+  - .agents/skills/design-taste-frontend/library/sites.json
+  - .agents/skills/design-taste-frontend/library/type.json
+  - .agents/skills/design-taste-frontend/references/app-screens.md
+  - .agents/skills/design-taste-frontend/references/colour.md
+  - .agents/skills/design-taste-frontend/references/copy.md
+  - .agents/skills/design-taste-frontend/references/critique.md
+  - .agents/skills/design-taste-frontend/references/imagery.md
+  - .agents/skills/design-taste-frontend/references/layout.md
+  - .agents/skills/design-taste-frontend/references/motion.md
+  - .agents/skills/design-taste-frontend/references/research.md
+  - .agents/skills/design-taste-frontend/references/scenes.md
+  - .agents/skills/design-taste-frontend/references/tells.md
+  - .agents/skills/design-taste-frontend/references/type.md
+  - .agents/skills/design-taste-frontend/scripts/assets.mjs
+  - .agents/skills/design-taste-frontend/scripts/draw.mjs
+  - .agents/skills/design-taste-frontend/scripts/inspect.mjs
+  - .agents/skills/design-taste-frontend/scripts/lib/app-draw.mjs
+  - .agents/skills/design-taste-frontend/scripts/lib/cdp.mjs
+  - .agents/skills/design-taste-frontend/scripts/lib/inspection-files.mjs
+  - .agents/skills/design-taste-frontend/scripts/lib/probe.mjs
+  - .agents/skills/design-taste-frontend/scripts/lib/rules.mjs
+  - .agents/skills/design-taste-frontend/scripts/lint.mjs
+  - .agents/skills/design-taste-frontend/scripts/scenes.mjs
+  deployed_file_hashes:
+    .agents/skills/design-taste-frontend/README.md: sha256:5e33fd716b3e1ffaca9340f645d44c193f9b446107fa67f0cce498d33025672c
+    .agents/skills/design-taste-frontend/SKILL.md: sha256:3435ed963b15a1b6447746ec8844ab2cd38d8d2e8ead3451937f42df01e408c4
+    .agents/skills/design-taste-frontend/assets/app.css: sha256:16518c3a999fb81b2698137f1f743128c189272e8b1d411c4b02598c6755b67f
+    .agents/skills/design-taste-frontend/assets/base.css: sha256:aa6ea21613c79e06e06dea3d33200c78590c89b0346bb976ec07947bb45ceafa
+    .agents/skills/design-taste-frontend/assets/base.js: sha256:8d50416125596b84c0083d5d5ffba09add57db4b06cbf0eedac2d4999b7653bc
+    .agents/skills/design-taste-frontend/assets/charts.js: sha256:a7e916594729576b7c7e37048a68508a3243fe8fbc9654775cd245232e9f8100
+    .agents/skills/design-taste-frontend/assets/scenes/stage.css: sha256:b5c587dac45ac6fcc34ae7cb4aa2b3e43797b2ef5d71fd32b48483bda3fca3e0
+    .agents/skills/design-taste-frontend/assets/scenes/stage.js: sha256:9ce782a94406e6a230c49ca5f87e56aff9d436da3f56416b1659421f8976bc2b
+    .agents/skills/design-taste-frontend/evals/evals.json: sha256:df0ee2a248cd5445c0e1600eb095dc0d43dd312f5b4bb4316a78471ae0d22a74
+    .agents/skills/design-taste-frontend/library/app.json: sha256:3678ccbe1e8d05feff6d4f07fa16a0d610aefeea5e697e842a876713ba763cf5
+    .agents/skills/design-taste-frontend/library/directions.json: sha256:d71e3824af33a92d9e1ca543e17f80baa5b7a30c815df5125cfe3300a14892c1
+    .agents/skills/design-taste-frontend/library/heroes.json: sha256:98d5e01104412a5fb27936f9c686f3bc0a5f76ce0793186d3de46b982c65b172
+    .agents/skills/design-taste-frontend/library/motions.json: sha256:51815dd09a823c829897f99ed9ea7dc5c35bd305ac989b8a0632ea6d42a3f08b
+    .agents/skills/design-taste-frontend/library/palettes.json: sha256:a14be9f45baba848c53436f4aa44eb4f1925ad3e232c5d1dcddf4f565661a525
+    .agents/skills/design-taste-frontend/library/photos.json: sha256:8fc3b76bca90f44675bd99d99bb4ce95b0756c6c5d4141b7e917d11d90e61520
+    .agents/skills/design-taste-frontend/library/sections.json: sha256:7c2c8a470a22501176948661f803434db8c542a511281752c717252de80c1ad8
+    .agents/skills/design-taste-frontend/library/sites.json: sha256:a2bc4d0cff8ebff481f0dfd4879c106d5e1e16cb3122f9ab3702184a5e1f3502
+    .agents/skills/design-taste-frontend/library/type.json: sha256:dbabf41a468775cf6cc5ea5f3c898b0663293822e167b72b02feba1ef03ebf37
+    .agents/skills/design-taste-frontend/references/app-screens.md: sha256:55e937ec30de605b53a11310b446f328a3ce7403de24fff008920a00be1a5ed4
+    .agents/skills/design-taste-frontend/references/colour.md: sha256:6556bcc7eed48b7bc2d0d281c28bf57c1b75e94d7ca0bde49f5d9df8c6a09351
+    .agents/skills/design-taste-frontend/references/copy.md: sha256:676edbe75d5f3cfd8a793010ea9f730525ae074b231a674c2426264d3398262e
+    .agents/skills/design-taste-frontend/references/critique.md: sha256:9c2f4392674530b3f02ac529fba53d82ab37b85f401c4c1989fbe98d6217f0b4
+    .agents/skills/design-taste-frontend/references/imagery.md: sha256:518def6b2c643b295e13e66b09b66f2e3fc1421d3cf6c7dbb1dc749097ad2ad9
+    .agents/skills/design-taste-frontend/references/layout.md: sha256:40080640719b07737afb94a8868afef87767a1ab4892814d9b6882e2d283453b
+    .agents/skills/design-taste-frontend/references/motion.md: sha256:79f94d8469898d2bf6186c198ad86ddf691a67c6536eaec36a4ec101285d9a37
+    .agents/skills/design-taste-frontend/references/research.md: sha256:83433646a352cae588591e05bc0a75fe1deadff55ede8851bc8dd5dd483adfc5
+    .agents/skills/design-taste-frontend/references/scenes.md: sha256:733ac7258a1a28f2f6ae8205bc36ba66c563594ad0a2e2f829c5eaaba3199a61
+    .agents/skills/design-taste-frontend/references/tells.md: sha256:8e6de4411c43d3108f832b3f33bb1a2a838148a72b92a176df893b67d99a0da9
+    .agents/skills/design-taste-frontend/references/type.md: sha256:6353ff1d0ce2f9913628c88fbcb7dad3cc3877e61196848bce99e33a17d20611
+    .agents/skills/design-taste-frontend/scripts/assets.mjs: sha256:b4b4b99b5634735f5a0b4213169cda5240ee6bbed8ed8042ad1bcf2b6607c1fa
+    .agents/skills/design-taste-frontend/scripts/draw.mjs: sha256:6c2047d207d2400d3b099956dfe2ac306203b614246e66bc8760212a7f797dbf
+    .agents/skills/design-taste-frontend/scripts/inspect.mjs: sha256:c0d7366f789b3f594787b37a525d1d7096104a499aac8a97ae04b405046cf02c
+    .agents/skills/design-taste-frontend/scripts/lib/app-draw.mjs: sha256:aa0802d341d19b53ec14ec21746e428be49a8ec3ed7b30253194105fc18a8df6
+    .agents/skills/design-taste-frontend/scripts/lib/cdp.mjs: sha256:320fb75c6454a97b88458e5c33559a1188042aa0041bd5eff53455900236c88a
+    .agents/skills/design-taste-frontend/scripts/lib/inspection-files.mjs: sha256:5635c0d5fbe0f5bd012e58534bcd554ff7440a4e5c724a61a61c476c7f42e918
+    .agents/skills/design-taste-frontend/scripts/lib/probe.mjs: sha256:a5a17df891e438f55f196d8233601c3c79c873755f442c1ac5c3568de4e6bb48
+    .agents/skills/design-taste-frontend/scripts/lib/rules.mjs: sha256:8244aa9f53e77a59a562410310414e6b1a0f0cf002ce8f5aa792740b7f0149bf
+    .agents/skills/design-taste-frontend/scripts/lint.mjs: sha256:05f2fae2f56fc051b539cdbacb43a6f78fbbfb9644bb74aa11be472ff12dcaf5
+    .agents/skills/design-taste-frontend/scripts/scenes.mjs: sha256:234ec582e2b841457c33033feeeba8535f9ac285495a74d08dc533a1566c90d5
+  content_hash: sha256:2d5cfa3d6116729411548ac7898d1f031882a3365f236ba81893cdd0257077ce
 - repo_url: mattpocock/skills
   name: codebase-design
   host: github.com
@@ -433,8 +564,8 @@ dependencies:
 - repo_url: mattpocock/skills
   name: diagnosing-bugs
   host: github.com
-  resolved_commit: 24fe0ef7737efae15c87225755e9f6f5965e4888
-  resolved_ref: v1.3.1
+  resolved_commit: d1478fcb140db0b93c0c8df17bcfd311844749d0
+  resolved_ref: v1.3.2
   version: unknown
   virtual_path: skills/engineering/diagnosing-bugs
   is_virtual: true
@@ -445,10 +576,10 @@ dependencies:
   - .agents/skills/diagnosing-bugs/agents/openai.yaml
   - .agents/skills/diagnosing-bugs/scripts/hitl-loop.template.sh
   deployed_file_hashes:
-    .agents/skills/diagnosing-bugs/SKILL.md: sha256:9168404abda0967a5d32977e3498cd95fda6807018852f3de736a78357c82b40
+    .agents/skills/diagnosing-bugs/SKILL.md: sha256:849198df88cdb65fd0d97236604c1fca7ff2f22d2f705f9724a800d0266b118d
     .agents/skills/diagnosing-bugs/agents/openai.yaml: sha256:3e430dbe4334a87597488c060cb3dc3786bb00c9182877d6f5ec41f62490e90b
     .agents/skills/diagnosing-bugs/scripts/hitl-loop.template.sh: sha256:35103539fc36873eea36074769ad454f9379d6fc8b2dc0e26ce987fd3bfe5503
-  content_hash: sha256:6e4bfebac7befd070f31a0711c295426933481888c38c240f558e8338fc0c72e
+  content_hash: sha256:9b24ecaf15dd8d5594f973c590c6904d90dd3b50f8853fefd2341b7fd4a156bf
 - repo_url: mattpocock/skills
   name: tdd
   host: github.com
@@ -1867,15 +1998,6 @@ dependencies:
     .agents/skills/helm-chart-scaffolding/scripts/validate-chart.sh: sha256:f1de1b886fc8e171fd4c6e10f1cb53796d47dac9b7a76babd710e2a86471089a
   content_hash: sha256:9de710be8ac94b8d4e60104d47e74d65842a197b42262b0415dc365341801792
 deployments:
-- kind: project-relative
-  target: agent-skills
-  value: .agents/skills/6f6399248ff9bd19
-  runtime: null
-  scope: project
-  owners:
-  - blader/humanizer
-  active_owner: blader/humanizer
-  content_hash: null
 - kind: project-relative
   target: agent-skills
   value: .agents/skills/archify
@@ -4767,6 +4889,366 @@ deployments:
   content_hash: sha256:edebc9e4fcfe102114012575eaa9600b9b5fd08c311664f389c36e7bc717740f
 - kind: project-relative
   target: agent-skills
+  value: .agents/skills/design-taste-frontend
+  runtime: null
+  scope: project
+  owners:
+  - leonxlnx/taste-skill/skills/taste-skill
+  active_owner: leonxlnx/taste-skill/skills/taste-skill
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/design-taste-frontend/README.md
+  runtime: null
+  scope: project
+  owners:
+  - leonxlnx/taste-skill/skills/taste-skill
+  active_owner: leonxlnx/taste-skill/skills/taste-skill
+  content_hash: sha256:5e33fd716b3e1ffaca9340f645d44c193f9b446107fa67f0cce498d33025672c
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/design-taste-frontend/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - leonxlnx/taste-skill/skills/taste-skill
+  active_owner: leonxlnx/taste-skill/skills/taste-skill
+  content_hash: sha256:3435ed963b15a1b6447746ec8844ab2cd38d8d2e8ead3451937f42df01e408c4
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/design-taste-frontend/assets/app.css
+  runtime: null
+  scope: project
+  owners:
+  - leonxlnx/taste-skill/skills/taste-skill
+  active_owner: leonxlnx/taste-skill/skills/taste-skill
+  content_hash: sha256:16518c3a999fb81b2698137f1f743128c189272e8b1d411c4b02598c6755b67f
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/design-taste-frontend/assets/base.css
+  runtime: null
+  scope: project
+  owners:
+  - leonxlnx/taste-skill/skills/taste-skill
+  active_owner: leonxlnx/taste-skill/skills/taste-skill
+  content_hash: sha256:aa6ea21613c79e06e06dea3d33200c78590c89b0346bb976ec07947bb45ceafa
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/design-taste-frontend/assets/base.js
+  runtime: null
+  scope: project
+  owners:
+  - leonxlnx/taste-skill/skills/taste-skill
+  active_owner: leonxlnx/taste-skill/skills/taste-skill
+  content_hash: sha256:8d50416125596b84c0083d5d5ffba09add57db4b06cbf0eedac2d4999b7653bc
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/design-taste-frontend/assets/charts.js
+  runtime: null
+  scope: project
+  owners:
+  - leonxlnx/taste-skill/skills/taste-skill
+  active_owner: leonxlnx/taste-skill/skills/taste-skill
+  content_hash: sha256:a7e916594729576b7c7e37048a68508a3243fe8fbc9654775cd245232e9f8100
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/design-taste-frontend/assets/scenes/stage.css
+  runtime: null
+  scope: project
+  owners:
+  - leonxlnx/taste-skill/skills/taste-skill
+  active_owner: leonxlnx/taste-skill/skills/taste-skill
+  content_hash: sha256:b5c587dac45ac6fcc34ae7cb4aa2b3e43797b2ef5d71fd32b48483bda3fca3e0
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/design-taste-frontend/assets/scenes/stage.js
+  runtime: null
+  scope: project
+  owners:
+  - leonxlnx/taste-skill/skills/taste-skill
+  active_owner: leonxlnx/taste-skill/skills/taste-skill
+  content_hash: sha256:9ce782a94406e6a230c49ca5f87e56aff9d436da3f56416b1659421f8976bc2b
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/design-taste-frontend/evals/evals.json
+  runtime: null
+  scope: project
+  owners:
+  - leonxlnx/taste-skill/skills/taste-skill
+  active_owner: leonxlnx/taste-skill/skills/taste-skill
+  content_hash: sha256:df0ee2a248cd5445c0e1600eb095dc0d43dd312f5b4bb4316a78471ae0d22a74
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/design-taste-frontend/library/app.json
+  runtime: null
+  scope: project
+  owners:
+  - leonxlnx/taste-skill/skills/taste-skill
+  active_owner: leonxlnx/taste-skill/skills/taste-skill
+  content_hash: sha256:3678ccbe1e8d05feff6d4f07fa16a0d610aefeea5e697e842a876713ba763cf5
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/design-taste-frontend/library/directions.json
+  runtime: null
+  scope: project
+  owners:
+  - leonxlnx/taste-skill/skills/taste-skill
+  active_owner: leonxlnx/taste-skill/skills/taste-skill
+  content_hash: sha256:d71e3824af33a92d9e1ca543e17f80baa5b7a30c815df5125cfe3300a14892c1
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/design-taste-frontend/library/heroes.json
+  runtime: null
+  scope: project
+  owners:
+  - leonxlnx/taste-skill/skills/taste-skill
+  active_owner: leonxlnx/taste-skill/skills/taste-skill
+  content_hash: sha256:98d5e01104412a5fb27936f9c686f3bc0a5f76ce0793186d3de46b982c65b172
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/design-taste-frontend/library/motions.json
+  runtime: null
+  scope: project
+  owners:
+  - leonxlnx/taste-skill/skills/taste-skill
+  active_owner: leonxlnx/taste-skill/skills/taste-skill
+  content_hash: sha256:51815dd09a823c829897f99ed9ea7dc5c35bd305ac989b8a0632ea6d42a3f08b
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/design-taste-frontend/library/palettes.json
+  runtime: null
+  scope: project
+  owners:
+  - leonxlnx/taste-skill/skills/taste-skill
+  active_owner: leonxlnx/taste-skill/skills/taste-skill
+  content_hash: sha256:a14be9f45baba848c53436f4aa44eb4f1925ad3e232c5d1dcddf4f565661a525
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/design-taste-frontend/library/photos.json
+  runtime: null
+  scope: project
+  owners:
+  - leonxlnx/taste-skill/skills/taste-skill
+  active_owner: leonxlnx/taste-skill/skills/taste-skill
+  content_hash: sha256:8fc3b76bca90f44675bd99d99bb4ce95b0756c6c5d4141b7e917d11d90e61520
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/design-taste-frontend/library/sections.json
+  runtime: null
+  scope: project
+  owners:
+  - leonxlnx/taste-skill/skills/taste-skill
+  active_owner: leonxlnx/taste-skill/skills/taste-skill
+  content_hash: sha256:7c2c8a470a22501176948661f803434db8c542a511281752c717252de80c1ad8
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/design-taste-frontend/library/sites.json
+  runtime: null
+  scope: project
+  owners:
+  - leonxlnx/taste-skill/skills/taste-skill
+  active_owner: leonxlnx/taste-skill/skills/taste-skill
+  content_hash: sha256:a2bc4d0cff8ebff481f0dfd4879c106d5e1e16cb3122f9ab3702184a5e1f3502
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/design-taste-frontend/library/type.json
+  runtime: null
+  scope: project
+  owners:
+  - leonxlnx/taste-skill/skills/taste-skill
+  active_owner: leonxlnx/taste-skill/skills/taste-skill
+  content_hash: sha256:dbabf41a468775cf6cc5ea5f3c898b0663293822e167b72b02feba1ef03ebf37
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/design-taste-frontend/references/app-screens.md
+  runtime: null
+  scope: project
+  owners:
+  - leonxlnx/taste-skill/skills/taste-skill
+  active_owner: leonxlnx/taste-skill/skills/taste-skill
+  content_hash: sha256:55e937ec30de605b53a11310b446f328a3ce7403de24fff008920a00be1a5ed4
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/design-taste-frontend/references/colour.md
+  runtime: null
+  scope: project
+  owners:
+  - leonxlnx/taste-skill/skills/taste-skill
+  active_owner: leonxlnx/taste-skill/skills/taste-skill
+  content_hash: sha256:6556bcc7eed48b7bc2d0d281c28bf57c1b75e94d7ca0bde49f5d9df8c6a09351
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/design-taste-frontend/references/copy.md
+  runtime: null
+  scope: project
+  owners:
+  - leonxlnx/taste-skill/skills/taste-skill
+  active_owner: leonxlnx/taste-skill/skills/taste-skill
+  content_hash: sha256:676edbe75d5f3cfd8a793010ea9f730525ae074b231a674c2426264d3398262e
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/design-taste-frontend/references/critique.md
+  runtime: null
+  scope: project
+  owners:
+  - leonxlnx/taste-skill/skills/taste-skill
+  active_owner: leonxlnx/taste-skill/skills/taste-skill
+  content_hash: sha256:9c2f4392674530b3f02ac529fba53d82ab37b85f401c4c1989fbe98d6217f0b4
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/design-taste-frontend/references/imagery.md
+  runtime: null
+  scope: project
+  owners:
+  - leonxlnx/taste-skill/skills/taste-skill
+  active_owner: leonxlnx/taste-skill/skills/taste-skill
+  content_hash: sha256:518def6b2c643b295e13e66b09b66f2e3fc1421d3cf6c7dbb1dc749097ad2ad9
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/design-taste-frontend/references/layout.md
+  runtime: null
+  scope: project
+  owners:
+  - leonxlnx/taste-skill/skills/taste-skill
+  active_owner: leonxlnx/taste-skill/skills/taste-skill
+  content_hash: sha256:40080640719b07737afb94a8868afef87767a1ab4892814d9b6882e2d283453b
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/design-taste-frontend/references/motion.md
+  runtime: null
+  scope: project
+  owners:
+  - leonxlnx/taste-skill/skills/taste-skill
+  active_owner: leonxlnx/taste-skill/skills/taste-skill
+  content_hash: sha256:79f94d8469898d2bf6186c198ad86ddf691a67c6536eaec36a4ec101285d9a37
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/design-taste-frontend/references/research.md
+  runtime: null
+  scope: project
+  owners:
+  - leonxlnx/taste-skill/skills/taste-skill
+  active_owner: leonxlnx/taste-skill/skills/taste-skill
+  content_hash: sha256:83433646a352cae588591e05bc0a75fe1deadff55ede8851bc8dd5dd483adfc5
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/design-taste-frontend/references/scenes.md
+  runtime: null
+  scope: project
+  owners:
+  - leonxlnx/taste-skill/skills/taste-skill
+  active_owner: leonxlnx/taste-skill/skills/taste-skill
+  content_hash: sha256:733ac7258a1a28f2f6ae8205bc36ba66c563594ad0a2e2f829c5eaaba3199a61
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/design-taste-frontend/references/tells.md
+  runtime: null
+  scope: project
+  owners:
+  - leonxlnx/taste-skill/skills/taste-skill
+  active_owner: leonxlnx/taste-skill/skills/taste-skill
+  content_hash: sha256:8e6de4411c43d3108f832b3f33bb1a2a838148a72b92a176df893b67d99a0da9
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/design-taste-frontend/references/type.md
+  runtime: null
+  scope: project
+  owners:
+  - leonxlnx/taste-skill/skills/taste-skill
+  active_owner: leonxlnx/taste-skill/skills/taste-skill
+  content_hash: sha256:6353ff1d0ce2f9913628c88fbcb7dad3cc3877e61196848bce99e33a17d20611
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/design-taste-frontend/scripts/assets.mjs
+  runtime: null
+  scope: project
+  owners:
+  - leonxlnx/taste-skill/skills/taste-skill
+  active_owner: leonxlnx/taste-skill/skills/taste-skill
+  content_hash: sha256:b4b4b99b5634735f5a0b4213169cda5240ee6bbed8ed8042ad1bcf2b6607c1fa
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/design-taste-frontend/scripts/draw.mjs
+  runtime: null
+  scope: project
+  owners:
+  - leonxlnx/taste-skill/skills/taste-skill
+  active_owner: leonxlnx/taste-skill/skills/taste-skill
+  content_hash: sha256:6c2047d207d2400d3b099956dfe2ac306203b614246e66bc8760212a7f797dbf
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/design-taste-frontend/scripts/inspect.mjs
+  runtime: null
+  scope: project
+  owners:
+  - leonxlnx/taste-skill/skills/taste-skill
+  active_owner: leonxlnx/taste-skill/skills/taste-skill
+  content_hash: sha256:c0d7366f789b3f594787b37a525d1d7096104a499aac8a97ae04b405046cf02c
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/design-taste-frontend/scripts/lib/app-draw.mjs
+  runtime: null
+  scope: project
+  owners:
+  - leonxlnx/taste-skill/skills/taste-skill
+  active_owner: leonxlnx/taste-skill/skills/taste-skill
+  content_hash: sha256:aa0802d341d19b53ec14ec21746e428be49a8ec3ed7b30253194105fc18a8df6
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/design-taste-frontend/scripts/lib/cdp.mjs
+  runtime: null
+  scope: project
+  owners:
+  - leonxlnx/taste-skill/skills/taste-skill
+  active_owner: leonxlnx/taste-skill/skills/taste-skill
+  content_hash: sha256:320fb75c6454a97b88458e5c33559a1188042aa0041bd5eff53455900236c88a
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/design-taste-frontend/scripts/lib/inspection-files.mjs
+  runtime: null
+  scope: project
+  owners:
+  - leonxlnx/taste-skill/skills/taste-skill
+  active_owner: leonxlnx/taste-skill/skills/taste-skill
+  content_hash: sha256:5635c0d5fbe0f5bd012e58534bcd554ff7440a4e5c724a61a61c476c7f42e918
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/design-taste-frontend/scripts/lib/probe.mjs
+  runtime: null
+  scope: project
+  owners:
+  - leonxlnx/taste-skill/skills/taste-skill
+  active_owner: leonxlnx/taste-skill/skills/taste-skill
+  content_hash: sha256:a5a17df891e438f55f196d8233601c3c79c873755f442c1ac5c3568de4e6bb48
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/design-taste-frontend/scripts/lib/rules.mjs
+  runtime: null
+  scope: project
+  owners:
+  - leonxlnx/taste-skill/skills/taste-skill
+  active_owner: leonxlnx/taste-skill/skills/taste-skill
+  content_hash: sha256:8244aa9f53e77a59a562410310414e6b1a0f0cf002ce8f5aa792740b7f0149bf
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/design-taste-frontend/scripts/lint.mjs
+  runtime: null
+  scope: project
+  owners:
+  - leonxlnx/taste-skill/skills/taste-skill
+  active_owner: leonxlnx/taste-skill/skills/taste-skill
+  content_hash: sha256:05f2fae2f56fc051b539cdbacb43a6f78fbbfb9644bb74aa11be472ff12dcaf5
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/design-taste-frontend/scripts/scenes.mjs
+  runtime: null
+  scope: project
+  owners:
+  - leonxlnx/taste-skill/skills/taste-skill
+  active_owner: leonxlnx/taste-skill/skills/taste-skill
+  content_hash: sha256:234ec582e2b841457c33033feeeba8535f9ac285495a74d08dc533a1566c90d5
+- kind: project-relative
+  target: agent-skills
   value: .agents/skills/diagnosing-bugs
   runtime: null
   scope: project
@@ -4782,7 +5264,7 @@ deployments:
   owners:
   - mattpocock/skills/skills/engineering/diagnosing-bugs
   active_owner: mattpocock/skills/skills/engineering/diagnosing-bugs
-  content_hash: sha256:9168404abda0967a5d32977e3498cd95fda6807018852f3de736a78357c82b40
+  content_hash: sha256:849198df88cdb65fd0d97236604c1fca7ff2f22d2f705f9724a800d0266b118d
 - kind: project-relative
   target: agent-skills
   value: .agents/skills/diagnosing-bugs/agents/openai.yaml
@@ -7708,6 +8190,132 @@ deployments:
   - nextlevelbuilder/ui-ux-pro-max-skill/.claude/skills/ui-ux-pro-max
   active_owner: nextlevelbuilder/ui-ux-pro-max-skill/.claude/skills/ui-ux-pro-max
   content_hash: sha256:a599aa256049cf30954d1f164721b99e453eb7e4cb8241bcab2d5573e6cf58b8
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/unslop
+  runtime: null
+  scope: project
+  owners:
+  - heydamir/unslop/skills/unslop
+  active_owner: heydamir/unslop/skills/unslop
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/unslop/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - heydamir/unslop/skills/unslop
+  active_owner: heydamir/unslop/skills/unslop
+  content_hash: sha256:5039a0146128fa25ccf0d8cad33c9cf42d15bbb17145615f5685873e372758dd
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/unslop/references/effects.md
+  runtime: null
+  scope: project
+  owners:
+  - heydamir/unslop/skills/unslop
+  active_owner: heydamir/unslop/skills/unslop
+  content_hash: sha256:ded4f679e22843a8f68860e6cda0396fa8b8fa27202400e08337143b485c86a4
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/unslop/references/refs.md
+  runtime: null
+  scope: project
+  owners:
+  - heydamir/unslop/skills/unslop
+  active_owner: heydamir/unslop/skills/unslop
+  content_hash: sha256:12a70ce17d574914ea69eb0809e5a9605de044df1b66619159c6d0b38d6b8353
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/unslop/references/refs/beacon-engraving.webp
+  runtime: null
+  scope: project
+  owners:
+  - heydamir/unslop/skills/unslop
+  active_owner: heydamir/unslop/skills/unslop
+  content_hash: sha256:44e7680e9c944f03c8fe45df999bdf74077a106925a8189eebf89e751e306e5b
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/unslop/references/refs/meadow-3d.webp
+  runtime: null
+  scope: project
+  owners:
+  - heydamir/unslop/skills/unslop
+  active_owner: heydamir/unslop/skills/unslop
+  content_hash: sha256:84f526b68021a06fc6d32f162406fab6cc8074da1ef76d2ae4530e1b58219b14
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/unslop/references/refs/story-dashboard-frames.webp
+  runtime: null
+  scope: project
+  owners:
+  - heydamir/unslop/skills/unslop
+  active_owner: heydamir/unslop/skills/unslop
+  content_hash: sha256:cfbf837e40b7626d5a5789dbce54f5c197aab303aa350d13a042048310717137
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/unslop/references/refs/unslop-dashboard-after.webp
+  runtime: null
+  scope: project
+  owners:
+  - heydamir/unslop/skills/unslop
+  active_owner: heydamir/unslop/skills/unslop
+  content_hash: sha256:48067794f86b43dab20515b3810f245d67bff05d10bfa83c0f5885bee93cea52
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/unslop/references/refs/unslop-hero-after.webp
+  runtime: null
+  scope: project
+  owners:
+  - heydamir/unslop/skills/unslop
+  active_owner: heydamir/unslop/skills/unslop
+  content_hash: sha256:92b2d796c5b6116a2039f5ca2b0f3edf700c92b41846b11b9501a4e32f72af6e
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/unslop/references/signs.md
+  runtime: null
+  scope: project
+  owners:
+  - heydamir/unslop/skills/unslop
+  active_owner: heydamir/unslop/skills/unslop
+  content_hash: sha256:6250d3c222c2aaa4ef4f31557d99d249e5be86d8720cd1157df14798caf1c8c4
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/unslop/references/tokens.md
+  runtime: null
+  scope: project
+  owners:
+  - heydamir/unslop/skills/unslop
+  active_owner: heydamir/unslop/skills/unslop
+  content_hash: sha256:988b754612b3e2d42d87b1bbaca0b4a61f3e07a2b2eef782d3614e8fdb6db5b0
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/unslop/references/visuals.md
+  runtime: null
+  scope: project
+  owners:
+  - heydamir/unslop/skills/unslop
+  active_owner: heydamir/unslop/skills/unslop
+  content_hash: sha256:7247da579d2d95ace1e051b867c757bd1e05aa02f3ab8dea0ead4cd4bf14d7d7
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/unslop/scripts/snapshot.mjs
+  runtime: null
+  scope: project
+  owners:
+  - heydamir/unslop/skills/unslop
+  active_owner: heydamir/unslop/skills/unslop
+  content_hash: sha256:a0cd251b9e58655709558cffab29b1685cd1465a5dc5499c5181fe4185cdd3ab
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/unslop/scripts/story.mjs
+  runtime: null
+  scope: project
+  owners:
+  - heydamir/unslop/skills/unslop
+  active_owner: heydamir/unslop/skills/unslop
+  content_hash: sha256:ed83ac65c92290378fe874ebc3f7e61aab51a9128628f2057651dfb0f01c1815
 - kind: project-relative
   target: agent-skills
   value: .agents/skills/use-modern-go

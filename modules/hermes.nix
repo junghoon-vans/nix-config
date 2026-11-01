@@ -8,6 +8,7 @@
 
 let
   cfg = config.workstation.hermes;
+  mcpRegistry = import ./mcp/registry.nix { };
   user = config.system.primaryUser;
   home = config.users.users.${user}.home;
   profileName = "omp-worker";
@@ -44,18 +45,27 @@ let
       provider = "openai-codex";
       default = cfg.model;
     };
+    providers."omp-acp".stale_timeout_seconds = 1800;
+    skills.external_dirs = [
+      "${providerSource}/skills"
+      "${home}/.agents/skills"
+    ];
+    # This Home Manager-owned profile runs separately from the default host gateway.
+    gateway.standalone = true;
     agent = {
       max_turns = 30;
       system_prompt = ''
         You coordinate workers through delegate_task. Use fast for quick answers
         and summaries of supplied context, and deep for careful reasoning,
         planning and review of supplied context. These routes call OpenAI directly.
-        Use native Notion tools to read documents and native GitHub tools to inspect
-        PRs and CI. These integrations are read-only; use coder for repository
-        inspection, implementation, verification and approved remote mutations:
-        it runs OMP through ACP, and OMP owns repository tools.
+        Use omp for current web search and all repository inspection, implementation
+        and verification. It runs OMP through ACP with OMP's native search and coding
+        tools; fast and deep do not fetch external evidence or inspect repositories.
+        For search/검색, include the question, freshness requirements and requested
+        sources. Require actual search, linked citations and explicit uncertainty;
+        never invent search results. A web-only task does not require a repository.
         Include complete requirements and relevant previous results in every task.
-        For coder tasks, include the absolute repository path and only use repositories under:
+        For repository tasks on omp, include the absolute repository path and only use repositories under:
         ${lib.concatStringsSep "\n" cfg.repositoryRoots}
         Ask which repository to use when ambiguous. Each delegation starts fresh:
         do not assume a previous OMP session or worktree is resumed. For changes,
@@ -65,16 +75,26 @@ let
         Push, deployment and permission changes require explicit user approval.
         Additional OMP permission requests are denied, not relayed to Slack.
         Report blocked operations and ask how to proceed; do not escalate permissions.
+
+        ${mcpRegistry.awareness}
       '';
     };
     platform_toolsets = {
       slack = [
         "delegation"
+        "cronjob"
+        "session_search"
+        "memory"
+        "skills"
         "notion"
         "github"
       ];
       cli = [
         "delegation"
+        "cronjob"
+        "session_search"
+        "memory"
+        "skills"
         "notion"
         "github"
       ];
@@ -83,6 +103,7 @@ let
       enabled = true;
       reply_to_mode = "first";
       extra = {
+        rich_blocks = true;
         reply_in_thread = true;
         reply_broadcast = false;
         require_mention = true;
@@ -99,21 +120,21 @@ let
         options = [
           {
             name = "fast";
-            description = "Quick answers and summaries of supplied context through OpenAI; use coder for repository tools.";
+            description = "Quick answers and summaries of supplied context through OpenAI; use omp for web search and repository tools.";
             provider = "openai-codex";
-            model = "openai/gpt-6-luna";
+            model = "gpt-6-luna";
             fallback_providers = [ ];
           }
           {
             name = "deep";
-            description = "Careful reasoning, planning and review of supplied context through OpenAI; use coder for repository tools.";
+            description = "Careful reasoning, planning and review of supplied context through OpenAI; use omp for web search and repository tools.";
             provider = "openai-codex";
             inherit (cfg) model;
             fallback_providers = [ ];
           }
           {
-            name = "coder";
-            description = "Repository inspection, implementation and verification through the local OMP agent and its native tools.";
+            name = "omp";
+            description = "Current web search with linked sources, repository inspection, implementation and verification through OMP and its native tools.";
             provider = "omp-acp";
             model = "openai-codex/gpt-6.1-sol";
             fallback_providers = [ ];
@@ -150,49 +171,9 @@ let
     };
     unauthorized_dm_behavior = "ignore";
     kanban.dispatch_in_gateway = false;
-    mcp_servers = {
-      notion = {
-        url = "https://mcp.notion.com/mcp";
-        auth = "oauth";
-        tools = {
-          include = [
-            "notion-search"
-            "notion-fetch"
-            "notion-get-self"
-            "notion-get-tool-access"
-            "notion-query-data-sources"
-            "notion-get-comments"
-          ];
-          # Keep vendor instructions available as MCP resources during bootstrap.
-          resources = true;
-          prompts = false;
-        };
-      };
-      github = {
-        url = "https://api.githubcopilot.com/mcp/";
-        # Unified Actions tools require the modern protocol, not legacy initialize.
-        protocol = "stateless";
-        headers = {
-          Authorization = "Bearer \${HERMES_GITHUB_TOKEN}";
-          "X-MCP-Readonly" = "true";
-          "X-MCP-Toolsets" = "context,repos,pull_requests,actions";
-        };
-        tools = {
-          include = [
-            "get_me"
-            "search_repositories"
-            "list_pull_requests"
-            "search_pull_requests"
-            "pull_request_read"
-            "actions_list"
-            "actions_get"
-            "get_job_logs"
-          ];
-          resources = false;
-          prompts = false;
-        };
-      };
-    };
+    cron.wrap_response = false;
+    mcp_servers = mcpRegistry.hermes;
+    nix_managed_mcp_servers = mcpRegistry.managedHermesServers;
     display = {
       tool_progress = "all";
       long_running_notifications = true;
@@ -220,8 +201,8 @@ in
     };
     model = lib.mkOption {
       type = lib.types.str;
-      default = "openai/gpt-6.1-sol";
-      description = "Hermes coordinator and deep-route model; coder uses the separate OMP ACP provider.";
+      default = "gpt-6.1-sol";
+      description = "Hermes coordinator and deep-route model; omp uses the separate OMP ACP provider.";
     };
     repositoryRoots = lib.mkOption {
       type = lib.types.listOf lib.types.str;
@@ -245,12 +226,16 @@ in
           {
             HERMES_INSTALL_ROOT = "${cfg.package}/share/hermes-agent";
             HERMES_BUNDLED_PLUGINS = "${cfg.package}/share/hermes-agent/plugins";
+            HERMES_BUNDLED_SKILLS = "${cfg.package}/share/hermes-agent/skills";
             PYTHONDONTWRITEBYTECODE = "1";
           }
           ''
-            ${cfg.package.hermesVenv}/bin/python3 ${../scripts/hermes/check-runtime.py} \
+            ${cfg.package.hermesVenv}/bin/python3 ${../tests/hermes/test_packaged_runtime.py} \
               ${hermesConfig} ${providerSource} ${delegationSource} ${lib.escapeShellArg cfg.package.version} \
-              ${lib.getExe config.workstation.omp.package}
+              ${lib.getExe config.workstation.omp.package} \
+              ${
+                config.home-manager.users.${user}.home.activationPackage
+              }/LaunchAgents/org.nixos.hermes.gateway-${profileName}.plist
             touch "$out"
           '';
     };
@@ -259,6 +244,11 @@ in
       home = {
         file = {
           "${profilePath}/config.nix.yaml".source = hermesConfig;
+          "${profilePath}/SOUL.md".source = ../home/.hermes/profiles/omp-worker/SOUL.md;
+          # Partial overlay for the profile's default English UI; keep the scheduler's name intact.
+          "${profilePath}/locales/en.yaml".source = yaml.generate "hermes-slack-locale.yaml" {
+            platform.slack.handoff.seed = "*{name}*";
+          };
           "${profilePath}/plugins/omp-acp-provider".source = providerSource;
           "${profilePath}/plugins/advanced-delegation".source = delegationSource;
         };
@@ -280,7 +270,8 @@ in
       launchd.agents.hermes = {
         enable = true;
         config = {
-          Label = "ai.hermes.gateway-${profileName}";
+          # Outside Hermes's ai.hermes.gateway-* namespace: only Home Manager owns this job.
+          Label = "org.nixos.hermes.gateway-${profileName}";
           ProgramArguments = [
             (lib.getExe cfg.package)
             "--profile"

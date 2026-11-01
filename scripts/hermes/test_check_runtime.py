@@ -8,7 +8,8 @@ import unittest
 
 
 SPEC = importlib.util.spec_from_file_location(
-    "hermes_runtime_check", Path(__file__).with_name("check-runtime.py")
+    "hermes_runtime_check",
+    Path(__file__).resolve().parents[2] / "tests/hermes/test_packaged_runtime.py",
 )
 MODULE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(MODULE)

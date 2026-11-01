@@ -45,6 +45,42 @@ This automatic registration applies to OMP processes launched from the managed i
 GUI applications do not source `.zshrc`; a GUI launcher must pass `PI_CONFIG_FILES` itself or add
 the same overlay with its OMP launch arguments.
 
+## Hermes search and coding delegation
+
+`modules/hermes.nix` exposes `fast`, `deep`, and `omp` through the official
+`advanced-delegation` model map. `omp` replaces `coder`; there is no compatibility
+alias. Saved prompts or task payloads using `option: coder` must use `option: omp`.
+The provider ID remains `omp-acp` and model selection, authentication, retry settings,
+and approval boundaries are unchanged.
+
+Use `omp` for web search/검색 with actual retrieval and linked sources, as well as
+repository inspection, coding, and verification. Web-only tasks need no repository;
+repository tasks still require an absolute path within the configured roots and an
+isolated worktree for changes. `fast` and `deep` reason over supplied context only.
+
+The published provider commit pinned in `flake.lock` includes `skills/omp-web-search`.
+The current upstream tree has a single root provider package; `providerSource`
+therefore selects the input root, not the obsolete split-layout subdirectory.
+The generated config connects its immutable Nix-store `skills` parent through
+`skills.external_dirs`. Activation preserves existing external skill directories
+and deduplicates repeated entries. Only the Nix-managed `omp-worker` profile
+receives this configuration; other profiles are not automatically managed.
+
+The packaged runtime check reads the Nix-generated YAML in a disposable home,
+loads `omp-web-search` with `skills_list` and `skill_view`, compares its full content with
+the pinned source, and verifies the existing bundled `github` and `hermes-agent`
+skills remain available alongside the `omp` delegation route. This is discovery
+and routing validation, not a live web-search/model invocation. Plugin installation
+is not OMP installation: the executable and its model/search authentication remain
+external prerequisites. Build checks do not activate the live profile.
+
+This pin is the published rename-PR head, not a merged revision:
+[upstream PR43](https://github.com/junghoon-vans/hermes-omp-acp/pull/43).
+Keep the dependent Nix PR draft and merge-blocked until that upstream rename is
+approved and merged. The immutable commit pin may then move to the merged SHA
+with a lock update and repeated runtime checks. Update explicit skill preloads
+from `search` to `omp-web-search`; the shared parent path is unchanged.
+
 ## Hermes ACP retry limit
 
 `modules/hermes.nix` generates a Nix-store overlay with `retry.maxRetries: 3` and
@@ -66,11 +102,56 @@ Hermes launch arguments override that control and send exactly four. The check a
 the minimum backoff intervals without imposing scheduling-sensitive upper bounds. No live model
 account or workstation activation is needed.
 
+## Hermes gateway service ownership
+
+Home Manager owns the `org.nixos.hermes.gateway-omp-worker` LaunchAgent definition, installation,
+and activation. The agent launches the packaged Hermes CLI with
+`--profile omp-worker gateway run --external-supervisor` and keeps
+`HERMES_HOME=~/.hermes/profiles/omp-worker`; launchd owns process lifetime and restart. There is no
+runtime plist under `/etc/hermes/launchd`.
+
+Hermes's built-in service-management commands derive the canonical
+`ai.hermes.gateway-omp-worker` label, not this custom job. Do not use `hermes gateway install`
+or `uninstall` to manage it: installation can create a second, independently owned service.
+`gateway stop` can still terminate the profile's process without unloading the custom job.
+`hermes --profile omp-worker gateway restart` recognizes an externally supervised running
+gateway, requests a graceful exit, and waits for launchd to bring up its replacement; it does
+not own the custom service definition. Use launchctl for authoritative service status and restart.
+
+Inspect the loaded LaunchAgent in the logged-in user's GUI domain:
+
+```sh
+launchctl print "gui/$(id -u)/org.nixos.hermes.gateway-omp-worker"
+```
+
+To force launchd to restart it:
+
+```sh
+launchctl kickstart -k "gui/$(id -u)/org.nixos.hermes.gateway-omp-worker"
+```
+
+During a Home Manager transition from the old managed label, activation processes the new or updated
+agent before cleaning up agents removed from the previous generation. Home Manager boots out and
+removes the old plist only if its installed bytes still match that previous-generation definition;
+it preserves a diverged plist. The old and new agents may therefore overlap briefly. Hermes's
+gateway host-lock conflict exits with status 75, which remains retryable with
+`KeepAlive.SuccessfulExit=false`; this LaunchAgent also uses a 30-second `ThrottleInterval`.
+A diverged old plist, or a canonical service not tracked by the previous Home Manager generation,
+is not automatically deleted. Review such a competing service and obtain approval for manual
+cleanup before activation; do not remove other profiles' services. No activation or live service
+migration is performed by a build.
+
 ## Skill ownership
 
-APM owns generated global skills. Project-local skills stay with their project. Use a local overlay
-only to make an existing checkout's skills visible across nested Git workspaces; do not copy the
-generated APM tree into Home Manager.
+The Nix-managed `omp-worker` profile includes APM's common skills root at
+`~/.agents/skills`, alongside the pinned provider skills. Activation merges these Nix
+defaults with any user-declared `skills.external_dirs` and deduplicates paths; it does not
+copy APM output into Home Manager or replace user paths.
+
+Project-local `.agents/skills/` and `.hermes/skills/` remain scoped to the nearest Git
+repository and its Hermes trust boundary. They are not added to the home gateway's
+external roots, so the `omp-worker` gateway does not see skills that exist only inside a
+project. APM project installs remain project-scoped.
 
 `skills.customDirectories` scans one directory level (`*/SKILL.md`). Point it at the directory
 containing the individual skill directories, not at a skill itself. Exposing a large project skill

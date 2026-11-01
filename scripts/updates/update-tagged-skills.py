@@ -4,9 +4,13 @@ import argparse
 import json
 import os
 import re
+import shutil
 import subprocess
+import tempfile
 import urllib.request
 from pathlib import Path
+
+import yaml
 
 SEMVER = re.compile(r"^v(\d+)\.(\d+)\.(\d+)$")
 GENERATED_TAG = re.compile(r"^agent-skills-[0-9a-f]{40}$")
@@ -32,6 +36,60 @@ def latest_compatible_tag(current: str, tags: list[str]) -> str:
     if GENERATED_TAG.fullmatch(current):
         return next(tag for tag in tags if GENERATED_TAG.fullmatch(tag))
     return current
+
+
+def regenerate_lock(root: Path, apm: str) -> None:
+    # Lock-only resolution preserves old deployment attestations. Materialize the
+    # resolved payload in a fresh project and home so APM records portable hashes
+    # of upstream bytes, never adopting workstation edits or ownership receipts.
+    with tempfile.TemporaryDirectory(prefix=".apm-update-", dir=root) as directory:
+        home = Path(directory)
+        staging = home / "project"
+        staging.mkdir()
+        for name in ("apm.yml", "apm.lock.yaml"):
+            shutil.copy2(root / name, staging / name)
+        shutil.copytree(root / "skills", staging / "skills")
+        environment = dict(os.environ, HOME=str(home))
+        subprocess.run(
+            [apm, "lock", "--update"],
+            cwd=staging, env=environment, check=True,
+        )
+        resolved = yaml.safe_load((staging / "apm.lock.yaml").read_text())
+        subprocess.run(
+            [apm, "install", "--target", "agent-skills",
+             "--only", "apm", "--trust-bin"],
+            cwd=staging, env=environment, check=True,
+        )
+        materialized = yaml.safe_load((staging / "apm.lock.yaml").read_text())
+        # User-scope authored content and executable approval are not owned by
+        # this tagged-remote updater. Preserve their original portable state.
+        def identity(dependency):
+            return (dependency["repo_url"], dependency.get("virtual_path"),
+                    dependency.get("alias"), dependency.get("local_path"))
+
+        prior = {identity(dep): dep for dep in resolved["dependencies"]}
+        local_owners = {
+            dep["local_path"] for dep in resolved["dependencies"]
+            if dep.get("source") == "local"
+        }
+        for index, dependency in enumerate(materialized["dependencies"]):
+            previous = prior[identity(dependency)]
+            if dependency.get("source") == "local":
+                materialized["dependencies"][index] = previous
+            elif "exec_status" in previous:
+                dependency["exec_status"] = previous["exec_status"]
+            else:
+                dependency.pop("exec_status", None)
+        materialized["deployments"] = [
+            row for row in materialized.get("deployments", [])
+            if not local_owners.intersection(row.get("owners", []))
+        ] + [
+            row for row in resolved.get("deployments", [])
+            if local_owners.intersection(row.get("owners", []))
+        ]
+        (root / "apm.lock.yaml").write_text(
+            yaml.safe_dump(materialized, sort_keys=False, allow_unicode=True)
+        )
 
 
 def main() -> None:
@@ -65,7 +123,7 @@ def main() -> None:
 
     if changed:
         manifest_path.write_text("\n".join(lines) + "\n")
-        subprocess.run([args.apm, "lock", "--update"], cwd=root, check=True)
+        regenerate_lock(root, args.apm)
 
 
 if __name__ == "__main__":

@@ -7,7 +7,9 @@ let
       exec "$HOME/.aside/cli/Aside CLI.app/Contents/MacOS/aside" "$@"
     '';
   };
-  mcpConfig = builtins.fromJSON (builtins.readFile ../home/.omp/agent/mcp.json);
+  mcpRegistry = import ./mcp/registry.nix {
+    asideCommand = lib.getExe asideCli;
+  };
   model = modelId: thinkingLevel: {
     provider = "openai-codex";
     inherit modelId thinkingLevel;
@@ -59,16 +61,7 @@ in
       asideCli
     ];
 
-    file.".omp/agent/mcp.json".text = builtins.toJSON (
-      mcpConfig
-      // {
-        mcpServers = mcpConfig.mcpServers // {
-          aside = mcpConfig.mcpServers.aside // {
-            command = lib.getExe asideCli;
-          };
-        };
-      }
-    );
+    file.".omp/agent/mcp.json".text = builtins.toJSON mcpRegistry.omp;
 
     activation.applyAsideSettings = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       $DRY_RUN_CMD ${lib.getExe applySettings} --activation

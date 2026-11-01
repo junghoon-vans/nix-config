@@ -30,10 +30,17 @@ jobs:
           fetch-depth: 0
           token: ${{ steps.app-token.outputs.token }}
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
+      - name: Build locked Homebrew runtime
+        run: nix build --no-link --print-out-paths .#homebrew > "$RUNNER_TEMP/homebrew-runtime"
       - name: Test Homebrew package summaries
-        run: python3 -B -m unittest discover -s scripts/updates -p 'test_update_homebrew.py'
+        run: |
+          HOMEBREW_TEST_BREW="$(cat "$RUNNER_TEMP/homebrew-runtime")/bin/brew" \
+            python3 -B -m unittest discover -s scripts/updates -p 'test_update_homebrew.py'
       - name: Update Homebrew tap pins and summarize packages
-        run: python3 -B scripts/updates/update-homebrew.py --body-file "$RUNNER_TEMP/homebrew-update.md"
+        run: |
+          python3 -B scripts/updates/update-homebrew.py \
+            --brew "$(cat "$RUNNER_TEMP/homebrew-runtime")/bin/brew" \
+            --body-file "$RUNNER_TEMP/homebrew-update.md"
       - name: Open Homebrew lock update pull request
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
@@ -41,7 +48,6 @@ jobs:
         run: |
           scripts/updates/open-update-pr.sh \
             automation/update-homebrew \
-            "chore(deps): update Homebrew tap pins" \
             "$(cat "$RUNNER_TEMP/homebrew-update.md")" \
             flake.lock
 
@@ -65,13 +71,10 @@ jobs:
           fetch-depth: 0
           token: ${{ steps.app-token.outputs.token }}
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
-      - id: update
-        name: Resolve latest release and hash
+      - name: Resolve latest release and hash
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: |
-          version="$(python3 scripts/updates/update-fixed-release.py '${{ matrix.package }}')"
-          echo "version=$version" >> "$GITHUB_OUTPUT"
+        run: python3 -B scripts/updates/update-fixed-release.py '${{ matrix.package }}'
       - name: Open focused update pull request
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
@@ -79,7 +82,6 @@ jobs:
         run: |
           scripts/updates/open-update-pr.sh \
             "automation/update-${{ matrix.package }}" \
-            "chore(deps): update ${{ matrix.package }} to ${{ steps.update.outputs.version }}" \
             "Automated fixed-release update. PR validation checks release pin structure and hashes, runs repository checks and an isolated frozen APM deployment, and builds both Darwin hosts. Activation remains manual." \
             release-pins.json
 
@@ -102,23 +104,18 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
       - name: Test Gno release updates
         run: python3 -B -m unittest discover -s scripts/updates -p 'test_update_gno.py'
-      - id: update
-        name: Resolve latest stable Gno releases, hash, build, and smoke
+      - name: Resolve latest stable Gno releases, hash, build, and smoke
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: |
-          version="$(python3 -B scripts/updates/update-gno.py)"
-          echo "version=$version" >> "$GITHUB_OUTPUT"
+        run: python3 -B scripts/updates/update-gno.py
       - name: Open Gno toolchain update pull request
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           GH_APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
-          VERSION: ${{ steps.update.outputs.version }}
         run: |
           scripts/updates/open-update-pr.sh \
             automation/update-gno \
-            "chore(deps): update $VERSION" \
-            "Automated latest stable GitHub release update for Gno and gnopls. Pins release commits and recalculates source and Go dependency hashes. Builds and smoke-checks gno, gnokey, and gnopls against the shared GNOROOT before opening this PR. Normal PR validation evaluates and builds both Darwin hosts. Review and activation remain manual." \
+            "Automated latest stable GitHub release update for Gno and gnopls. Pins release commits and recalculates source and Go dependency hashes. Builds and smoke-checks gno, gnokey, and gnopls against the shared GNOROOT before opening this PR. Normal PR validation evaluates and builds both Darwin hosts. Trusted CI updates request SQUASH auto-merge after required validation. Activation remains manual." \
             modules/languages/gno.nix
 
   hermes:
@@ -138,13 +135,10 @@ jobs:
           fetch-depth: 0
           token: ${{ steps.app-token.outputs.token }}
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
-      - id: update
-        name: Resolve latest stable Hermes release and lock its input
+      - name: Resolve latest stable Hermes release and lock its input
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: |
-          version="$(python3 -B scripts/updates/update-hermes.py)"
-          echo "version=$version" >> "$GITHUB_OUTPUT"
+        run: python3 -B scripts/updates/update-hermes.py
       - name: Open Hermes update pull request
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
@@ -152,8 +146,7 @@ jobs:
         run: |
           scripts/updates/open-update-pr.sh \
             automation/update-hermes \
-            "chore(deps): update Hermes to ${{ steps.update.outputs.version }}" \
-            "Automated stable Hermes release update. Updates the tagged flake input and its lockfile graph; package version metadata follows the locked release tag automatically. Normal PR validation builds both Darwin hosts and verifies OMP tool exposure in the packaged Hermes runtime. Review and activation remain manual." \
+            "Automated stable Hermes release update. Updates the tagged flake input and its lockfile graph; package version metadata follows the locked release tag automatically. Normal PR validation builds both Darwin hosts and verifies OMP tool exposure in the packaged Hermes runtime. Trusted CI updates request SQUASH auto-merge after required validation. Activation remains manual." \
             flake.nix \
             flake.lock
 
@@ -183,8 +176,11 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
           apm_store="$(nix build --no-link --print-out-paths .#apm)"
+          APM_TEST_APM="$apm_store/bin/apm" \
+            python3 -B -m unittest discover -s scripts/updates -p 'test_update_tagged_skills.py'
           python3 scripts/updates/update-tagged-skills.py --apm "$apm_store/bin/apm"
           make skills
+          nix develop --no-write-lock-file --command bash scripts/apm/check.sh "$apm_store/bin/apm"
       - name: Open skill update pull request
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
@@ -192,7 +188,6 @@ jobs:
         run: |
           scripts/updates/open-update-pr.sh \
             automation/update-apm-skills \
-            "chore(deps): update tagged APM skills" \
             "Automated update of APM dependencies whose upstream repositories publish stable tags. Commit-only dependencies remain pinned for manual review." \
             apm.yml \
             apm.lock.yaml \
@@ -228,6 +223,40 @@ jobs:
         run: |
           scripts/updates/open-update-pr.sh \
             automation/update-npm-mcps \
-            "chore(deps): update npm MCP server versions" \
-            "Automated exact-version npm MCP update from the registry latest tags. Prerelease pins, disabled servers, remote services, and unsupported launch commands remain unchanged. MCP inspection runs on the changed configuration; findings are advisory. Review and activation remain manual." \
+            "Automated exact-version npm MCP update from the registry latest tags. Prerelease pins, disabled servers, remote services, and unsupported launch commands remain unchanged. MCP inspection runs on the changed configuration; findings are advisory. Trusted CI updates request SQUASH auto-merge after required validation. Activation remains manual." \
             home/.omp/agent/mcp.json
+
+  paseo-plugins:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - name: Create repository-scoped update token
+        id: app-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: ${{ vars.DEPENDENCY_UPDATES_APP_CLIENT_ID }}
+          private-key: ${{ secrets.DEPENDENCY_UPDATES_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token }}
+      - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
+      - name: Test Paseo plugin update logic
+        run: python3 -B -m unittest discover -s scripts/updates -p 'test_update_paseo_plugins.py'
+      - name: Resolve Paseo plugin metadata and update pins
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: python3 -B scripts/updates/update-paseo-plugins.py --body-file "$RUNNER_TEMP/paseo-plugins-update.md"
+      - name: Open Paseo plugin update pull request
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+        run: |
+          body="$(cat "$RUNNER_TEMP/paseo-plugins-update.md")"
+          scripts/updates/open-update-pr.sh \
+            automation/update-paseo-plugins \
+            "$body" \
+            modules/paseo-plugins.json

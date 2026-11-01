@@ -13,6 +13,8 @@ bash_scripts=(
   scripts/apm/install.sh
   scripts/apm/setup-apm.sh
   scripts/dock/update-stacks.sh
+  scripts/homebrew/patch-runtime.sh
+  scripts/homebrew/check-runtime.sh
   scripts/homebrew/update.sh
   scripts/nix/bootstrap.sh
   scripts/nix/home-manager-backups-cleanup.sh
@@ -32,6 +34,10 @@ python3 -B -m unittest discover -s scripts/nix -p 'test_*.py'
 python3 -B -m unittest discover -s scripts/aside -p 'test_*.py'
 python3 -B -m unittest discover -s scripts/dock -p 'test_*.py'
 python3 -B -m unittest discover -s scripts/maintenance -p 'test_*.py'
+patcher_store="$(nix build --no-link --print-out-paths .#kakaotalk-patcher)"
+"$patcher_store/bin/kakaotalk-patcher" --help >/dev/null
+homebrew_store="$(nix build --no-link --print-out-paths .#homebrew)"
+export HOMEBREW_TEST_BREW="$homebrew_store/bin/brew"
 python3 -B -m unittest discover -s scripts/updates -p 'test_*.py'
 python3 -B -m unittest discover -s scripts/hermes -p 'test_*.py'
 python3 -B -m unittest discover -s scripts/homebrew -p 'test_*.py'

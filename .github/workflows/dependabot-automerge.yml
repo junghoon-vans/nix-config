@@ -1,0 +1,47 @@
+name: Dependabot auto-merge
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, ready_for_review]
+    branches: [main]
+
+permissions: {}
+
+jobs:
+  enable-automerge:
+    if: >-
+      github.repository == 'junghoon-vans/nix-config' &&
+      github.event.pull_request.user.login == 'dependabot[bot]' &&
+      github.event.pull_request.user.id == 49699333 &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      !github.event.pull_request.draft
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      # github.sha is the trusted base commit for pull_request_target, never PR code.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: junghoon-vans/nix-config
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Report Dependabot dependency versions
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: python3 -B scripts/updates/report-dependabot-versions.py
+      - name: Enable guarded SQUASH auto-merge
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_BRANCH: ${{ github.event.pull_request.head.ref }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: >-
+          python3 -B scripts/updates/enable-update-automerge.py
+          --source dependabot
+          --number "$PR_NUMBER"
+          --branch "$PR_BRANCH"
+          --head "$PR_HEAD"

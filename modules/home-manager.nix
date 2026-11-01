@@ -8,6 +8,24 @@
 
 let
   inherit (workstationUser) username homeDirectory;
+  paseoPlugins = builtins.fromJSON (builtins.readFile ./paseo-plugins.json);
+  paseoPluginConfig = lib.mapAttrs (
+    _: plugin:
+    let
+      source =
+        assert plugin.source == "github";
+        pkgs.fetchzip {
+          url = "https://github.com/${plugin.repository}/archive/${plugin.revision}.tar.gz";
+          inherit (plugin) hash;
+        };
+    in
+    {
+      source = "directory";
+      path = "${source}" + lib.optionalString (plugin.directory != "") "/${plugin.directory}";
+      inherit (plugin) enabled;
+    }
+  ) paseoPlugins;
+  paseoConfig = builtins.fromJSON (builtins.readFile ../home/.paseo/config.json);
   ohMyZsh = pkgs.runCommand "oh-my-zsh" { } ''
     cp -a ${inputs.oh-my-zsh}/. "$out"
     chmod -R u+w "$out/custom"
@@ -85,7 +103,13 @@ in
     ".zshrc".source = ../home/.zshrc;
     ".gitconfig".source = ../home/.gitconfig;
     ".gitignore_global".source = ../home/.gitignore_global;
-    ".paseo/config.json".source = ../home/.paseo/config.json;
+    ".paseo/config.json".text = builtins.toJSON (
+      paseoConfig
+      // {
+        pluginsEnabled = true;
+        plugins = (paseoConfig.plugins or { }) // paseoPluginConfig;
+      }
+    );
     ".omp/agent/config.yml".source = ../home/.omp/agent/config.yml;
     ".omp/agent/lsp.yml".source = ../home/.omp/agent/lsp.yml;
     ".omp/agent/RULES.md".source = ../home/.omp/agent/RULES.md;

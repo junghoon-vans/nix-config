@@ -59,6 +59,11 @@ The private `.env`, authentication, sessions, and memories remain user-managed.
 Logs also live under this profile. The launchd label follows Hermes's
 official profile convention: `ai.hermes.gateway-omp-worker`.
 
+Only this profile sets the Hermes core provider key
+`providers.omp-acp.stale_timeout_seconds` to `1800` seconds for long-running OMP ACP calls.
+This is a fixed 30-minute stale cap, not an activity-reset timeout. It does not change
+the plugin settings, request timeout, other providers, or the default profile.
+
 Before moving an existing default profile, stop its gateway and use the official full
 backup/import commands. `profile create --clone-all` deliberately excludes session history
 and cron jobs, and profile export excludes credentials, so neither is a full-state migration:
@@ -154,12 +159,63 @@ SRI hash. CI checks release-pin structure and SHA-256 hash syntax on Ubuntu. Cha
 to `release-pins.json`, `.github/scripts/`, `.github/workflows/`, or `scripts/validation/`
 skip the full macOS checks and both Darwin builds; CI scripts still receive shell syntax
 checks. Configuration changes alongside them still run the full validation. The lightweight
-path does not verify the downloaded artifact or runtime behavior; review the release before
-merging. Activation remains manual.
+path does not verify the downloaded artifact or runtime behavior. Trusted CI update PRs
+request GitHub-managed auto-merge as described below; activation remains manual.
 
-Gno, gnopls, and the Zed WASI adapter remain manual because their revisions or runtime
-compatibility require review. Change each source revision and its required source or dependency
-hashes together, then build both hosts and exercise the resulting binary.
+Gno and gnopls release updates also run through the daily workflow, including toolchain
+builds and smoke checks before opening the PR. The Zed WASI adapter remains manual.
+For manual updates, change each source revision and its source or dependency hashes
+together, then build both hosts and exercise the resulting binary.
+
+### CI update auto-merge
+
+After creating or updating a PR, `scripts/updates/open-update-pr.sh` invokes
+`enable-update-automerge.py` with the locally pushed commit OID. The same repository-scoped
+App token requests **SQUASH** auto-merge through `enablePullRequestAutoMerge`, supplying
+`expectedHeadOid` so GitHub rejects a changed head atomically. No direct merge, admin bypass,
+CLI merge command, or fallback is used. Missing API support, API errors, or an unconfirmed
+response fail the updater job rather than weakening this guard.
+
+Eligibility requires an open, non-draft PR authored by `nix-config-dependabot[bot]`, with
+both repositories exactly `junghoon-vans/nix-config`, base `main`, and the expected branch
+and head. The script's exact branch-to-path allowlist mirrors the updater calls in
+`update-dependencies.yml`: Homebrew, fixed releases, Gno, Hermes, tagged APM skills,
+npm MCPs, and Paseo plugins. Every changed file must be an existing modified allowlisted
+path. Empty, incomplete, renamed, added, deleted, and out-of-scope file sets are refused.
+Human-authored, fork, and unknown-branch PRs remain manual.
+
+Ordinary Dependabot updates use `dependabot-automerge.yml` and the same guarded helper,
+with a separate `--source dependabot` trust domain. Only `dependabot[bot]` with GitHub user
+ID `49699333` is accepted. Grouped `dependabot/nix/flake-inputs-<hash>` branches may modify
+only `flake.nix` and `flake.lock`; grouped `dependabot/github_actions/github-actions-<hash>`
+branches may modify only the four explicitly allowlisted repository workflow files.
+The hash must be ten lowercase hexadecimal characters. The same repository, base, state,
+head, complete file list, and modified-only guards apply; cross-ecosystem paths are refused.
+
+The privileged `pull_request_target` workflow handles opened, reopened, synchronized, and
+ready-for-review PRs. It checks out only the trusted base commit (`github.sha`), never the
+PR head, and passes PR metadata through quoted environment variables. It never executes
+PR code or consumes PR artifacts. Its job-scoped `GITHUB_TOKEN` has only Contents and
+Pull requests write permissions; no CI App private key is used. Required PR validation
+still runs separately on the ordinary PR event. This workflow becomes active only after
+landing on `main`; existing PRs need a subsequent qualifying event.
+
+Before rollout, the owner must separately approve enabling **Allow auto-merge** in repository
+settings. Preserve the required `validate` protection on `main`; do not grant the App a bypass.
+The helper does not change settings, protections, or required reviews. Until auto-merge is
+enabled, GitHub rejects the request and the updater job fails after leaving its PR available
+for manual review. An existing SQUASH request is idempotent; a different merge method is
+refused rather than replaced. Updates to existing bot PRs are handled on the next updater run;
+this does not retroactively enable all open PRs.
+
+GitHub decides when its required checks and reviews permit merging, including when the PR
+is already eligible at enable time. API rejection never falls back to an immediate merge.
+The atomic guard covers the head OID, not simultaneous base/repository-setting changes;
+repository protections remain essential. A failed read-back requires manual inspection,
+not an automatic retry or direct merge. Disabling a PR's auto-merge alone is not a persistent
+opt-out: a later updater run or qualifying Dependabot event can enable it again. Pause the
+corresponding workflow before intervention.
+Workstation activation and actual Homebrew package upgrades still require manual approval.
 
 ### Update workflow authentication
 

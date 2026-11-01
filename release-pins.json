@@ -17,11 +17,11 @@
     "skillHash": "sha256-yVDShc5gAhcStHU/stn1kjCNViK6t3YikGHf7LHOVdQ="
   },
   "omp": {
-    "version": "18.13.2",
-    "hash": "sha256-OMNkUoPOugb2ZGKDCuFfJycMx/hFdeQKTGvWhFKmPQ8="
+    "version": "18.14.2",
+    "hash": "sha256-m3vaC9jsjR/Y+N7aB2GA3u8tSSHuYOfS85BE7n2UN+4="
   },
   "paseo": {
-    "version": "0.13.2",
-    "hash": "sha256-o/o/Wt6xWMATzBMGP2VzjNuguawtK25fXaf+g+gYjpg="
+    "version": "0.14.0",
+    "hash": "sha256-McaeuyczlQ8om7u1RzTCWHaASueVfl9wYPbVAAWpqWg="
   }
 }

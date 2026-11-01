@@ -9,13 +9,14 @@ Names use explicit skill selectors, then aliases, then the final path component.
 Source links use the declared ref and package path; selectors identify package exports,
 not inferred repository directories. See [APM management](apm.md) for deployment and updates.
 
-Declared skills: 33.
+Declared skills: 35.
 
 | Skill | Repository | Package path | Ref | Skill selector | Source |
 | --- | --- | --- | --- | --- | --- |
 | `archify` | https://github.com/tt-a1i/archify | `archify` | `58ab0b98d2d0def8e49dced705c7b566936723ec` | — | [upstream](https://github.com/tt-a1i/archify/tree/58ab0b98d2d0def8e49dced705c7b566936723ec/archify) |
 | `codebase-design` | https://github.com/mattpocock/skills | `skills/engineering/codebase-design` | `49dd158d1076134a641b33efb035946536778336` | — | [upstream](https://github.com/mattpocock/skills/tree/49dd158d1076134a641b33efb035946536778336/skills/engineering/codebase-design) |
-| `diagnosing-bugs` | https://github.com/mattpocock/skills | `skills/engineering/diagnosing-bugs` | `v1.3.1` | — | [upstream](https://github.com/mattpocock/skills/tree/v1.3.1/skills/engineering/diagnosing-bugs) |
+| `design-taste-frontend` | https://github.com/Leonxlnx/taste-skill | `skills/taste-skill` | `12af471f627f866411b4bd785b19646d3672784c` | — | [upstream](https://github.com/Leonxlnx/taste-skill/tree/12af471f627f866411b4bd785b19646d3672784c/skills/taste-skill) |
+| `diagnosing-bugs` | https://github.com/mattpocock/skills | `skills/engineering/diagnosing-bugs` | `v1.3.2` | — | [upstream](https://github.com/mattpocock/skills/tree/v1.3.2/skills/engineering/diagnosing-bugs) |
 | `documentation` | https://github.com/anthropics/knowledge-work-plugins | `engineering/skills/documentation` | `bdf7160f2b33598fb0cb3860027e033cbaec7ce6` | — | [upstream](https://github.com/anthropics/knowledge-work-plugins/tree/bdf7160f2b33598fb0cb3860027e033cbaec7ce6/engineering/skills/documentation) |
 | `find-skills` | https://github.com/vercel-labs/skills | `skills/find-skills` | `v1.7.4` | — | [upstream](https://github.com/vercel-labs/skills/tree/v1.7.4/skills/find-skills) |
 | `frontend-design` | https://github.com/anthropics/skills | `skills/frontend-design` | `33375500bcea98d610eb30ce10ac4e59b89c390d` | — | [upstream](https://github.com/anthropics/skills/tree/33375500bcea98d610eb30ce10ac4e59b89c390d/skills/frontend-design) |
@@ -41,6 +42,7 @@ Declared skills: 33.
 | `transitions-dev` | https://github.com/Jakubantalik/transitions.dev | `skills/transitions-dev` | `a0c6e7bbf603a0a46588e37c6c6a4d0af3290d52` | — | [upstream](https://github.com/Jakubantalik/transitions.dev/tree/a0c6e7bbf603a0a46588e37c6c6a4d0af3290d52/skills/transitions-dev) |
 | `typescript-best-practices` | https://github.com/cursor/plugins | `pstack/skills/typescript-best-practices` | `93b00b89ef425a9c1bac0d0b317dfc49c930ac99` | — | [upstream](https://github.com/cursor/plugins/tree/93b00b89ef425a9c1bac0d0b317dfc49c930ac99/pstack/skills/typescript-best-practices) |
 | `ui-ux-pro-max` | https://github.com/nextlevelbuilder/ui-ux-pro-max-skill | `.claude/skills/ui-ux-pro-max` | `823b0a14d3539b5d78c0efb614426a4fab5983ec` | — | [upstream](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill/tree/823b0a14d3539b5d78c0efb614426a4fab5983ec/.claude/skills/ui-ux-pro-max) |
+| `unslop` | https://github.com/heydamir/unslop | `skills/unslop` | `4652254daff586ff4739849395a127b56f7f8cc7` | — | [upstream](https://github.com/heydamir/unslop/tree/4652254daff586ff4739849395a127b56f7f8cc7/skills/unslop) |
 | `use-modern-go` | https://github.com/JetBrains/go-modern-guidelines | `plugin/skills/use-modern-go` | `v0.1.1` | — | [upstream](https://github.com/JetBrains/go-modern-guidelines/tree/v0.1.1/plugin/skills/use-modern-go) |
 | `vercel-composition-patterns` | https://github.com/vercel-labs/agent-skills | `skills/composition-patterns` | `agent-skills-dd089a8c752c966dee8bf0f27cb625ba193ffd9e` | — | [upstream](https://github.com/vercel-labs/agent-skills/tree/agent-skills-dd089a8c752c966dee8bf0f27cb625ba193ffd9e/skills/composition-patterns) |
 | `vercel-react-best-practices` | https://github.com/vercel-labs/agent-skills | `skills/react-best-practices` | `agent-skills-dd089a8c752c966dee8bf0f27cb625ba193ffd9e` | — | [upstream](https://github.com/vercel-labs/agent-skills/tree/agent-skills-dd089a8c752c966dee8bf0f27cb625ba193ffd9e/skills/react-best-practices) |
