@@ -18,6 +18,9 @@ class ConfigurationChangeDetection(unittest.TestCase):
     def test_packaged_integration_only_update_requires_full_configuration_checks(self):
         self.check_changed_path("tests/hermes/test_packaged_runtime.py")
 
+    def test_patch_only_update_requires_full_configuration_checks(self):
+        self.check_changed_path("patches/kakaotalk/notification.patch")
+
     def check_changed_path(self, changed_path):
         with tempfile.TemporaryDirectory(prefix="configuration-ci-") as directory:
             root = Path(directory)

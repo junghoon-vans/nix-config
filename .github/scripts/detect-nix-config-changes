@@ -24,6 +24,7 @@ if git diff --quiet "$base_sha" "$head_sha" -- \
   hosts \
   modules \
   packages \
+  patches \
   home \
   scripts \
   tests \
