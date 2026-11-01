@@ -34,10 +34,16 @@ def check_deployment(repository, home, overrides=None):
     assert any(
         json.loads(path.read_text()).get("scope") == "user" for path in receipts
     ), "Global installation did not record user-scope ownership"
-    local = ".agents/skills/jira-cloud-formatting/SKILL.md"
-    assert (home / local).read_bytes() == (
-        repository / "skills/jira-cloud-formatting/SKILL.md"
-    ).read_bytes(), "Authored skill was not deployed by APM"
+    for dependency in source["dependencies"]:
+        if dependency.get("source") != "local":
+            continue
+        directory = repository / dependency["local_path"]
+        for path in directory.rglob("*"):
+            if path.is_file():
+                deployed = home / ".agents/skills" / dependency["name"] / path.relative_to(directory)
+                assert deployed.read_bytes() == path.read_bytes(), (
+                    f"Authored skill asset was not deployed by APM: {deployed}"
+                )
 
 
 def simulate_remount(home):
