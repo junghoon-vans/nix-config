@@ -30,5 +30,13 @@
     "revision": "39a286dbe2166fb1e925420abc4a8a123be5bd7b",
     "hash": "sha256-Cdl4auMV9QvTW23amW2G+IewHQr5xzZhrfx9zhyP29o=",
     "enabled": true
+  },
+  "inline-image-preview": {
+    "source": "github",
+    "repository": "FutureGadget/paseo-inline-image-preview",
+    "directory": "",
+    "revision": "f8b892c5171215cf6f403b1882525907f8294a14",
+    "hash": "sha256-bydWf8mWaaMudEjWMLQ9LO/I3ekrw7KlI9vxoqjZGXs=",
+    "enabled": true
   }
 }
