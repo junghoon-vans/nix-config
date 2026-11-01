@@ -64,7 +64,7 @@ jobs:
   security:
     name: SkillSpector advisory
     needs: changes
-    if: needs.changes.outputs.skills_only != 'true' && needs.changes.outputs.skill_dependencies_changed == 'true'
+    if: needs.changes.outputs.skill_dependencies_changed == 'true'
     continue-on-error: true
     runs-on: ubuntu-latest
     steps:
@@ -110,7 +110,6 @@ jobs:
     needs: [changes, security]
     if: >-
       always() && !cancelled() &&
-      needs.changes.outputs.skills_only != 'true' &&
       needs.changes.outputs.skill_dependencies_changed == 'true' &&
       github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
