@@ -162,11 +162,11 @@
     "homebrew-cask": {
       "flake": false,
       "locked": {
-        "lastModified": 1793566269,
-        "narHash": "sha256-4zrPeeSgvWGrsZXHtmgEhtR63bi2YWMDk7cu6XlofLI=",
+        "lastModified": 1793638879,
+        "narHash": "sha256-UcvaYGYdEZMb2csJQInyK7XYqJoDhrdFf5gpxy49Kxo=",
         "owner": "homebrew",
         "repo": "homebrew-cask",
-        "rev": "e9707c29ee761b7190f73cc79e56e1033b685cbc",
+        "rev": "1a1792cab6b6d2afb8059e3299702fb2364fef93",
         "type": "github"
       },
       "original": {
@@ -178,11 +178,11 @@
     "homebrew-core": {
       "flake": false,
       "locked": {
-        "lastModified": 1793568003,
-        "narHash": "sha256-Sef2RSF9s24ID91htwuAVGsZZwA+kroBRM77qbbRzT0=",
+        "lastModified": 1793638661,
+        "narHash": "sha256-n1xpH3CgyfaG0fjFNPtCBSxTe6ttDBLRDWsoN2rE2HQ=",
         "owner": "homebrew",
         "repo": "homebrew-core",
-        "rev": "44447c5cdba6a67ce116e4f78bab29b4c69312d7",
+        "rev": "d9f0da31916a087dbdd6471646d7a17f0fa3c155",
         "type": "github"
       },
       "original": {
@@ -248,11 +248,11 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1793494649,
-        "narHash": "sha256-Thn0OE71NF80ZfOMGCgJvKtbCcnnz0fToT/qsvb/Gtc=",
+        "lastModified": 1793582901,
+        "narHash": "sha256-WDValiY9se78X2Wh7aWWaq/c7HN29U555+OKbHEzYrw=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "d357a2b54f0b6dc4aeb4e993190a52cf151b6f24",
+        "rev": "5c9de89ec55bff981cb8da1a4ee92b10f1438ffc",
         "type": "github"
       },
       "original": {
@@ -286,11 +286,11 @@
     "oh-my-zsh": {
       "flake": false,
       "locked": {
-        "lastModified": 1793101069,
-        "narHash": "sha256-m1KvdS2knKR8QGCwThO7JSrH7PAOR+hUWiEcS2t27t0=",
+        "lastModified": 1793607811,
+        "narHash": "sha256-4ZdYF1sjBo5OQJoPGx7E2O2+lCkAw5TN+8/cYjkjTQY=",
         "owner": "ohmyzsh",
         "repo": "ohmyzsh",
-        "rev": "17a2b4c3a5855524ad4772a17ada0dc474e2fdf3",
+        "rev": "b509b1c6ed0c1ba37de12cbd37f30b2b2f61193a",
         "type": "github"
       },
       "original": {
@@ -432,11 +432,11 @@
     "zed-gno": {
       "flake": false,
       "locked": {
-        "lastModified": 1771414971,
-        "narHash": "sha256-Z9ovrJ0imXAMHnaBC/SWiigkodtBJawVZG6mau3t4IM=",
+        "lastModified": 1793633486,
+        "narHash": "sha256-kvF6PDWR052yKDZH4Q5ftpdax9um4XjB/p2YWN4UY7c=",
         "owner": "julienrbrt",
         "repo": "zed-gno",
-        "rev": "e01d9e4a2f4ff4c660b9adcd1114daf899da753c",
+        "rev": "3637ecb47e471fcc4cae7ad4a44b3b2d4851a584",
         "type": "github"
       },
       "original": {
