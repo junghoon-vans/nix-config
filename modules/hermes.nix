@@ -41,6 +41,8 @@ let
   '';
   delegationSource = "${inputs.hermes-official-plugins}/advanced-delegation";
   agentDesktop = pkgs.callPackage ../packages/agent-desktop.nix { };
+  hermesGatewayApp = pkgs.callPackage ../packages/hermes-gateway-app.nix { inherit profileName; };
+  gatewayHost = "${hermesGatewayApp}/Applications/Hermes Gateway (${profileName}).app/Contents/MacOS/hermes-gateway-host";
   agentDesktopSource = ../home/.hermes/plugins/agent-desktop;
   hermesPackages = inputs.hermes-agent.packages.${pkgs.stdenv.hostPlatform.system};
   # Hermes 0.22.5 attaches Linux ELF fixups to its Darwin pm artifacts too.
@@ -270,7 +272,7 @@ in
       }
     ];
     system.build = {
-      inherit hermesConfig;
+      inherit hermesConfig hermesGatewayApp;
       hermesRuntimeCheck =
         pkgs.runCommand "hermes-runtime-check"
           {
@@ -292,6 +294,8 @@ in
               ${agentDesktopSource} \
               ${egoPackage}/share \
               ${config.home-manager.users.${user}.home.file.".omp/agent/skills/ego-browser".source}
+            HERMES_RUNTIME_PROBE= ${pkgs.python3}/bin/python3 ${../tests/hermes/test_gateway_host.py} \
+              ${lib.escapeShellArg gatewayHost} ${lib.escapeShellArg "${pkgs.python3}/bin/python3"}
             touch "$out"
           '';
     };
@@ -307,6 +311,8 @@ in
           };
           "${profilePath}/plugins/advanced-delegation".source = delegationSource;
           "${profilePath}/plugins/agent-desktop".source = agentDesktopSource;
+          "Applications/Hermes Gateway (${profileName}).app".source =
+            "${hermesGatewayApp}/Applications/Hermes Gateway (${profileName}).app";
         };
         activation = {
           prepareHermes =
@@ -329,6 +335,7 @@ in
           # Outside Hermes's ai.hermes.gateway-* namespace: only Home Manager owns this job.
           Label = "org.nixos.hermes.gateway-${profileName}";
           ProgramArguments = [
+            gatewayHost
             (lib.getExe cfg.package)
             "--profile"
             profileName

@@ -131,7 +131,7 @@ def check_acp_retries(profile, command, configured_args, root):
             thread.join(timeout=5)
 
 
-def _launchd_command_from_definition(definition):
+def _launchd_program_arguments_from_definition(definition):
     arguments = list(definition["ProgramArguments"])
     if arguments[:2] == ["/bin/sh", "-c"]:
         shell_arguments = shlex.split(arguments[2])
@@ -140,6 +140,13 @@ def _launchd_command_from_definition(definition):
         except ValueError as error:
             raise AssertionError("Home Manager launchd wrapper has no exec command") from error
         return shell_arguments[exec_index + 1:]
+    return arguments
+
+
+def _launchd_command_from_definition(definition):
+    arguments = _launchd_program_arguments_from_definition(definition)
+    if arguments and Path(arguments[0]).name == "hermes-gateway-host":
+        return arguments[1:]
     return arguments
 
 
@@ -341,6 +348,28 @@ class PackagedHermesIntegration(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn((self.expected_ego_skill / "SKILL.md").read_text(), result.stdout)
+
+    def test_gateway_host_bundle_identity_and_signature(self):
+        definition = plistlib.loads(self.launchd_plist.read_bytes())
+        arguments = _launchd_program_arguments_from_definition(definition)
+        self.assertGreaterEqual(len(arguments), 2)
+        host = Path(arguments[0])
+        self.assertEqual(host.name, "hermes-gateway-host")
+        bundle = host.parent.parent.parent
+        self.assertEqual(bundle.name, "Hermes Gateway (omp-worker).app")
+        info = plistlib.loads((bundle / "Contents/Info.plist").read_bytes())
+        self.assertEqual(info.get("CFBundleIdentifier"), "org.nixos.hermes.gateway.omp-worker")
+        self.assertEqual(info.get("CFBundleExecutable"), "hermes-gateway-host")
+        self.assertIs(info.get("LSUIElement"), True)
+
+        result = subprocess.run(
+            ["/usr/bin/codesign", "--verify", "--strict", "--verbose=2", str(bundle)],
+            capture_output=True,
+            text=True,
+            timeout=30,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
     def test_home_manager_agent_is_outside_upstream_service_ownership(self):
         from hermes_cli import gateway

@@ -13,6 +13,7 @@ bash_scripts=(
   scripts/apm/install.sh
   scripts/apm/setup-apm.sh
   scripts/dock/update-stacks.sh
+  scripts/hermes/build-gateway-app.sh
   scripts/homebrew/patch-runtime.sh
   scripts/homebrew/check-runtime.sh
   scripts/homebrew/update.sh
