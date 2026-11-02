@@ -102,6 +102,53 @@ Hermes launch arguments override that control and send exactly four. The check a
 the minimum backoff intervals without imposing scheduling-sensitive upper bounds. No live model
 account or workstation activation is needed.
 
+## Hermes desktop plugin
+
+Native desktop requests from the Hermes CLI or Slack use a direct chain:
+Hermes → the `agent_desktop` plugin → the pinned `agent-desktop` CLI/helper. They do not
+delegate desktop control through OMP, and the plugin does not expose a general-purpose
+terminal or shell. The Home Manager declaration enables the plugin only for `omp-worker`,
+links `home/.hermes/plugins/agent-desktop` into that profile's
+`plugins/agent-desktop` directory, and points `settings.command` at the fixed helper
+built by `packages/agent-desktop.nix`. Its CLI version and integrity pin are recorded in
+[`release-pins.json`](../release-pins.json); Hermes dependency pins remain in
+[`flake.lock`](../flake.lock).
+
+The plugin accepts only its explicit command allowlist and validates each command's
+arguments before invoking the fixed Nix-store executable directly (without a shell).
+It does not expose arbitrary command execution, batch/session/trace operations, permission
+management, or arbitrary output paths. Read-only observations do not require approval.
+Semantic mutations use Hermes's native tool-approval gate and require manual
+approval under normal approval settings. Headed/physical input is not exposed.
+If approval cannot be obtained, the call is
+denied; `--yolo` and `approvals.mode=off` override the gate and must not be used for
+desktop work. After reading current state, perform one approved action and take a fresh
+read to verify the result. A timeout means delivery is unknown; do not retry automatically.
+
+Screenshot responses use Hermes's multimodal result shape:
+
+```json
+{
+  "_multimodal": true,
+  "content": [
+    {"type": "text", "text": "..."},
+    {"type": "image_url", "image_url": {"url": "data:image/png;base64,..."}}
+  ],
+  "text_summary": "..."
+}
+```
+
+The plugin returns the image inline in the `image_url` data URL, not by saving to an
+arbitrary output-file path. Hermes sends image parts only when the active model and
+provider support vision tool messages; otherwise it uses the text summary. This does
+not imply GUI access: the latest observed macOS Accessibility and Screen Recording
+statuses are both denied. This change grants no macOS permissions, and no successful
+GUI operation is claimed while those permissions remain denied.
+
+Nix packaging and a profile declaration do not themselves activate the plugin. Exposure
+remains pending declarative activation for `omp-worker`; no activation or gateway restart
+is performed as part of this change.
+
 ## Hermes gateway service ownership
 
 Home Manager owns the `org.nixos.hermes.gateway-omp-worker` LaunchAgent definition, installation,

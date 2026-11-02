@@ -152,8 +152,10 @@ class PackagedHermesIntegration(unittest.TestCase):
             cls.expected_version,
             cls.expected_command,
             launchd_plist,
+            agent_desktop_source,
         ) = INPUTS
         cls.launchd_plist = Path(launchd_plist)
+        cls.agent_desktop_source = Path(agent_desktop_source)
         temporary = tempfile.TemporaryDirectory(prefix="hermes-runtime-check-")
         cls.addClassCleanup(temporary.cleanup)
         cls.root = Path(temporary.name)
@@ -163,10 +165,10 @@ class PackagedHermesIntegration(unittest.TestCase):
         os.environ.update(HOME=str(cls.root), HERMES_HOME=str(home), HERMES_REAL_HOME=str(cls.root))
         for name in ("HERMES_OMP_ACP_COMMAND", "HERMES_OMP_ACP_ARGS", "HERMES_OMP_ACP_MCP_ENABLED"):
             os.environ.pop(name, None)
-        check_provider_dependencies()
-        # Complete the profile before ANY Hermes import can snapshot provider discovery.
+        # Complete the profile before ANY Hermes import can snapshot provider or plugin discovery.
         (home / "plugins").mkdir()
         (home / "plugins" / "advanced-delegation").symlink_to(delegation_source, target_is_directory=True)
+        (home / "plugins" / "agent-desktop").symlink_to(agent_desktop_source, target_is_directory=True)
         from ruamel.yaml import YAML
 
         cls.config = YAML(typ="safe").load(Path(defaults_path).read_text())
@@ -199,6 +201,7 @@ class PackagedHermesIntegration(unittest.TestCase):
         ]
         (home / "config.yaml").write_text(json.dumps(cls.config))
         (home / "config.yaml").chmod(0o600)
+        check_provider_dependencies()
         import providers
 
         # Never let a slow machine/expired TTL repair a bad fixture initialization order.
@@ -750,7 +753,7 @@ class PackagedHermesIntegration(unittest.TestCase):
         functions = {tool["function"]["name"]: tool["function"] for tool in definitions}
         required = {
             "delegate_task", "cronjob_manage", "session_search", "memory",
-            "skills_list", "skill_view", "skill_manage",
+            "skills_list", "skill_view", "skill_manage", "agent_desktop",
         }
         self.assertFalse(
             required - functions.keys(),
@@ -759,11 +762,64 @@ class PackagedHermesIntegration(unittest.TestCase):
         self.assertFalse({"omp_task", "omp_status", "omp_cancel"} & functions.keys())
         properties = functions["delegate_task"]["parameters"]["properties"]["tasks"]["items"]["properties"]
         self.assertEqual(properties.get("option", {}).get("enum"), ["fast", "deep", "omp"])
+        selected = _get_platform_tools(config, platform)
+        self.assertIn("agent_desktop", selected)
+        self.assertNotIn("terminal", selected)
 
     def test_platform_coordinator_raw_tools(self):
         for platform in ("slack", "cli"):
             with self.subTest(platform=platform):
                 self.check_platform_tools(self.config, platform)
+
+    def test_agent_desktop_discovery_registration_and_status_dispatch(self):
+        from hermes_cli.plugins import get_plugin_toolsets
+        from tools.registry import registry
+        import model_tools
+
+        self.assertIn("agent-desktop", self.config["plugins"]["enabled"])
+        self.assertEqual(
+            (self.home / "plugins" / "agent-desktop").resolve(),
+            self.agent_desktop_source.resolve(),
+        )
+        settings = self.config["plugins"]["entries"]["agent-desktop"]["settings"]
+        command = Path(settings["command"])
+        self.assertTrue(command.is_absolute())
+        self.assertEqual(command.name, "agent-desktop")
+        self.assertTrue(command.is_file())
+        self.assertTrue(os.access(command, os.X_OK))
+        plugin = next(
+            (plugin for plugin in self.manager.list_plugins() if plugin["name"] == "agent-desktop"),
+            None,
+        )
+        self.assertIsNotNone(plugin, "agent-desktop was not discovered from the isolated profile")
+        self.assertTrue(plugin["enabled"])
+        self.assertIsNone(plugin["error"])
+
+        entry = registry.get_entry("agent_desktop")
+        self.assertIsNotNone(entry, "agent_desktop tool was not registered")
+        self.assertEqual(entry.toolset, "agent_desktop")
+        self.assertIn("agent_desktop", {toolset for toolset, _, _ in get_plugin_toolsets()})
+        definitions = model_tools.get_tool_definitions(
+            enabled_toolsets=["agent_desktop"],
+            quiet_mode=True,
+            skip_tool_search_assembly=True,
+        )
+        self.assertIn(
+            "agent_desktop",
+            {tool["function"]["name"] for tool in definitions},
+        )
+
+        result = model_tools.handle_function_call(
+            "agent_desktop",
+            {"command": "status", "args": []},
+            task_id="isolated-agent-desktop-status",
+            enabled_toolsets=["agent_desktop"],
+        )
+        self.assertTrue(result, "direct status dispatch returned no result")
+        envelope = json.loads(result) if isinstance(result, str) else result
+        self.assertIs(type(envelope.get("ok")), bool, envelope)
+        self.assertNotEqual(envelope.get("error_type"), "tool_result_contract", envelope)
+
 
     def test_direct_openai_routes(self):
         from agent.delegation_registry import backend_status
@@ -826,6 +882,8 @@ class PackagedHermesIntegration(unittest.TestCase):
 
 if __name__ == "__main__":
     INPUTS = sys.argv[1:]
-    if len(INPUTS) != 6:
-        raise SystemExit("usage: test_packaged_runtime.py CONFIG PROVIDER DELEGATION VERSION OMP LAUNCHD_PLIST")
+    if len(INPUTS) != 7:
+        raise SystemExit(
+            "usage: test_packaged_runtime.py CONFIG PROVIDER DELEGATION VERSION OMP LAUNCHD_PLIST AGENT_DESKTOP_PLUGIN"
+        )
     unittest.main(argv=[sys.argv[0]], verbosity=2)
