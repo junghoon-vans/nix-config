@@ -92,7 +92,9 @@ rec {
     aside = {
       command = asideCommand;
       args = [ "mcp" ];
-      trust = "untrusted";
+      # The worker cannot answer per-call MCP consent; browser actions still
+      # require the explicit user confirmation described in awareness below.
+      trust = "full";
       sampling.enabled = false;
       tools = {
         include = [

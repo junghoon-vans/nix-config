@@ -488,6 +488,7 @@ class PackagedHermesIntegration(unittest.TestCase):
         from hermes_cli.tools_config import _get_platform_tools
         from tools import mcp_tool
         from tools.mcp_tool_config import _interpolate_env_vars
+        from tools.mcp_tool_handlers import _trust_gate_check
         from tools.mcp_tool_registration import _register_server_tools
         from tools.mcp_tool_scope import _server_key
 
@@ -622,8 +623,10 @@ class PackagedHermesIntegration(unittest.TestCase):
             "create_issue",
             "executeWrite",
             "executeDestructive",
+            "browser_profiles",
             "exec",
             "repl",
+            "memory_search",
         }
         for name, excluded in excluded_registered_tools.items():
             self.assertTrue(excluded.isdisjoint(set(expected_registered_tools[name])))
@@ -642,7 +645,6 @@ class PackagedHermesIntegration(unittest.TestCase):
         self.assertEqual(context7["url"], "https://mcp.context7.com/mcp")
         self.assertEqual(atlassian["url"], "https://mcp.atlassian.com/v1/mcp/authv2")
         self.assertEqual(atlassian["auth"], "oauth")
-        self.assertEqual(aside["trust"], "untrusted")
         self.assertFalse(aside["sampling"]["enabled"])
         for name, server_config in servers.items():
             self.assertCountEqual(
@@ -706,6 +708,18 @@ class PackagedHermesIntegration(unittest.TestCase):
                     excluded_registered_tools[name].isdisjoint(registered),
                     f"{name} exposed a mutation tool",
                 )
+
+        # Aside marks even profile discovery write-capable. A noninteractive
+        # worker must not request MCP consent before any allowlisted call;
+        # action-specific user confirmation remains coordinator policy.
+        with patch(
+            "tools.approval_prompt.request_elicitation_consent",
+            side_effect=AssertionError("Aside unexpectedly requested MCP consent"),
+        ) as consent:
+            for tool in expected_native_tools["aside"]:
+                with self.subTest(aside_tool=tool):
+                    self.assertIsNone(_trust_gate_check("aside", tool))
+            consent.assert_not_called()
 
         selection_config = {
             **self.config,
