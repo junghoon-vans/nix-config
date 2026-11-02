@@ -115,7 +115,6 @@ Managed by: Nix system.
 | `golangci-lint` | Fast linters Runner for Go | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/languages/go.nix`](../modules/languages/go.nix) |
 | `gopls` | Official language server for the Go language | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/languages/go.nix`](../modules/languages/go.nix) |
 | `gws` | One CLI for all of Google Workspace | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
-| `hermes-agent` | AI agent with advanced tool-calling capabilities | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/hermes.nix`](../modules/hermes.nix) |
 | `jdt-language-server` | Java language server | `junghoonui-MacBookAir` | [`modules/languages/java.nix`](../modules/languages/java.nix) |
 | `kiri` | Lightweight Docker-compatible container runtime for macOS | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `kotlin` | General purpose programming language | `junghoonui-MacBookAir` | [`modules/languages/kotlin.nix`](../modules/languages/kotlin.nix) |
@@ -149,4 +148,5 @@ Managed by: Home Manager.
 | --- | --- | --- | --- |
 | `apply-aside-settings` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/aside.nix`](../modules/aside.nix) |
 | `aside` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/aside.nix`](../modules/aside.nix) |
+| `hermes-agent` | AI agent with advanced tool-calling capabilities | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/hermes.nix`](../modules/hermes.nix) |
 | `mise` | Front-end to your dev env | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`hosts/common.nix`](../hosts/common.nix) |
