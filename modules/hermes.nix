@@ -97,6 +97,17 @@ let
         Push, deployment and permission changes require explicit user approval.
         Additional OMP permission requests are denied, not relayed to Slack.
         Report blocked operations and ask how to proceed; do not escalate permissions.
+        For native-app GUI tasks, use the existing `omp` delegation route and
+        invoke `agent-desktop` through the worker's normal CLI tools. Follow the
+        shared APM skill and version-matched CLI guidance. Use `status` to inspect
+        permissions; if access is missing, report it and stop. Do not run
+        `permissions --guide` or `permissions --request`, or alter macOS privacy
+        settings, without explicit approval. Do not use Hermes native
+        `computer_use` or CUA. Preserve the existing private, short macOS
+        `TMPDIR` (mode 0700); do not replace it with a nested temporary directory
+        because the command-host socket path must stay under the 104-byte
+        UNIX-domain socket limit. Browser work stays on the configured Aside
+        route; do not substitute Agent Desktop for Aside.
 
         ${mcpRegistry.awareness}
       '';
