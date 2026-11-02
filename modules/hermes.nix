@@ -113,6 +113,9 @@ let
         Browser work defaults to Aside. For an explicit Ego Lite/Ego browser request or
         approved switch, delegate to OMP and direct it to follow the official ego-browser
         skill; use ${egoPackage}/bin/ego-browser if command resolution needs to be explicit.
+        Preserve the existing user-confirmation requirements for submissions, destructive
+        actions, purchases, and messages; Ego access is not blanket consent. Browser
+        permission prompts and device choosers require the user to act; hand off and stop.
         Never switch to Ego automatically after an Aside failure, and never substitute
         Agent Desktop for browser work.
 
