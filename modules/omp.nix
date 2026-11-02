@@ -8,6 +8,8 @@
 let
   cfg = config.workstation.omp;
   ompRelease = (builtins.fromJSON (builtins.readFile ../release-pins.json)).omp;
+  user = config.system.primaryUser;
+  egoSkill = "${config.workstation.ego.package}/share/ego-browser";
   omp = pkgs.stdenvNoCC.mkDerivation {
     pname = "omp";
     inherit (ompRelease) version;
@@ -34,5 +36,6 @@ in
 
   config = lib.mkIf cfg.enable {
     environment.systemPackages = [ cfg.package ];
+    home-manager.users.${user}.home.file.".omp/agent/skills/ego-browser".source = egoSkill;
   };
 }

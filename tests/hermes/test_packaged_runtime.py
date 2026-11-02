@@ -10,6 +10,7 @@ import os
 import plistlib
 from pathlib import Path
 import shlex
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -153,9 +154,15 @@ class PackagedHermesIntegration(unittest.TestCase):
             cls.expected_command,
             launchd_plist,
             agent_desktop_source,
+            ego_share_root,
+            omp_skill_source,
         ) = INPUTS
         cls.launchd_plist = Path(launchd_plist)
         cls.agent_desktop_source = Path(agent_desktop_source)
+        cls.ego_share_root = Path(ego_share_root)
+        cls.expected_ego_skill = cls.ego_share_root / "ego-browser"
+        cls.expected_ego_command = cls.ego_share_root.parent / "bin/ego-browser"
+        cls.omp_skill_source = Path(omp_skill_source)
         temporary = tempfile.TemporaryDirectory(prefix="hermes-runtime-check-")
         cls.addClassCleanup(temporary.cleanup)
         cls.root = Path(temporary.name)
@@ -239,7 +246,7 @@ class PackagedHermesIntegration(unittest.TestCase):
         self.assertFalse((self.home / "plugins" / "omp-acp-provider").exists())
         self.assertEqual(skill_directory().resolve(), (self.provider_source / "skills").resolve())
 
-    def test_generated_config_discovers_apm_and_provider_skills_without_hiding_bundled_skills(self):
+    def test_generated_config_discovers_apm_provider_and_ego_skills_without_hiding_bundled_skills(self):
         from tools.skills_sync import sync_skills
         from tools.skills_tool import skill_view, skills_list
 
@@ -251,6 +258,8 @@ class PackagedHermesIntegration(unittest.TestCase):
         self.assertIn("omp-web-search", names)
         self.assertIn("github", names)
         self.assertIn("hermes-agent", names)
+        self.assertIn("ego-browser", names)
+        self.assertIn(str(self.ego_share_root), self.config["skills"]["external_dirs"])
 
         apm_view = json.loads(skill_view("hermes-apm-fixture", preprocess=False))
         self.assertTrue(apm_view.get("success"), apm_view)
@@ -263,11 +272,75 @@ class PackagedHermesIntegration(unittest.TestCase):
         expected_provider = self.provider_source / "skills/omp-web-search/SKILL.md"
         self.assertEqual(Path(provider_view["skill_dir"]).resolve(), expected_provider.parent.resolve())
         self.assertEqual(provider_view["content"], expected_provider.read_text())
+        ego_view = json.loads(skill_view("ego-browser", preprocess=False))
+        self.assertTrue(ego_view.get("success"), ego_view)
+        ego_skill_file = self.expected_ego_skill / "SKILL.md"
+        self.assertEqual(Path(ego_view["skill_dir"]).resolve(), self.expected_ego_skill.resolve())
+        self.assertEqual(ego_view["content"], ego_skill_file.read_text())
+        self.assertEqual(self.omp_skill_source.resolve(), self.expected_ego_skill.resolve())
         self.assertEqual(self.resolve_omp(self.config)["provider"], "omp-acp")
         print(
-            "Generated-config skills: hermes-apm-fixture, omp-web-search, github, hermes-agent; "
-            f"APM fixture: {expected_apm}; provider source: {expected_provider}"
+            "Generated-config skills: hermes-apm-fixture, omp-web-search, ego-browser, "
+            "github, hermes-agent; "
+            f"APM fixture: {expected_apm}; Ego source: {ego_skill_file}; "
+            f"provider source: {expected_provider}"
         )
+
+    def test_ego_cli_resolves_from_launchd_path_without_app_setup(self):
+        definition = plistlib.loads(self.launchd_plist.read_bytes())
+        launchd_path = definition["EnvironmentVariables"]["PATH"]
+        path_entries = launchd_path.split(os.pathsep)
+        expected_omp = Path(self.expected_command)
+        self.assertIn(str(expected_omp.parent), path_entries)
+        resolved_omp = shutil.which("omp", path=launchd_path)
+        self.assertIsNotNone(resolved_omp)
+        self.assertEqual(Path(resolved_omp).resolve(), expected_omp.resolve())
+        self.assertIn(str(self.expected_ego_command.parent), path_entries)
+        resolved_ego = shutil.which("ego-browser", path=launchd_path)
+        self.assertIsNotNone(resolved_ego)
+        self.assertEqual(Path(resolved_ego).resolve(), self.expected_ego_command.resolve())
+
+        result = subprocess.run(
+            ["ego-browser", "skill"],
+            env={
+                "HOME": str(self.root),
+                "PATH": launchd_path,
+                "TMPDIR": str(self.root),
+            },
+            capture_output=True,
+            text=True,
+            timeout=30,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("[ego-browser:skill] end of guide", result.stdout + result.stderr)
+
+    def test_omp_read_discovers_official_ego_skill_from_launchd_path(self):
+        definition = plistlib.loads(self.launchd_plist.read_bytes())
+        launchd_path = definition["EnvironmentVariables"]["PATH"]
+        home = self.root / "omp-skill-discovery-home"
+        agent_dir = home / ".omp" / "agent"
+        skill_link = agent_dir / "skills" / "ego-browser"
+        skill_link.parent.mkdir(parents=True)
+        skill_link.symlink_to(self.expected_ego_skill, target_is_directory=True)
+
+        result = subprocess.run(
+            ["omp", "read", "skill://ego-browser"],
+            cwd=home,
+            env={
+                "HOME": str(home),
+                "PATH": launchd_path,
+                "TMPDIR": str(home),
+                "PI_CODING_AGENT_DIR": str(agent_dir),
+                "PI_CONFIG_FILES": "",
+            },
+            capture_output=True,
+            text=True,
+            timeout=30,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn((self.expected_ego_skill / "SKILL.md").read_text(), result.stdout)
 
     def test_home_manager_agent_is_outside_upstream_service_ownership(self):
         from hermes_cli import gateway
@@ -784,6 +857,9 @@ class PackagedHermesIntegration(unittest.TestCase):
         for platform in ("slack", "cli"):
             with self.subTest(platform=platform):
                 self.check_platform_tools(self.config, platform)
+        self.assertEqual(self.config["approvals"]["mode"], "manual")
+        self.assertEqual(self.config["approvals"]["unattended_mode"], "deny")
+        self.assertEqual(self.config["approvals"]["single_query_mode"], "deny")
 
     def test_agent_desktop_discovery_registration_and_status_dispatch(self):
         from hermes_cli.plugins import get_plugin_toolsets
@@ -896,8 +972,9 @@ class PackagedHermesIntegration(unittest.TestCase):
 
 if __name__ == "__main__":
     INPUTS = sys.argv[1:]
-    if len(INPUTS) != 7:
+    if len(INPUTS) != 9:
         raise SystemExit(
-            "usage: test_packaged_runtime.py CONFIG PROVIDER DELEGATION VERSION OMP LAUNCHD_PLIST AGENT_DESKTOP_PLUGIN"
+            "usage: test_packaged_runtime.py CONFIG PROVIDER DELEGATION VERSION OMP LAUNCHD_PLIST "
+            "AGENT_DESKTOP_PLUGIN EGO_SHARE_ROOT OMP_SKILL_SOURCE"
         )
     unittest.main(argv=[sys.argv[0]], verbosity=2)

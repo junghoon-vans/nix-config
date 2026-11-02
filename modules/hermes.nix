@@ -8,6 +8,7 @@
 
 let
   cfg = config.workstation.hermes;
+  egoPackage = config.workstation.ego.package;
   asideCli = import ./mcp/aside-cli.nix { inherit pkgs; };
   mcpRegistry = import ./mcp/registry.nix {
     asideCommand = lib.getExe asideCli;
@@ -61,6 +62,7 @@ let
     lib.makeBinPath [
       pkgs.git
       config.workstation.omp.package
+      egoPackage
       cfg.package
     ]
   }:/run/current-system/sw/bin:/etc/profiles/per-user/${user}/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin";
@@ -72,6 +74,7 @@ let
     providers."omp-acp".stale_timeout_seconds = 1800;
     skills.external_dirs = [
       "${providerResources}/skills"
+      "${egoPackage}/share"
       "${home}/.agents/skills"
     ];
     # This Home Manager-owned profile runs separately from the default host gateway.
@@ -107,7 +110,11 @@ let
         Never retry unknown delivery automatically. Permission changes require
         explicit user approval and are not exposed by this tool. Do not use
         computer_use or CUA. Preserve the private short TMPDIR unchanged.
-        Browser work stays on Aside; do not substitute Agent Desktop for Aside.
+        Browser work defaults to Aside. For an explicit Ego Lite/Ego browser request or
+        approved switch, delegate to OMP and direct it to follow the official ego-browser
+        skill; use ${egoPackage}/bin/ego-browser if command resolution needs to be explicit.
+        Never switch to Ego automatically after an Aside failure, and never substitute
+        Agent Desktop for browser work.
 
         ${mcpRegistry.awareness}
       '';
@@ -254,8 +261,9 @@ in
     environment.systemPackages = [ cfg.package ];
     assertions = [
       {
-        assertion = config.workstation.omp.enable && cfg.repositoryRoots != [ ];
-        message = "The Hermes gateway requires OMP and at least one repository root.";
+        assertion =
+          config.workstation.omp.enable && config.workstation.ego.enable && cfg.repositoryRoots != [ ];
+        message = "The Hermes gateway requires OMP, Ego Lite, and at least one repository root.";
       }
     ];
     system.build = {
@@ -278,7 +286,9 @@ in
               ${
                 config.home-manager.users.${user}.home.activationPackage
               }/LaunchAgents/org.nixos.hermes.gateway-${profileName}.plist \
-              ${agentDesktopSource}
+              ${agentDesktopSource} \
+              ${egoPackage}/share \
+              ${config.home-manager.users.${user}.home.file.".omp/agent/skills/ego-browser".source}
             touch "$out"
           '';
     };
