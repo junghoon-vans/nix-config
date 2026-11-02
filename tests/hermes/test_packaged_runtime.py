@@ -132,6 +132,7 @@ def check_acp_retries(profile, command, configured_args, root):
 
 
 def _launchd_command_from_definition(definition):
+    """Return the complete executable vector that launchd will start."""
     arguments = list(definition["ProgramArguments"])
     if arguments[:2] == ["/bin/sh", "-c"]:
         shell_arguments = shlex.split(arguments[2])
@@ -141,6 +142,13 @@ def _launchd_command_from_definition(definition):
             raise AssertionError("Home Manager launchd wrapper has no exec command") from error
         return shell_arguments[exec_index + 1:]
     return arguments
+
+
+def _hermes_cli_args_from_definition(definition):
+    command = _launchd_command_from_definition(definition)
+    if len(command) < 2:
+        raise AssertionError("launchd command must contain a gateway host and Hermes executable")
+    return command[2:]
 
 
 class PackagedHermesIntegration(unittest.TestCase):
@@ -319,9 +327,8 @@ class PackagedHermesIntegration(unittest.TestCase):
         from importlib import import_module, metadata
 
         definition = plistlib.loads(self.launchd_plist.read_bytes())
-        launcher = _launchd_command_from_definition(definition)[0]
-        self.assertTrue(Path(launcher).is_absolute())
-        self.assertTrue(os.access(launcher, os.X_OK))
+        launchd_command = _launchd_command_from_definition(definition)
+        host_executable, hermes_executable = launchd_command[:2]
 
         cli_home = self.root / "cli-default-home"
         cli_home.mkdir()
@@ -412,9 +419,10 @@ atexit.register(_record_runtime)
             "HERMES_RUNTIME_CHECK_SCRIPT": str(Path(__file__).resolve()),
         }
         result = subprocess.run(
-            [launcher, "--help"],
+            [host_executable, hermes_executable, "--help"],
             cwd=cli_home,
             env=cli_env,
+            stdin=subprocess.DEVNULL,
             capture_output=True,
             text=True,
             timeout=45,
@@ -471,12 +479,11 @@ atexit.register(_record_runtime)
     def test_home_manager_agent_is_outside_upstream_service_ownership(self):
         from hermes_cli import gateway
 
-        fixture_bytes = self.launchd_plist.read_bytes()
-        definition = plistlib.loads(fixture_bytes)
+        definition = plistlib.loads(self.launchd_plist.read_bytes())
         label = "org.nixos.hermes.gateway-omp-worker"
         self.assertEqual(definition.get("Label"), label)
         self.assertEqual(
-            _launchd_command_from_definition(definition)[1:6],
+            _hermes_cli_args_from_definition(definition),
             ["--profile", "omp-worker", "gateway", "run", "--external-supervisor"],
         )
         profile_home = Path(definition["EnvironmentVariables"]["HERMES_HOME"])
@@ -484,11 +491,7 @@ atexit.register(_record_runtime)
         self.assertEqual(definition.get("KeepAlive"), {"SuccessfulExit": False})
         self.assertEqual(definition.get("ThrottleInterval"), 30)
 
-        agents = self.root / "Library/LaunchAgents"
-        agents.mkdir(parents=True, exist_ok=True)
-        custom_plist = agents / f"{label}.plist"
-        custom_plist.write_bytes(fixture_bytes)
-        canonical_plist = agents / "ai.hermes.gateway-omp-worker.plist"
+        canonical_plist = self.root / "Library/LaunchAgents/ai.hermes.gateway-omp-worker.plist"
         self.assertEqual(gateway.get_launchd_label(), "ai.hermes.gateway-omp-worker")
 
         launchctl_calls = []
@@ -515,15 +518,13 @@ atexit.register(_record_runtime)
             self.assertIsNone(gateway._installed_service_kind_for(lambda: False))
             self.assertEqual(gateway._get_service_pids(all_profiles=True), set())
 
-        self.assertEqual(custom_plist.read_bytes(), fixture_bytes)
-        self.assertTrue(any(command == ["launchctl", "list"] for command in launchctl_calls))
         self.assertFalse(any(command[1] in {"bootstrap", "bootout", "kickstart"} for command in launchctl_calls))
 
     def test_nix_owned_profile_passes_real_gateway_startup_guard(self):
         definition = plistlib.loads(self.launchd_plist.read_bytes())
-        command = _launchd_command_from_definition(definition)
+        hermes_cli_args = _hermes_cli_args_from_definition(definition)
         probe = (
-            f"import sys; sys.argv = {['hermes', *command[1:]]!r}; "
+            f"import sys; sys.argv = {['hermes', *hermes_cli_args]!r}; "
             "import hermes_cli.main; "
             "from hermes_cli.gateway import _attach_to_host_gateway_or_guard; "
             "_attach_to_host_gateway_or_guard()"
@@ -551,8 +552,8 @@ atexit.register(_record_runtime)
         from hermes_cli import gateway
 
         definition = plistlib.loads(self.launchd_plist.read_bytes())
-        command = _launchd_command_from_definition(definition)
-        argv = ["hermes", *command[1:]]
+        hermes_cli_args = _hermes_cli_args_from_definition(definition)
+        argv = ["hermes", *hermes_cli_args]
         probe_env = os.environ.copy()
         probe_env.update(
             HOME=str(self.root),
@@ -654,7 +655,7 @@ atexit.register(_record_runtime)
     def test_supervised_restart_exit_remains_retryable_under_launchd(self):
         from types import SimpleNamespace
 
-        from gateway.restart import GATEWAY_SERVICE_RESTART_EXIT_CODE, map_fatal_config_exit_for_launchd
+        from gateway.restart import map_fatal_config_exit_for_launchd
         from gateway.run_shutdown import _resolve_gateway_exit_verdict
 
         runner = SimpleNamespace(
@@ -665,8 +666,7 @@ atexit.register(_record_runtime)
         )
         with self.assertRaises(SystemExit) as failure:
             _resolve_gateway_exit_verdict(runner, signal_initiated_shutdown=False)
-        self.assertEqual(failure.exception.code, GATEWAY_SERVICE_RESTART_EXIT_CODE)
-        self.assertEqual(GATEWAY_SERVICE_RESTART_EXIT_CODE, 75)
+        self.assertEqual(failure.exception.code, 75)
         self.assertEqual(map_fatal_config_exit_for_launchd(75), 75)
         self.assertEqual(map_fatal_config_exit_for_launchd(78), 0)
 

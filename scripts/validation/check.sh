@@ -15,6 +15,7 @@ bash_scripts=(
   scripts/dock/update-stacks.sh
   scripts/homebrew/patch-runtime.sh
   scripts/homebrew/check-runtime.sh
+  scripts/hermes/build-gateway-app.sh
   scripts/homebrew/update.sh
   scripts/nix/bootstrap.sh
   scripts/nix/home-manager-backups-cleanup.sh

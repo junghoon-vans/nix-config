@@ -16,6 +16,8 @@ let
   user = config.system.primaryUser;
   home = config.users.users.${user}.home;
   profileName = "omp-worker";
+  gatewayApp = pkgs.callPackage ../packages/hermes-gateway-app.nix { inherit profileName; };
+  gatewayHost = "${gatewayApp}/Applications/Hermes Gateway (${profileName}).app/Contents/MacOS/hermes-gateway-host";
   profilePath = ".hermes/profiles/${profileName}";
   profileHome = "${home}/${profilePath}";
   yaml = pkgs.formats.yaml { };
@@ -266,6 +268,7 @@ in
     ];
     system.build = {
       inherit hermesConfig;
+      hermesGatewayApp = gatewayApp;
       hermesRuntimeCheck =
         pkgs.runCommand "hermes-runtime-check"
           {
@@ -278,6 +281,10 @@ in
             HERMES_RUNTIME_PROBE = "1";
           }
           ''
+            HERMES_RUNTIME_PROBE= \
+              "${pkgs.python3}/bin/python3" "${../tests/hermes/test_gateway_host.py}" \
+              ${lib.escapeShellArg gatewayHost} "${pkgs.python3}/bin/python3"
+
             ${lib.getExe cfg.package} \
               ${hermesConfig} ${providerResources} ${delegationSource} ${lib.escapeShellArg cfg.package.version} \
               ${lib.getExe config.workstation.omp.package} \
@@ -309,6 +316,8 @@ in
       };
       home = {
         file = {
+          "Applications/Hermes Gateway (${profileName}).app".source =
+            "${gatewayApp}/Applications/Hermes Gateway (${profileName}).app";
           "${profilePath}/config.nix.yaml".source = hermesConfig;
           "${profilePath}/SOUL.md".source = ../home/.hermes/profiles/omp-worker/SOUL.md;
           # Partial overlay for the profile's default English UI; keep the scheduler's name intact.
@@ -339,6 +348,7 @@ in
           # Outside Hermes's ai.hermes.gateway-* namespace: only Home Manager owns this job.
           Label = "org.nixos.hermes.gateway-${profileName}";
           ProgramArguments = [
+            gatewayHost
             (lib.getExe cfg.package)
             "--profile"
             profileName
