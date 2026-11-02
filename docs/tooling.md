@@ -24,6 +24,7 @@ authentication state, or machine-local overrides.
 | Nix inputs, fixed releases, and language profiles | [Nix toolchain](nix-toolchain.md) | `flake.lock`, `modules/`, `packages/` |
 | Formulae, casks, and manual upgrades | [Homebrew](homebrew.md) | `modules/darwin.nix` |
 | OMP shared settings and machine-local overlays | [Oh My Pi](omp.md) | `modules/omp.nix`, `home/.omp/agent/` |
+| Hermes desktop control | [Hermes desktop plugin](omp.md#hermes-desktop-plugin) | `modules/hermes.nix`, `home/.hermes/plugins/agent-desktop`, `packages/agent-desktop.nix` |
 | Agent skills and locked deployment | [APM](apm.md) | `apm.yml`, `apm.lock.yaml` |
 | Local and hosted model-context servers | [MCP integrations](mcp.md) | `modules/mcp/`, `home/.omp/agent/mcp.json` |
 | Gno language support | [Zed](zed.md) | `modules/home-manager.nix`, `home/.config/zed/` |

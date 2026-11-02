@@ -98,6 +98,7 @@ Managed by: Nix system.
 
 | Name | Description | Hosts | Declaration |
 | --- | --- | --- | --- |
+| `agent-desktop` | Computer-use CLI for reading and operating desktop apps through accessibility APIs | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `apm` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `biome` | Toolchain of the web | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/languages/typescript.nix`](../modules/languages/typescript.nix) |
 | `bun` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/languages/bun.nix`](../modules/languages/bun.nix) |

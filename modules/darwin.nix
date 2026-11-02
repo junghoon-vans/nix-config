@@ -19,6 +19,7 @@ in
 {
   environment.systemPackages = [
     (pkgs.callPackage ../packages/apm.nix { })
+    (pkgs.callPackage ../packages/agent-desktop.nix { })
     (pkgs.callPackage ../packages/paseo.nix { })
     kakaotalkPatcher
   ];

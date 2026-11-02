@@ -9,10 +9,11 @@ Names use explicit skill selectors, then aliases, then the final path component.
 Source links use the declared ref and package path; selectors identify package exports,
 not inferred repository directories. See [APM management](apm.md) for deployment and updates.
 
-Declared skills: 37.
+Declared skills: 38.
 
 | Skill | Repository | Package path | Ref | Skill selector | Source |
 | --- | --- | --- | --- | --- | --- |
+| `agent-desktop` | https://github.com/vercel-labs/agent-desktop | `skills/agent-desktop` | `v1.0.2` | — | [upstream](https://github.com/vercel-labs/agent-desktop/tree/v1.0.2/skills/agent-desktop) |
 | `archify` | https://github.com/tt-a1i/archify | `archify` | `58ab0b98d2d0def8e49dced705c7b566936723ec` | — | [upstream](https://github.com/tt-a1i/archify/tree/58ab0b98d2d0def8e49dced705c7b566936723ec/archify) |
 | `codebase-design` | https://github.com/mattpocock/skills | `skills/engineering/codebase-design` | `49dd158d1076134a641b33efb035946536778336` | — | [upstream](https://github.com/mattpocock/skills/tree/49dd158d1076134a641b33efb035946536778336/skills/engineering/codebase-design) |
 | `design-taste-frontend` | https://github.com/Leonxlnx/taste-skill | `skills/taste-skill` | `12af471f627f866411b4bd785b19646d3672784c` | — | [upstream](https://github.com/Leonxlnx/taste-skill/tree/12af471f627f866411b4bd785b19646d3672784c/skills/taste-skill) |

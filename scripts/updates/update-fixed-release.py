@@ -9,6 +9,7 @@ import urllib.request
 from pathlib import Path
 
 SPECS = {
+    "agent-desktop": ("vercel-labs/agent-desktop", "v", "agent-desktop-v{version}-aarch64-apple-darwin.tar.gz", False),
     "apm": ("microsoft/apm", "v", "apm-darwin-arm64.tar.gz", False),
     "bun": ("oven-sh/bun", "bun-v", "bun-darwin-aarch64.zip", True),
     "gnomcp": ("gnoverse/gno-mcp", "v", "gno-mcp_darwin_arm64.tar.gz", False),

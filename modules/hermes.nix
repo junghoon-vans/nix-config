@@ -39,6 +39,8 @@ let
         ])
   '';
   delegationSource = "${inputs.hermes-official-plugins}/advanced-delegation";
+  agentDesktop = pkgs.callPackage ../packages/agent-desktop.nix { };
+  agentDesktopSource = ../home/.hermes/plugins/agent-desktop;
   hermesPackages = inputs.hermes-agent.packages.${pkgs.stdenv.hostPlatform.system};
   # Hermes 0.22.5 attaches Linux ELF fixups to its Darwin pm artifacts too.
   # Keep the upstream artifact pins, but do not run auto-patchelf on Mach-O.
@@ -98,12 +100,22 @@ let
         Additional OMP permission requests are denied, not relayed to Slack.
         Report blocked operations and ask how to proceed; do not escalate permissions.
 
+        For native-app GUI tasks, invoke the direct agent_desktop tool.
+        Use status first; if permissions are missing, report them and stop.
+        Use help for version-matched arguments, then snapshot to obtain qualified
+        refs. Perform one approved semantic action and observe again to verify.
+        Never retry unknown delivery automatically. Permission changes require
+        explicit user approval and are not exposed by this tool. Do not use
+        computer_use or CUA. Preserve the private short TMPDIR unchanged.
+        Browser work stays on Aside; do not substitute Agent Desktop for Aside.
+
         ${mcpRegistry.awareness}
       '';
     };
     platform_toolsets = {
       slack = [
         "delegation"
+        "agent_desktop"
         "cronjob"
         "session_search"
         "memory"
@@ -114,9 +126,11 @@ let
         "atlassian"
         "aside"
       ];
+      # Expose only the narrow plugin, never a general terminal.
       cli = [
         "delegation"
         "cronjob"
+        "agent_desktop"
         "session_search"
         "memory"
         "skills"
@@ -174,7 +188,12 @@ let
       enabled = [
         "omp-acp-provider"
         "advanced-delegation"
+        "agent-desktop"
       ];
+      entries.agent-desktop.settings = {
+        command = lib.getExe agentDesktop;
+        timeout = 30;
+      };
       entries.omp-acp-provider.settings = {
         command = lib.getExe config.workstation.omp.package;
         args = [
@@ -258,7 +277,8 @@ in
               ${lib.getExe config.workstation.omp.package} \
               ${
                 config.home-manager.users.${user}.home.activationPackage
-              }/LaunchAgents/org.nixos.hermes.gateway-${profileName}.plist
+              }/LaunchAgents/org.nixos.hermes.gateway-${profileName}.plist \
+              ${agentDesktopSource}
             touch "$out"
           '';
     };
@@ -273,6 +293,7 @@ in
             platform.slack.handoff.seed = "*{name}*";
           };
           "${profilePath}/plugins/advanced-delegation".source = delegationSource;
+          "${profilePath}/plugins/agent-desktop".source = agentDesktopSource;
         };
         activation = {
           prepareHermes =
