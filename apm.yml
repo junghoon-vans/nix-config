@@ -124,3 +124,6 @@ dependencies:
       path: plugins/kordoc/skills/kordoc
       ref: a3e7d7d85e58539507436f51ca7c38156eb15e43
     - path: ./skills/humanize-korean
+    - git: https://github.com/vercel-labs/agent-desktop.git
+      path: skills/agent-desktop
+      ref: v1.0.2
