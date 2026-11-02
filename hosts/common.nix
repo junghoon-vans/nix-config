@@ -9,6 +9,7 @@ in
 {
   imports = [
     ../modules/darwin.nix
+    ../modules/ego.nix
     ../modules/languages
     ../modules/omp.nix
     ../modules/mcp/gnomcp.nix
@@ -21,6 +22,7 @@ in
   security.pam.services.sudo_local.touchIdAuth = true;
 
   workstation = {
+    ego.enable = true;
     omp.enable = true;
     mcp.gnomcp.enable = true;
     maintenance = {

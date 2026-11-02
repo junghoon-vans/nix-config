@@ -7,17 +7,24 @@ import re
 from pathlib import Path
 
 pins = json.loads(Path("release-pins.json").read_text())
-expected = {"agent-desktop", "apm", "bun", "gnomcp", "officecli", "omp", "paseo"}
+expected = {"agent-desktop", "apm", "bun", "egoLite", "gnomcp", "officecli", "omp", "paseo"}
 if not isinstance(pins, dict) or pins.keys() != expected:
     raise SystemExit("release-pins.json must contain exactly the supported packages")
 
 for name, pin in pins.items():
     fields = {"version", "hash", "skillHash"} if name == "officecli" else {"version", "hash"}
+    if name == "egoLite":
+        fields = {"version", "hash", "appBuild", "appHash"}
     if not isinstance(pin, dict) or pin.keys() != fields:
         raise SystemExit(f"{name}: expected {', '.join(sorted(fields))}")
     if not isinstance(pin["version"], str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9.+_-]*", pin["version"]):
         raise SystemExit(f"{name}: invalid version")
-    for field in fields - {"version"}:
+    if name == "egoLite" and (
+        not isinstance(pin["appBuild"], str)
+        or not re.fullmatch(r"[A-Za-z0-9_-]+", pin["appBuild"])
+    ):
+        raise SystemExit(f"{name}: invalid appBuild")
+    for field in fields - {"version", "appBuild"}:
         digest = pin[field]
         if not isinstance(digest, str) or not digest.startswith("sha256-"):
             raise SystemExit(f"{name}.{field}: expected sha256 SRI hash")

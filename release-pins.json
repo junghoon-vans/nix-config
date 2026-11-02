@@ -11,6 +11,12 @@
     "version": "1.4.4",
     "hash": "sha256-87/El3jqhuolGOs2Mwcm2hKpgOAEI+jLs2taVYSw3nk="
   },
+  "egoLite": {
+    "version": "2.1.0",
+    "hash": "sha256-lGQKQgFF1QwE1E6idiSWzsdd836A1kad7ucciMNOVhA=",
+    "appBuild": "Y7MbxKIuhzFB",
+    "appHash": "sha256-P0riWEMAc2iXr4mHvF6xex6+ostvzuFu7R+Q+VYWMX4="
+  },
   "gnomcp": {
     "version": "0.12.3",
     "hash": "sha256-EGI/U19OYb1RzEcZy3+ZWGDfrzcWPR9PqTaVLTu1Azw="
