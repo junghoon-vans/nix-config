@@ -1,0 +1,16 @@
+--- a/pm/paths.py
++++ b/pm/paths.py
+@@ -9,2 +9,5 @@
+ def repo_root() -> Path:
+-    return Path(__file__).resolve().parent.parent
++    root = Path(__file__).resolve().parent.parent
++    # Wheels omit project metadata and build inputs. Nix retains the exact
++    # pinned source for PM snapshots; checkouts and generated trees own theirs.
++    return root if (root / "pyproject.toml").is_file() else Path("@hermesSource@")
+
+--- a/pm/workspace.py
++++ b/pm/workspace.py
+@@ -134 +134,2 @@
+-        shutil.copy2(entry, target)
++        shutil.copy2(entry, target)
++        target.chmod(target.stat().st_mode | 0o200)

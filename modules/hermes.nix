@@ -19,15 +19,33 @@ let
   profilePath = ".hermes/profiles/${profileName}";
   profileHome = "${home}/${profilePath}";
   yaml = pkgs.formats.yaml { };
-  hermesBase = hermesPackages.messaging.override {
+  hermesBase = hermesPackages.messaging.override (upstream: {
     inherit pmPackages;
+    # PM needs the complete pinned build tree, not wheel site-packages, when
+    # preparing writable plugin generations. Keep checkout/generation roots local.
+    callPackage =
+      path: args:
+      upstream.callPackage path (
+        args
+        // lib.optionalAttrs (baseNameOf path == "python.nix") {
+          pythonSrc = pkgs.applyPatches {
+            name = "hermes-pm-source";
+            src = args.pythonSrc;
+            patches = [ ../patches/hermes/pm-project-root.patch ];
+            postPatch = ''
+              substituteInPlace pm/paths.py \
+                --replace-fail '@hermesSource@' '${inputs.hermes-agent.outPath}'
+            '';
+          };
+        }
+      );
     version = lib.removePrefix "v" (builtins.fromJSON (builtins.readFile ../flake.lock))
     .nodes.hermes-agent.original.ref;
     extraDependencyGroups = [
       "messaging"
       "acp"
     ];
-  };
+  });
   providerPackage = inputs.hermes-omp-acp.lib.mkHermesPlugin { hermes = hermesBase; };
   providerResources = "${providerPackage}/share/hermes-omp-acp";
   runtimeProbe = pkgs.writeTextDir "sitecustomize.py" ''
@@ -292,6 +310,9 @@ in
               ${agentDesktopSource} \
               ${egoPackage}/share \
               ${config.home-manager.users.${user}.home.file.".omp/agent/skills/ego-browser".source}
+            env -u HERMES_RUNTIME_PROBE \
+              PYTHONPATH=${cfg.package.hermesVenv}/${cfg.package.python.sitePackages} \
+              ${cfg.package.pmRuntime}/bin/python3 ${../tests/hermes/test_pm_admission.py}
             touch "$out"
           '';
     };
