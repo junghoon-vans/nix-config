@@ -7,6 +7,60 @@ from version_table import render_table
 
 
 class DependencyReportTests(unittest.TestCase):
+    def test_repository_moves_never_compare_revisions_in_the_wrong_repository(self):
+        before = {"example": {"repository": "org/old", "revision": "old", "hash": "a"}}
+        after = {"example": {"repository": "org/new", "revision": "new", "hash": "b"}}
+        self.assertIsNone(self.report("modules/paseo-plugins.json", before, after)[0]["compare"])
+        old = {"root": "root", "nodes": {
+            "root": {"inputs": {"tool": "tool"}},
+            "tool": {"locked": {"type": "github", "owner": "org", "repo": "old", "rev": "a"}},
+        }}
+        new = copy.deepcopy(old)
+        new["nodes"]["tool"]["locked"].update(repo="new", rev="b")
+        self.assertIsNone(self.report("flake.lock", old, new)[0]["compare"])
+
+    def test_flake_source_is_primary_even_when_lock_metadata_disagrees(self):
+        before = '{ inputs.hermes-agent.url = "github:NousResearch/hermes-agent/v0.22.5"; }'
+        after = before.replace("v0.22.5", "v0.22.6")
+        lock = {"root": "root", "nodes": {
+            "root": {"inputs": {"hermes-agent": "hermes", "nixpkgs": "root-nixpkgs"}},
+            "hermes": {"original": {"ref": "stale-ref"}, "locked": {"rev": "old"}},
+            "root-nixpkgs": {"locked": {"rev": "unchanged"}},
+            "nixpkgs": {"locked": {"rev": "old-transitive"}},
+        }}
+        updated = copy.deepcopy(lock)
+        updated["nodes"]["hermes"]["locked"]["rev"] = "new"
+        updated["nodes"]["nixpkgs"]["locked"]["rev"] = "new-transitive"
+        rows = collect_rows(
+            {"flake.nix": before, "flake.lock": json.dumps(lock)},
+            {"flake.nix": after, "flake.lock": json.dumps(updated)},
+        )
+        self.assertEqual(render_title(rows), "chore(deps): update Hermes to v0.22.6")
+        body = render_body(rows)
+        primary, locks = body.split("### Flake lock details")
+        self.assertIn("flake.nix", primary)
+        self.assertIn("github:NousResearch/hermes-agent/v0.22.5", primary)
+        self.assertIn("github:NousResearch/hermes-agent/v0.22.6", primary)
+        self.assertIn("https://github.com/NousResearch/hermes-agent/compare/v0.22.5...v0.22.6", primary)
+        self.assertNotIn("stale-ref", primary)
+        self.assertIn("rev: new", locks)
+        self.assertNotIn("root-nixpkgs", body)
+
+    def test_source_only_nested_overrides_and_repository_switches(self):
+        before = '''{ inputs = {
+          tool = { url = "github:org/old/v1"; };
+          nested.inputs.child.url = "github:org/child/v1";
+        }; }'''
+        after = before.replace("org/old/v1", "org/new/v2").replace("child/v1", "child/v2")
+        rows = self.report("flake.nix", before, after)
+        self.assertEqual({item["dependency"] for item in rows},
+                         {"flake input tool (flake.nix)", "flake input nested.inputs.child (flake.nix)"})
+        tool = next(item for item in rows if item["input"] == "tool")
+        self.assertIsNone(tool["compare"])
+        child = next(item for item in rows if item["input"] == "nested.inputs.child")
+        self.assertTrue(child["compare"].endswith("/v1...v2"))
+        self.assertIn("flake input tool to v2", render_title(rows))
+
     def test_titles_include_only_changed_gno_components(self):
         before = '  gnoRev = "old-gno";\n  gnoplsRev = "old-gnopls";\n'
         for after, expected in (
