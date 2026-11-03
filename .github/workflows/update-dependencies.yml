@@ -2,7 +2,7 @@ name: update dependencies
 
 on:
   schedule:
-    - cron: "0 18 * * *"
+    - cron: "0 20 * * *" # 05:00 Asia/Seoul (UTC+09:00), next calendar day
   workflow_dispatch:
 
 permissions:
