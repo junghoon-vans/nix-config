@@ -126,4 +126,4 @@ dependencies:
     - path: ./skills/humanize-korean
     - git: https://github.com/vercel-labs/agent-desktop.git
       path: skills/agent-desktop
-      ref: v1.0.2
+      ref: v1.1.0
