@@ -4,8 +4,8 @@ modelRoles:
   review: openai-codex/gpt-6.1-sol:high
   security: openai-codex/gpt-6.1-sol:xhigh
   task: openai-codex/gpt-6-luna:max
-  smol: openai-codex/gpt-6-luna:max
-  tiny: openai-codex/gpt-6-luna:max
+  smol: openai-codex/gpt-6-luna:medium
+  tiny: openai-codex/gpt-6-luna:low
   slow: openai-codex/gpt-6-astra:low
   frontend: anthropic/claude-sonnet-5-5:high
   frontend_deep: anthropic/claude-opus-5-5:medium
@@ -21,6 +21,8 @@ task:
   isolation:
     enabled: true
   enableLsp: true
+  enableEffort: true
+  showResolvedModelBadge: true
 worktree:
   onStart: create
   onExit: remove
