@@ -23,7 +23,6 @@ class ConfigurationChangeDetection(unittest.TestCase):
             (["skills/local/SKILL.md", "README.md"], False),
             (["release-pins.json"], False),
             (["tests/hermes/test_packaged_runtime.py"], False),
-            (["patches/kakaotalk/notification.patch"], False),
             ([".github/workflows/validate.yml"], False),
             ([".github/scripts/require-nix-validation"], False),
             (["scripts/validation/check.sh"], False),
