@@ -20,6 +20,7 @@ DEPENDABOT_ID = 49699333
 NIX_BRANCH = re.compile(r"dependabot/nix/flake-inputs-[0-9a-f]{10}")
 ACTIONS_BRANCH = re.compile(r"dependabot/github_actions/github-actions-[0-9a-f]{10}")
 NIX_PATHS = {"flake.nix", "flake.lock"}
+MIXED_NIX_PATHS = {"flake.lock", "release-pins.json"}
 ACTION_PATHS = {
     ".github/workflows/validate.yml",
     ".github/workflows/update-dependencies.yml",
@@ -90,7 +91,7 @@ def validate_pr(pr, number, expected_head):
     raise ValueError("Unsupported Dependabot branch")
 
 
-def _changed_files(endpoint, pr, allowed_paths):
+def _changed_files(endpoint, pr):
     pages = api("--paginate", "--slurp", f"{endpoint}/files?per_page=100")
     if not isinstance(pages, list):
         raise ValueError("Invalid changed-file response")
@@ -108,19 +109,34 @@ def _changed_files(endpoint, pr, allowed_paths):
         or len(files) != count
     ):
         raise ValueError("Incomplete changed-file response")
-    paths = []
+    paths = set()
     for file in files:
         if not isinstance(file, dict):
             raise ValueError("Invalid changed-file entry")
         path = file.get("filename")
-        if path not in allowed_paths or path in paths:
-            raise ValueError("Pull request contains an untrusted path")
+        if not isinstance(path, str) or not path:
+            raise ValueError("Invalid changed-file path")
+        if path in paths:
+            raise ValueError("Pull request contains a duplicate path")
         if file.get("status") != "modified":
             raise ValueError("Only modified Dependabot files are supported")
         if "previous_filename" in file:
             raise ValueError("Renamed files are not supported")
-        paths.append(path)
+        paths.add(path)
     return files
+
+
+def _classify_changed_files(kind, files, allowed_paths):
+    paths = {file["filename"] for file in files}
+    if (
+        kind == "nix"
+        and MIXED_NIX_PATHS <= paths
+        and paths <= MIXED_NIX_PATHS | {"flake.nix"}
+    ):
+        return "manual"
+    if not paths or not paths <= allowed_paths:
+        raise ValueError("Pull request contains an untrusted path")
+    return "report"
 
 
 def _contents(path, revision):
@@ -322,7 +338,10 @@ def report(number, expected_head):
     kind, allowed_paths, base_sha = validate_pr(pr, number, expected_head)
     if not re.fullmatch(r"[0-9a-f]{40}", base_sha):
         raise ValueError("Invalid base SHA")
-    files = _changed_files(endpoint, pr, allowed_paths)
+    files = _changed_files(endpoint, pr)
+    classification = _classify_changed_files(kind, files, allowed_paths)
+    if classification == "manual":
+        return False
     before, after = _snapshots(files, base_sha, expected_head)
     rows = _report_rows(kind, before, after)
 
@@ -333,12 +352,14 @@ def report(number, expected_head):
         raise ValueError("Pull request base or head changed while reporting")
     body = update_body(latest.get("body"), rows)
     if body == latest.get("body"):
-        return
+        return True
     api(
         f"repos/{REPOSITORY}/issues/{number}",
         "--method", "PATCH", "--input", "-",
         input_data=json.dumps({"body": body}),
     )
+
+    return True
 
 
 def main():
@@ -356,7 +377,19 @@ def main():
         print("Dependabot version reporting received an invalid PR_HEAD", file=sys.stderr)
         return 1
     try:
-        report(int(number_text), expected_head)
+        eligible = report(int(number_text), expected_head)
+        if not eligible:
+            print(
+                "Mixed Nix updates containing flake.lock and release-pins.json "
+                "require manual review; skipping optional reporting and auto-merge.",
+                file=sys.stderr,
+            )
+        output_path = os.environ.get("GITHUB_OUTPUT")
+        if output_path:
+            with open(output_path, "a", encoding="utf-8") as output:
+                output.write(
+                    f"auto_merge_eligible={'true' if eligible else 'false'}\n"
+                )
     except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError):
         print("Dependabot version reporting failed closed", file=sys.stderr)
         return 1

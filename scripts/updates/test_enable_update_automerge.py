@@ -278,6 +278,17 @@ class EnableUpdateAutomergeTests(unittest.TestCase):
         self.fixture["pr"] = copy.deepcopy(PR)
         self.assert_refused(source="dependabot")  # Nor can the CI App enter Dependabot's.
 
+    def test_dependabot_mixed_flake_lock_and_release_pins_never_mutates(self):
+        self.dependabot_fixture()
+        self.fixture["pr"]["changed_files"] = 2
+        self.fixture["pages"] = [[
+            {"filename": "flake.lock", "status": "modified"},
+            {"filename": "release-pins.json", "status": "modified"},
+        ]]
+
+        self.assert_refused(source="dependabot")
+
+
     def test_dependabot_head_race_never_mutates(self):
         self.dependabot_fixture()
         self.fixture["head_race"] = True
