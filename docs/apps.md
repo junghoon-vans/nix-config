@@ -114,6 +114,7 @@ Managed by: Nix system.
 | `gofumpt` | Stricter gofmt | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/languages/go.nix`](../modules/languages/go.nix) |
 | `golangci-lint` | Fast linters Runner for Go | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/languages/go.nix`](../modules/languages/go.nix) |
 | `gopls` | Official language server for the Go language | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/languages/go.nix`](../modules/languages/go.nix) |
+| `gws` | One CLI for all of Google Workspace | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `hermes-agent` | AI agent with advanced tool-calling capabilities | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/hermes.nix`](../modules/hermes.nix) |
 | `jdt-language-server` | Java language server | `junghoonui-MacBookAir` | [`modules/languages/java.nix`](../modules/languages/java.nix) |
 | `kotlin` | General purpose programming language | `junghoonui-MacBookAir` | [`modules/languages/kotlin.nix`](../modules/languages/kotlin.nix) |
