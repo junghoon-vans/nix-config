@@ -23,10 +23,6 @@ let
     inherit pmPackages;
     version = lib.removePrefix "v" (builtins.fromJSON (builtins.readFile ../flake.lock))
     .nodes.hermes-agent.original.ref;
-    extraDependencyGroups = [
-      "messaging"
-      "acp"
-    ];
   };
   providerPackage = inputs.hermes-omp-acp.lib.mkHermesPlugin { hermes = hermesBase; };
   providerResources = "${providerPackage}/share/hermes-omp-acp";
@@ -245,8 +241,8 @@ in
     enable = lib.mkEnableOption "the local Slack to OMP ACP gateway";
     package = lib.mkOption {
       type = lib.types.package;
-      default = hermesBase.override { extraPythonPackages = [ providerPackage ]; };
-      description = "Upstream Hermes messaging package with its official ACP dependency group.";
+      default = config.home-manager.users.${user}.programs.hermes-agent.package;
+      description = "The effective official Home Manager Hermes package used by the runtime and custom gateway.";
     };
     model = lib.mkOption {
       type = lib.types.str;
@@ -261,7 +257,6 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    environment.systemPackages = [ cfg.package ];
     assertions = [
       {
         assertion =
@@ -297,6 +292,21 @@ in
     };
 
     home-manager.users.${user} = { lib, ... }: {
+      # Phase 1 uses upstream for CLI install/composition only; this profile and gateway remain custom.
+      imports = [ inputs.hermes-agent.homeManagerModules.default ];
+      services.hermes-agent = {
+        enable = false;
+        package = hermesBase;
+        extraDependencyGroups = [
+          "messaging"
+          "acp"
+        ];
+        extraPythonPackages = [ providerPackage ];
+      };
+      programs.hermes-agent = {
+        enable = true;
+        desktop.enable = false;
+      };
       home = {
         file = {
           "${profilePath}/config.nix.yaml".source = hermesConfig;

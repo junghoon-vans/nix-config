@@ -315,6 +315,132 @@ class PackagedHermesIntegration(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("[ego-browser:skill] end of guide", result.stdout + result.stderr)
 
+    def test_launchd_cli_uses_composed_runtime_and_default_profile(self):
+        from importlib import import_module, metadata
+
+        definition = plistlib.loads(self.launchd_plist.read_bytes())
+        launcher = _launchd_command_from_definition(definition)[0]
+        self.assertTrue(Path(launcher).is_absolute())
+        self.assertTrue(os.access(launcher, os.X_OK))
+
+        cli_home = self.root / "cli-default-home"
+        cli_home.mkdir()
+        worker_home = cli_home / ".hermes/profiles/omp-worker"
+        worker_home.mkdir(parents=True)
+        worker_sentinel = worker_home / "profile-sentinel"
+        worker_sentinel.write_text("worker profile\n")
+
+        parent_modules = {
+            name: str(Path(import_module(name).__file__).resolve())
+            for name in ("hermes_cli", "providers", "hermes_omp_acp")
+        }
+        parent_executable = str(Path(sys.executable).resolve())
+        parent_provider_version = metadata.version("hermes-omp-acp")
+        parent_acp_version = metadata.version("agent-client-protocol")
+
+        probe_dir = self.root / "cli-probe"
+        probe_dir.mkdir()
+        probe_result = self.root / "cli-runtime.json"
+        (probe_dir / "sitecustomize.py").write_text(
+            """\
+import atexit
+import json
+import os
+import sys
+from importlib import metadata
+from pathlib import Path
+from runpy import run_path
+
+_initial_hermes_home = os.environ.get("HERMES_HOME")
+_probe_path = os.environ.get("HERMES_CLI_RUNTIME_PROBE")
+_result = {"initial_hermes_home": _initial_hermes_home}
+_home_resolver = None
+
+try:
+    import acp
+    import hermes_cli
+    import hermes_omp_acp
+    import providers
+    from hermes_constants import get_hermes_home
+    from plugins.platforms.discord import adapter as discord_adapter
+    from plugins.platforms.slack import adapter as slack_adapter
+    from plugins.platforms.telegram import adapter as telegram_adapter
+
+    runtime_check = run_path(os.environ["HERMES_RUNTIME_CHECK_SCRIPT"])
+    runtime_check["check_provider_dependencies"]()
+    _home_resolver = get_hermes_home
+    _result.update({
+        "executable": str(Path(sys.executable).resolve()),
+        "modules": {
+            "hermes_cli": str(Path(hermes_cli.__file__).resolve()),
+            "providers": str(Path(providers.__file__).resolve()),
+            "hermes_omp_acp": str(Path(hermes_omp_acp.__file__).resolve()),
+        },
+        "provider_version": metadata.version("hermes-omp-acp"),
+        "acp_version": metadata.version("agent-client-protocol"),
+        "messaging": {
+            "discord": discord_adapter.DISCORD_AVAILABLE,
+            "slack": slack_adapter.SLACK_AVAILABLE,
+            "telegram": telegram_adapter.TELEGRAM_AVAILABLE,
+        },
+    })
+except BaseException as error:
+    _result["error"] = f"{type(error).__name__}: {error}"
+
+def _record_runtime():
+    if _home_resolver is not None:
+        try:
+            _result["hermes_home"] = str(_home_resolver())
+        except BaseException as error:
+            _result["home_error"] = f"{type(error).__name__}: {error}"
+    if _probe_path:
+        with open(_probe_path, "w", encoding="utf-8") as output:
+            json.dump(_result, output)
+
+atexit.register(_record_runtime)
+"""
+        )
+
+        cli_env = {
+            "HOME": str(cli_home),
+            "HERMES_REAL_HOME": str(cli_home),
+            "PATH": definition["EnvironmentVariables"]["PATH"],
+            "PYTHONPATH": str(probe_dir),
+            "PYTHONDONTWRITEBYTECODE": "1",
+            "TMPDIR": str(self.root),
+            "HERMES_CLI_RUNTIME_PROBE": str(probe_result),
+            "HERMES_RUNTIME_CHECK_SCRIPT": str(Path(__file__).resolve()),
+        }
+        result = subprocess.run(
+            [launcher, "--help"],
+            cwd=cli_home,
+            env=cli_env,
+            capture_output=True,
+            text=True,
+            timeout=45,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertTrue(probe_result.is_file(), result.stdout + result.stderr)
+        runtime = json.loads(probe_result.read_text())
+        self.assertNotIn("error", runtime, runtime)
+        self.assertNotIn("home_error", runtime, runtime)
+
+        default_home = cli_home / ".hermes"
+        self.assertIsNone(runtime["initial_hermes_home"])
+        self.assertEqual(Path(runtime["hermes_home"]), default_home)
+        self.assertNotEqual(Path(runtime["hermes_home"]), worker_home)
+        self.assertEqual(worker_sentinel.read_text(), "worker profile\n")
+
+        self.assertEqual(Path(runtime["executable"]).resolve(), Path(parent_executable))
+        self.assertEqual(runtime["modules"], parent_modules)
+        self.assertEqual(runtime["provider_version"], parent_provider_version)
+        self.assertEqual(runtime["acp_version"], parent_acp_version)
+        self.assertEqual(
+            runtime["messaging"],
+            {"discord": True, "slack": True, "telegram": True},
+        )
+
     def test_omp_read_discovers_official_ego_skill_from_launchd_path(self):
         definition = plistlib.loads(self.launchd_plist.read_bytes())
         launchd_path = definition["EnvironmentVariables"]["PATH"]
