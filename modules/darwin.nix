@@ -13,7 +13,6 @@ let
     backup="''${target}.pre-nix.$(${pkgs.coreutils}/bin/date -u +%Y%m%dT%H%M%S.%NZ)"
     ${pkgs.coreutils}/bin/mv -- "$target" "$backup"
   '';
-  kakaotalkPatcher = pkgs.callPackage ../packages/kakaotalk-patcher.nix { };
 in
 
 {
@@ -22,7 +21,6 @@ in
     (pkgs.callPackage ../packages/agent-desktop.nix { })
     (pkgs.callPackage ../packages/paseo.nix { })
     pkgs.gws
-    kakaotalkPatcher
   ];
   home-manager.backupCommand = homeManagerBackup;
 
@@ -107,9 +105,6 @@ in
 
   system = {
     activationScripts = {
-      postActivation.text = lib.mkAfter ''
-        ${kakaotalkPatcher}/bin/kakaotalk-activate
-      '';
       homebrew.text = lib.mkBefore (
         lib.optionalString (appStoreIDs != [ ]) ''
           # Activation clears sudo's environment; mas 7 needs the App Store user's IDs.
