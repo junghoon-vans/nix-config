@@ -9,7 +9,7 @@ Names use explicit skill selectors, then aliases, then the final path component.
 Source links use the declared ref and package path; selectors identify package exports,
 not inferred repository directories. See [APM management](apm.md) for deployment and updates.
 
-Declared skills: 51.
+Declared skills: 52.
 
 | Skill | Repository | Package path | Ref | Skill selector | Source |
 | --- | --- | --- | --- | --- | --- |
@@ -44,6 +44,7 @@ Declared skills: 51.
 | `outlier-post-finder` | https://github.com/ScrapeCreators/social-media-research-skills | `skills/outlier-post-finder` | `64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2` | — | [upstream](https://github.com/ScrapeCreators/social-media-research-skills/tree/64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2/skills/outlier-post-finder) |
 | `principle-type-system-discipline` | https://github.com/cursor/plugins | `pstack/skills/principle-type-system-discipline` | `c1c0a32802223f4be824112dd83d33ad29a8b26c` | — | [upstream](https://github.com/cursor/plugins/tree/c1c0a32802223f4be824112dd83d33ad29a8b26c/pstack/skills/principle-type-system-discipline) |
 | `product-demand-research` | https://github.com/ScrapeCreators/social-media-research-skills | `skills/product-demand-research` | `64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2` | — | [upstream](https://github.com/ScrapeCreators/social-media-research-skills/tree/64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2/skills/product-demand-research) |
+| `property-based-testing` | https://github.com/trailofbits/skills | `plugins/property-based-testing/skills/property-based-testing` | `470419e16f97e112d01fc32f4898aea1755015d9` | — | [upstream](https://github.com/trailofbits/skills/tree/470419e16f97e112d01fc32f4898aea1755015d9/plugins/property-based-testing/skills/property-based-testing) |
 | `scrapecreators-api` | https://github.com/ScrapeCreators/social-media-research-skills | `skills/scrapecreators-api` | `64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2` | — | [upstream](https://github.com/ScrapeCreators/social-media-research-skills/tree/64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2/skills/scrapecreators-api) |
 | `security-audit` | https://github.com/cloudflare/security-audit-skill | `skills/security-audit` | `c1c8a8c1471069fb0e188eeaff69b8e8db6564a8` | — | [upstream](https://github.com/cloudflare/security-audit-skill/tree/c1c8a8c1471069fb0e188eeaff69b8e8db6564a8/skills/security-audit) |
 | `security-best-practices` | https://github.com/openai/skills | `skills/.curated/security-best-practices` | `49f948faa9258a0c61caceaf225e179651397431` | — | [upstream](https://github.com/openai/skills/tree/49f948faa9258a0c61caceaf225e179651397431/skills/.curated/security-best-practices) |
