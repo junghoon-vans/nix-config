@@ -2,11 +2,65 @@ import copy
 import json
 import unittest
 
-from dependency_report import collect_rows, render_title
+from dependency_report import collect_rows, render_body, render_title
 from version_table import render_table
 
 
 class DependencyReportTests(unittest.TestCase):
+    def test_repository_moves_never_compare_revisions_in_the_wrong_repository(self):
+        before = {"example": {"repository": "org/old", "revision": "old", "hash": "a"}}
+        after = {"example": {"repository": "org/new", "revision": "new", "hash": "b"}}
+        self.assertIsNone(self.report("modules/paseo-plugins.json", before, after)[0]["compare"])
+        old = {"root": "root", "nodes": {
+            "root": {"inputs": {"tool": "tool"}},
+            "tool": {"locked": {"type": "github", "owner": "org", "repo": "old", "rev": "a"}},
+        }}
+        new = copy.deepcopy(old)
+        new["nodes"]["tool"]["locked"].update(repo="new", rev="b")
+        self.assertIsNone(self.report("flake.lock", old, new)[0]["compare"])
+
+    def test_flake_source_is_primary_even_when_lock_metadata_disagrees(self):
+        before = '{ inputs.hermes-agent.url = "github:NousResearch/hermes-agent/v0.22.5"; }'
+        after = before.replace("v0.22.5", "v0.22.6")
+        lock = {"root": "root", "nodes": {
+            "root": {"inputs": {"hermes-agent": "hermes", "nixpkgs": "root-nixpkgs"}},
+            "hermes": {"original": {"ref": "stale-ref"}, "locked": {"rev": "old"}},
+            "root-nixpkgs": {"locked": {"rev": "unchanged"}},
+            "nixpkgs": {"locked": {"rev": "old-transitive"}},
+        }}
+        updated = copy.deepcopy(lock)
+        updated["nodes"]["hermes"]["locked"]["rev"] = "new"
+        updated["nodes"]["nixpkgs"]["locked"]["rev"] = "new-transitive"
+        rows = collect_rows(
+            {"flake.nix": before, "flake.lock": json.dumps(lock)},
+            {"flake.nix": after, "flake.lock": json.dumps(updated)},
+        )
+        self.assertEqual(render_title(rows), "chore(deps): update Hermes to v0.22.6")
+        body = render_body(rows)
+        primary, locks = body.split("### Flake lock details")
+        self.assertIn("flake.nix", primary)
+        self.assertIn("github:NousResearch/hermes-agent/v0.22.5", primary)
+        self.assertIn("github:NousResearch/hermes-agent/v0.22.6", primary)
+        self.assertIn("https://github.com/NousResearch/hermes-agent/compare/v0.22.5...v0.22.6", primary)
+        self.assertNotIn("stale-ref", primary)
+        self.assertIn("rev: new", locks)
+        self.assertNotIn("root-nixpkgs", body)
+
+    def test_source_only_nested_overrides_and_repository_switches(self):
+        before = '''{ inputs = {
+          tool = { url = "github:org/old/v1"; };
+          nested.inputs.child.url = "github:org/child/v1";
+        }; }'''
+        after = before.replace("org/old/v1", "org/new/v2").replace("child/v1", "child/v2")
+        rows = self.report("flake.nix", before, after)
+        self.assertEqual({item["dependency"] for item in rows},
+                         {"flake input tool (flake.nix)", "flake input nested.inputs.child (flake.nix)"})
+        tool = next(item for item in rows if item["input"] == "tool")
+        self.assertIsNone(tool["compare"])
+        child = next(item for item in rows if item["input"] == "nested.inputs.child")
+        self.assertTrue(child["compare"].endswith("/v1...v2"))
+        self.assertIn("flake input tool to v2", render_title(rows))
+
     def test_titles_include_only_changed_gno_components(self):
         before = '  gnoRev = "old-gno";\n  gnoplsRev = "old-gnopls";\n'
         for after, expected in (
@@ -70,20 +124,22 @@ class DependencyReportTests(unittest.TestCase):
     def test_homebrew_hermes_and_dependabot_include_transitive_lock_nodes(self):
         for owner in ("homebrew-core", "hermes-agent", "nixpkgs"):
             with self.subTest(owner=owner):
-                old = {"nodes": {owner: {"locked": {"type": "github", "owner": "org", "repo": owner,
-                                                    "rev": "a" * 40, "narHash": "old"}},
-                                 "transitive_2": {"locked": {"type": "tarball", "url": "https://example.test/old", "narHash": "x"}}}}
+                old = {"root": "root", "nodes": {
+                    "root": {"inputs": {owner: owner}},
+                    owner: {"locked": {"type": "github", "owner": "org", "repo": owner,
+                                       "rev": "a" * 40, "narHash": "old"}},
+                    "transitive_2": {"locked": {"type": "tarball", "url": "https://example.test/old", "narHash": "x"}}}}
                 new = copy.deepcopy(old)
                 new["nodes"][owner]["locked"]["rev"] = "b" * 40
                 new["nodes"]["transitive_2"]["locked"].update(url="https://example.test/new", narHash="y")
                 rows = self.report("flake.lock", old, new)
-                self.assertEqual([r["dependency"] for r in rows], [f"flake input {owner}", "flake input transitive_2"])
+                self.assertEqual([r["dependency"] for r in rows], [f"flake input {owner}", "transitive flake node transitive_2"])
                 self.assertIn("a" * 40, rows[0]["previous"])
                 self.assertIn("b" * 40, rows[0]["next"])
                 self.assertIn("https://example.test/old", rows[1]["previous"])
                 self.assertIn("https://example.test/new", rows[1]["next"])
                 self.assertIsNone(rows[1]["compare"])
-                self.assertEqual(render_title(rows), f"chore(deps): update flake input {owner}, flake input transitive_2")
+                self.assertEqual(render_title(rows), f"chore(deps): update flake input {owner}")
     def test_hermes_tag_and_missing_lock_version_metadata_stay_distinct(self):
         old = {"nodes": {"hermes-agent": {"original": {"ref": "v0.20.0"},
                                          "locked": {"type": "github", "owner": "NousResearch", "repo": "hermes-agent", "rev": "old"}}}}
@@ -95,6 +151,59 @@ class DependencyReportTests(unittest.TestCase):
         self.assertIn("declared ref: v0.21.0", rows[0]["next"])
         self.assertIn("rev: old", rows[0]["previous"])
         self.assertIn("rev: new", rows[0]["next"])
+
+    def test_root_aliases_not_node_suffixes_determine_direct_targets(self):
+        old = {"root": "entry", "nodes": {
+            "entry": {"inputs": {"hermes-agent": "hermes", "nixpkgs": "nixpkgs_2",
+                                  "home-manager": "home-manager_2"}},
+            "hermes": {"locked": {"rev": "old-hermes"}, "inputs": {"nixpkgs": "nixpkgs"}},
+            "nixpkgs": {"locked": {"rev": "old-transitive"}},
+            "nixpkgs_2": {"locked": {"rev": "root-pin"}},
+            "home-manager_2": {"locked": {"rev": "home-pin"}},
+        }}
+        new = copy.deepcopy(old)
+        new["nodes"]["hermes"]["locked"]["rev"] = "new-hermes"
+        new["nodes"]["nixpkgs"]["locked"]["rev"] = "new-transitive"
+        rows = self.report("flake.lock", old, new)
+        self.assertEqual(render_title(rows), "chore(deps): update flake input hermes-agent")
+        self.assertEqual([r["dependency"] for r in rows],
+                         ["flake input hermes-agent", "transitive flake node nixpkgs"])
+        body = render_body(rows)
+        direct, transitive = body.split("### Transitive flake lock changes")
+        self.assertIn("### Direct dependency updates", direct)
+        self.assertIn("flake input hermes-agent", direct)
+        self.assertNotIn("nixpkgs", direct)
+        self.assertIn("transitive flake node nixpkgs", transitive)
+        self.assertIn("not updates to same-named root inputs", transitive)
+        new["nodes"]["nixpkgs_2"]["locked"]["rev"] = "new-root-pin"
+        new["nodes"]["home-manager_2"]["locked"]["rev"] = "new-home-pin"
+        self.assertEqual(render_title(self.report("flake.lock", old, new)),
+                         "chore(deps): update flake input hermes-agent, flake input home-manager, flake input nixpkgs")
+
+    def test_follows_alias_and_node_renaming_preserve_input_identity(self):
+        old = {"root": "root", "nodes": {
+            "root": {"inputs": {"tool": "tool_2", "shared": ["tool", "shared"]}},
+            "tool_2": {"locked": {"rev": "tool-pin"}, "inputs": {"shared": "shared"}},
+            "shared": {"locked": {"rev": "old"}},
+        }}
+        new = copy.deepcopy(old)
+        new["nodes"]["root"]["inputs"]["tool"] = "tool_3"
+        new["nodes"]["tool_3"] = new["nodes"].pop("tool_2")
+        new["nodes"]["shared"]["locked"]["rev"] = "new"
+        rows = self.report("flake.lock", old, new)
+        self.assertEqual(render_title(rows), "chore(deps): update flake input shared")
+        self.assertEqual([r["dependency"] for r in rows], ["flake input shared"])
+
+    def test_transitive_only_change_does_not_claim_direct_input_updated(self):
+        old = {"root": "root", "nodes": {
+            "root": {"inputs": {"tool": "tool"}},
+            "tool": {"locked": {"rev": "same"}, "inputs": {"dep": "dep"}},
+            "dep": {"locked": {"rev": "old"}},
+        }}
+        new = copy.deepcopy(old)
+        new["nodes"]["dep"]["locked"]["rev"] = "new"
+        self.assertEqual(render_title(self.report("flake.lock", old, new)),
+                         "chore(deps): update transitive flake locks")
 
 
     def test_npm_group_reports_each_changed_server_and_exact_package_specs(self):
@@ -153,7 +262,7 @@ class DependencyReportTests(unittest.TestCase):
         self.assertEqual(rows[0]["change"], "Added")
         self.assertIn("rev: exact-pin", rows[0]["next"])
         self.assertIsNone(rows[0]["compare"])
-        self.assertEqual(render_title(rows), "chore(deps): update flake input unknown")
+        self.assertEqual(render_title(rows), "chore(deps): update transitive flake locks")
 
     def test_long_titles_keep_only_complete_changed_names_with_overflow_count(self):
         rows = [{"dependency": f"skill-{index}-" + "x" * 70, "change": "Updated"} for index in range(6)]
@@ -195,7 +304,8 @@ class DependencyReportTests(unittest.TestCase):
              "APM lock org/first", "APM lock org/second", "resolved_commit: old", "resolved_commit: new"),
         ]
         for owner in ("homebrew-core", "hermes-agent"):
-            before = {"nodes": {
+            before = {"root": "root", "nodes": {
+                "root": {"inputs": {owner: owner}},
                 owner: {"original": {"ref": "v1"}, "locked": {"rev": "old", "narHash": "old"}},
                 "retained": {"locked": {"rev": "same", "narHash": "same"}},
             }}

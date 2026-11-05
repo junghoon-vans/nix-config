@@ -9,7 +9,7 @@
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     nix-homebrew.url = "github:zhaofengli/nix-homebrew";
     nix-homebrew.inputs.brew-src.url = "github:Homebrew/brew/7.0.11";
-    hermes-agent.url = "github:NousResearch/hermes-agent/v0.22.5";
+    hermes-agent.url = "github:NousResearch/hermes-agent/v0.22.6";
     hermes-omp-acp = {
       url = "github:junghoon-vans/hermes-omp-acp/bbd9997925ce9dcb3ee5f7e47791c48e8a1eeabe";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -94,7 +94,6 @@
         homebrew = homebrewPackage;
         apm = pkgs.callPackage ./packages/apm.nix { };
         agent-desktop = pkgs.callPackage ./packages/agent-desktop.nix { };
-        kakaotalk-patcher = pkgs.callPackage ./packages/kakaotalk-patcher.nix { };
       };
       formatter.${system} = pkgs.writeShellApplication {
         name = "nixfmt-all";

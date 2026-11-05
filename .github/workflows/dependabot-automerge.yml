@@ -27,6 +27,8 @@ jobs:
           repository: junghoon-vans/nix-config
           ref: ${{ github.sha }}
           persist-credentials: false
+      - if: startsWith(github.event.pull_request.head.ref, 'dependabot/nix/')
+        uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
       - name: Report Dependabot dependency versions
         env:
           GH_TOKEN: ${{ github.token }}
