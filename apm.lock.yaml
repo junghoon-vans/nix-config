@@ -1013,6 +1013,214 @@ dependencies:
     .agents/skills/mysql/references/replication-lag.md: sha256:3e47cab20a2142d3b39a5b798c1b3203e8ea985d8bcb97387b90ef6798b33c80
     .agents/skills/mysql/references/row-locking-gotchas.md: sha256:62a6157522c1f8d800f34a33bcde0be220c43a0d978f725b7b32bac10e4da873
   content_hash: sha256:99c972c81a7d6e3181569a39ffb50691a3d05b7a2458432cdcfce3238c922985
+- repo_url: scrapecreators/social-media-research-skills
+  materialization_repo_url: ScrapeCreators/social-media-research-skills
+  name: ad-library-teardown
+  host: github.com
+  resolved_commit: 64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2
+  resolved_ref: 64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2
+  version: unknown
+  virtual_path: skills/ad-library-teardown
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .agents/skills/ad-library-teardown
+  - .agents/skills/ad-library-teardown/SKILL.md
+  deployed_file_hashes:
+    .agents/skills/ad-library-teardown/SKILL.md: sha256:93b67284b21ad9b5a1310a7d03c5c89dc79995165a277a3769698223232d5b0f
+  content_hash: sha256:1f9ecc59fd94ea78dbc6d73ce89410b36ccf341f7d75092ae6e568e3bfc3693f
+- repo_url: scrapecreators/social-media-research-skills
+  materialization_repo_url: ScrapeCreators/social-media-research-skills
+  name: audience-research
+  host: github.com
+  resolved_commit: 64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2
+  resolved_ref: 64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2
+  version: unknown
+  virtual_path: skills/audience-research
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .agents/skills/audience-research
+  - .agents/skills/audience-research/SKILL.md
+  deployed_file_hashes:
+    .agents/skills/audience-research/SKILL.md: sha256:3ced7d3268b80ac18073ffc69393635e02acb4bab23314e203dbdbac73d05477
+  content_hash: sha256:208db958f2f42bfdfffb6d8b35e4a8438c6d8e49d6959f7d5233fd8679a6b02d
+- repo_url: scrapecreators/social-media-research-skills
+  materialization_repo_url: ScrapeCreators/social-media-research-skills
+  name: comment-mining
+  host: github.com
+  resolved_commit: 64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2
+  resolved_ref: 64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2
+  version: unknown
+  virtual_path: skills/comment-mining
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .agents/skills/comment-mining
+  - .agents/skills/comment-mining/SKILL.md
+  deployed_file_hashes:
+    .agents/skills/comment-mining/SKILL.md: sha256:8fb6527e7e73c2db34c85d83161c39fe04d5dd6b860d8c88f2a654af87e14db2
+  content_hash: sha256:0c91de55510904aca412f85b85d06a2b270eab3609135004435913c474ad7631
+- repo_url: scrapecreators/social-media-research-skills
+  materialization_repo_url: ScrapeCreators/social-media-research-skills
+  name: competitor-social-research
+  host: github.com
+  resolved_commit: 64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2
+  resolved_ref: 64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2
+  version: unknown
+  virtual_path: skills/competitor-social-research
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .agents/skills/competitor-social-research
+  - .agents/skills/competitor-social-research/SKILL.md
+  deployed_file_hashes:
+    .agents/skills/competitor-social-research/SKILL.md: sha256:3a5179df374d1fd11b244c4a874a75fb1e48cc22f4f91cde2f6fcddbfda60ce7
+  content_hash: sha256:639c2996ce779630a935d1fba6b3486bd8254beddebe36c9ab206e29514791ba
+- repo_url: scrapecreators/social-media-research-skills
+  materialization_repo_url: ScrapeCreators/social-media-research-skills
+  name: content-repurposing
+  host: github.com
+  resolved_commit: 64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2
+  resolved_ref: 64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2
+  version: unknown
+  virtual_path: skills/content-repurposing
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .agents/skills/content-repurposing
+  - .agents/skills/content-repurposing/SKILL.md
+  deployed_file_hashes:
+    .agents/skills/content-repurposing/SKILL.md: sha256:894468df8b2491f1d36556a8e9045975c03e37f2c928ce028712ff864a28f3d2
+  content_hash: sha256:bf942e3997eb3fdbbac289ddd1d92e39b4e0862db1651996eed632410485c93d
+- repo_url: scrapecreators/social-media-research-skills
+  materialization_repo_url: ScrapeCreators/social-media-research-skills
+  name: creator-profile-teardown
+  host: github.com
+  resolved_commit: 64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2
+  resolved_ref: 64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2
+  version: unknown
+  virtual_path: skills/creator-profile-teardown
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .agents/skills/creator-profile-teardown
+  - .agents/skills/creator-profile-teardown/SKILL.md
+  deployed_file_hashes:
+    .agents/skills/creator-profile-teardown/SKILL.md: sha256:8bb24dbb8ae59fd4017a6dd78f399caead9c62a205a343e9b4b4706fb4869914
+  content_hash: sha256:7ec49b5355d9ec6a94d9d171dbb25048d5da479e4928326eb5e4c935ddfe79ab
+- repo_url: scrapecreators/social-media-research-skills
+  materialization_repo_url: ScrapeCreators/social-media-research-skills
+  name: influencer-prospecting
+  host: github.com
+  resolved_commit: 64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2
+  resolved_ref: 64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2
+  version: unknown
+  virtual_path: skills/influencer-prospecting
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .agents/skills/influencer-prospecting
+  - .agents/skills/influencer-prospecting/SKILL.md
+  deployed_file_hashes:
+    .agents/skills/influencer-prospecting/SKILL.md: sha256:670e840f96ef5f13c8b1d479b10fc8bd3c24033f2b2d5bf78924d10f5d60f1b3
+  content_hash: sha256:3574ed3dce7ff1d05a08ea374971cc80aaae950844108d877d764af3747f57d1
+- repo_url: scrapecreators/social-media-research-skills
+  materialization_repo_url: ScrapeCreators/social-media-research-skills
+  name: outlier-post-finder
+  host: github.com
+  resolved_commit: 64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2
+  resolved_ref: 64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2
+  version: unknown
+  virtual_path: skills/outlier-post-finder
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .agents/skills/outlier-post-finder
+  - .agents/skills/outlier-post-finder/SKILL.md
+  deployed_file_hashes:
+    .agents/skills/outlier-post-finder/SKILL.md: sha256:c648fbe9dda692cc7c034ca8b193e3b129ba4db45f8ff992f463206610d80bfa
+  content_hash: sha256:be109d43f29ef36f5e155aecfd700718b08c11c197acec9ff8e4a2e9010c9c3c
+- repo_url: scrapecreators/social-media-research-skills
+  materialization_repo_url: ScrapeCreators/social-media-research-skills
+  name: product-demand-research
+  host: github.com
+  resolved_commit: 64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2
+  resolved_ref: 64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2
+  version: unknown
+  virtual_path: skills/product-demand-research
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .agents/skills/product-demand-research
+  - .agents/skills/product-demand-research/SKILL.md
+  deployed_file_hashes:
+    .agents/skills/product-demand-research/SKILL.md: sha256:88d57b03fa5200686bd436d5658847f776d33edc365442d36260f8a8be109eaf
+  content_hash: sha256:e0f47b5b9cd8e02638a504e72112c7b70b4791ccebe06a7b59c2a535ff3044ce
+- repo_url: scrapecreators/social-media-research-skills
+  materialization_repo_url: ScrapeCreators/social-media-research-skills
+  name: scrapecreators-api
+  host: github.com
+  resolved_commit: 64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2
+  resolved_ref: 64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2
+  version: unknown
+  virtual_path: skills/scrapecreators-api
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .agents/skills/scrapecreators-api
+  - .agents/skills/scrapecreators-api/SKILL.md
+  deployed_file_hashes:
+    .agents/skills/scrapecreators-api/SKILL.md: sha256:016154fe955fe3a41e83e8e00af82adf2ba34e47eeadf6f121b43f2ccacea418
+  content_hash: sha256:53b3f03866951c84f791720b9c4381c9238ff4d67f6c588710870d476604b6d0
+- repo_url: scrapecreators/social-media-research-skills
+  materialization_repo_url: ScrapeCreators/social-media-research-skills
+  name: social-listening-brief
+  host: github.com
+  resolved_commit: 64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2
+  resolved_ref: 64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2
+  version: unknown
+  virtual_path: skills/social-listening-brief
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .agents/skills/social-listening-brief
+  - .agents/skills/social-listening-brief/SKILL.md
+  deployed_file_hashes:
+    .agents/skills/social-listening-brief/SKILL.md: sha256:c41b897c1b5bf6ac86aee5350e3a833da74d9928a8d31fb62a4f694daf72c64e
+  content_hash: sha256:eebeb4157c04844a6fefcea178e510b8f271b65ded99af259a81b037883be609
+- repo_url: scrapecreators/social-media-research-skills
+  materialization_repo_url: ScrapeCreators/social-media-research-skills
+  name: transcript-intelligence
+  host: github.com
+  resolved_commit: 64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2
+  resolved_ref: 64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2
+  version: unknown
+  virtual_path: skills/transcript-intelligence
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .agents/skills/transcript-intelligence
+  - .agents/skills/transcript-intelligence/SKILL.md
+  deployed_file_hashes:
+    .agents/skills/transcript-intelligence/SKILL.md: sha256:599e19d53de3496785329626f76486ce751b491ac8cd762ee98afa8c25f0594c
+  content_hash: sha256:df51dbcd37c57fda737e1577a376e52cb1a8e203ba9094a467960c7cba50ed6b
+- repo_url: scrapecreators/social-media-research-skills
+  materialization_repo_url: ScrapeCreators/social-media-research-skills
+  name: trend-discovery
+  host: github.com
+  resolved_commit: 64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2
+  resolved_ref: 64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2
+  version: unknown
+  virtual_path: skills/trend-discovery
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .agents/skills/trend-discovery
+  - .agents/skills/trend-discovery/SKILL.md
+  deployed_file_hashes:
+    .agents/skills/trend-discovery/SKILL.md: sha256:b22f5d14d01b27a7777c5d1637e8d61d71aceab1294144cc774d18a84eef702a
+  content_hash: sha256:d41e316db471e7f54a5f775ea613a12ac067f340b83479e94a71a9f3daade473
 - repo_url: slackapi/slack-skills-plugin
   name: slack-messaging
   host: github.com
@@ -2043,6 +2251,24 @@ dependencies:
     .agents/skills/helm-chart-scaffolding/scripts/validate-chart.sh: sha256:f1de1b886fc8e171fd4c6e10f1cb53796d47dac9b7a76babd710e2a86471089a
   content_hash: sha256:9de710be8ac94b8d4e60104d47e74d65842a197b42262b0415dc365341801792
 deployments:
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/ad-library-teardown
+  runtime: null
+  scope: project
+  owners:
+  - scrapecreators/social-media-research-skills/skills/ad-library-teardown
+  active_owner: scrapecreators/social-media-research-skills/skills/ad-library-teardown
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/ad-library-teardown/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - scrapecreators/social-media-research-skills/skills/ad-library-teardown
+  active_owner: scrapecreators/social-media-research-skills/skills/ad-library-teardown
+  content_hash: sha256:93b67284b21ad9b5a1310a7d03c5c89dc79995165a277a3769698223232d5b0f
 - kind: project-relative
   target: agent-skills
   value: .agents/skills/agent-desktop
@@ -4943,6 +5169,24 @@ deployments:
   content_hash: sha256:aca8a9cc02844e9e28fab7c5b3b70ee3cb56a41025bb35fb8eed3f10177422d2
 - kind: project-relative
   target: agent-skills
+  value: .agents/skills/audience-research
+  runtime: null
+  scope: project
+  owners:
+  - scrapecreators/social-media-research-skills/skills/audience-research
+  active_owner: scrapecreators/social-media-research-skills/skills/audience-research
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/audience-research/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - scrapecreators/social-media-research-skills/skills/audience-research
+  active_owner: scrapecreators/social-media-research-skills/skills/audience-research
+  content_hash: sha256:3ced7d3268b80ac18073ffc69393635e02acb4bab23314e203dbdbac73d05477
+- kind: project-relative
+  target: agent-skills
   value: .agents/skills/codebase-design
   runtime: null
   scope: project
@@ -4986,6 +5230,78 @@ deployments:
   - mattpocock/skills/skills/engineering/codebase-design
   active_owner: mattpocock/skills/skills/engineering/codebase-design
   content_hash: sha256:edebc9e4fcfe102114012575eaa9600b9b5fd08c311664f389c36e7bc717740f
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/comment-mining
+  runtime: null
+  scope: project
+  owners:
+  - scrapecreators/social-media-research-skills/skills/comment-mining
+  active_owner: scrapecreators/social-media-research-skills/skills/comment-mining
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/comment-mining/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - scrapecreators/social-media-research-skills/skills/comment-mining
+  active_owner: scrapecreators/social-media-research-skills/skills/comment-mining
+  content_hash: sha256:8fb6527e7e73c2db34c85d83161c39fe04d5dd6b860d8c88f2a654af87e14db2
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/competitor-social-research
+  runtime: null
+  scope: project
+  owners:
+  - scrapecreators/social-media-research-skills/skills/competitor-social-research
+  active_owner: scrapecreators/social-media-research-skills/skills/competitor-social-research
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/competitor-social-research/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - scrapecreators/social-media-research-skills/skills/competitor-social-research
+  active_owner: scrapecreators/social-media-research-skills/skills/competitor-social-research
+  content_hash: sha256:3a5179df374d1fd11b244c4a874a75fb1e48cc22f4f91cde2f6fcddbfda60ce7
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/content-repurposing
+  runtime: null
+  scope: project
+  owners:
+  - scrapecreators/social-media-research-skills/skills/content-repurposing
+  active_owner: scrapecreators/social-media-research-skills/skills/content-repurposing
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/content-repurposing/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - scrapecreators/social-media-research-skills/skills/content-repurposing
+  active_owner: scrapecreators/social-media-research-skills/skills/content-repurposing
+  content_hash: sha256:894468df8b2491f1d36556a8e9045975c03e37f2c928ce028712ff864a28f3d2
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/creator-profile-teardown
+  runtime: null
+  scope: project
+  owners:
+  - scrapecreators/social-media-research-skills/skills/creator-profile-teardown
+  active_owner: scrapecreators/social-media-research-skills/skills/creator-profile-teardown
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/creator-profile-teardown/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - scrapecreators/social-media-research-skills/skills/creator-profile-teardown
+  active_owner: scrapecreators/social-media-research-skills/skills/creator-profile-teardown
+  content_hash: sha256:8bb24dbb8ae59fd4017a6dd78f399caead9c62a205a343e9b4b4706fb4869914
 - kind: project-relative
   target: agent-skills
   value: .agents/skills/design-taste-frontend
@@ -5816,6 +6132,24 @@ deployments:
   content_hash: sha256:9eaa7a974c90395ac7116e82710f74546f38e69f735d78f684ee13fd79646e9a
 - kind: project-relative
   target: agent-skills
+  value: .agents/skills/influencer-prospecting
+  runtime: null
+  scope: project
+  owners:
+  - scrapecreators/social-media-research-skills/skills/influencer-prospecting
+  active_owner: scrapecreators/social-media-research-skills/skills/influencer-prospecting
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/influencer-prospecting/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - scrapecreators/social-media-research-skills/skills/influencer-prospecting
+  active_owner: scrapecreators/social-media-research-skills/skills/influencer-prospecting
+  content_hash: sha256:670e840f96ef5f13c8b1d479b10fc8bd3c24033f2b2d5bf78924d10f5d60f1b3
+- kind: project-relative
+  target: agent-skills
   value: .agents/skills/inspiration-scouting
   runtime: null
   scope: project
@@ -6347,6 +6681,24 @@ deployments:
   content_hash: sha256:c1e704d6b28b4414fd8d37b07095859704e34ce92041fa872b15e53da15dfa2a
 - kind: project-relative
   target: agent-skills
+  value: .agents/skills/outlier-post-finder
+  runtime: null
+  scope: project
+  owners:
+  - scrapecreators/social-media-research-skills/skills/outlier-post-finder
+  active_owner: scrapecreators/social-media-research-skills/skills/outlier-post-finder
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/outlier-post-finder/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - scrapecreators/social-media-research-skills/skills/outlier-post-finder
+  active_owner: scrapecreators/social-media-research-skills/skills/outlier-post-finder
+  content_hash: sha256:c648fbe9dda692cc7c034ca8b193e3b129ba4db45f8ff992f463206610d80bfa
+- kind: project-relative
+  target: agent-skills
   value: .agents/skills/principle-type-system-discipline
   runtime: null
   scope: project
@@ -6363,6 +6715,42 @@ deployments:
   - cursor/plugins/pstack/skills/principle-type-system-discipline
   active_owner: cursor/plugins/pstack/skills/principle-type-system-discipline
   content_hash: sha256:c83da8031ffb4c86410030d3e261f659598fca2b7d8158fd9dc269d70a3a025e
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/product-demand-research
+  runtime: null
+  scope: project
+  owners:
+  - scrapecreators/social-media-research-skills/skills/product-demand-research
+  active_owner: scrapecreators/social-media-research-skills/skills/product-demand-research
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/product-demand-research/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - scrapecreators/social-media-research-skills/skills/product-demand-research
+  active_owner: scrapecreators/social-media-research-skills/skills/product-demand-research
+  content_hash: sha256:88d57b03fa5200686bd436d5658847f776d33edc365442d36260f8a8be109eaf
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/scrapecreators-api
+  runtime: null
+  scope: project
+  owners:
+  - scrapecreators/social-media-research-skills/skills/scrapecreators-api
+  active_owner: scrapecreators/social-media-research-skills/skills/scrapecreators-api
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/scrapecreators-api/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - scrapecreators/social-media-research-skills/skills/scrapecreators-api
+  active_owner: scrapecreators/social-media-research-skills/skills/scrapecreators-api
+  content_hash: sha256:016154fe955fe3a41e83e8e00af82adf2ba34e47eeadf6f121b43f2ccacea418
 - kind: project-relative
   target: agent-skills
   value: .agents/skills/security-audit
@@ -6887,6 +7275,24 @@ deployments:
   content_hash: sha256:bbf526b687f59815ca13cf6d13c4e79d0c990214a8af3fb304fe37808c8a16f4
 - kind: project-relative
   target: agent-skills
+  value: .agents/skills/social-listening-brief
+  runtime: null
+  scope: project
+  owners:
+  - scrapecreators/social-media-research-skills/skills/social-listening-brief
+  active_owner: scrapecreators/social-media-research-skills/skills/social-listening-brief
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/social-listening-brief/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - scrapecreators/social-media-research-skills/skills/social-listening-brief
+  active_owner: scrapecreators/social-media-research-skills/skills/social-listening-brief
+  content_hash: sha256:c41b897c1b5bf6ac86aee5350e3a833da74d9928a8d31fb62a4f694daf72c64e
+- kind: project-relative
+  target: agent-skills
   value: .agents/skills/supabase-postgres-best-practices
   runtime: null
   scope: project
@@ -7265,6 +7671,24 @@ deployments:
   content_hash: sha256:859f9e592c188fda4fc7277dd180e4ce9c7a2e13f6efe1f6f29eccc9d28c106a
 - kind: project-relative
   target: agent-skills
+  value: .agents/skills/transcript-intelligence
+  runtime: null
+  scope: project
+  owners:
+  - scrapecreators/social-media-research-skills/skills/transcript-intelligence
+  active_owner: scrapecreators/social-media-research-skills/skills/transcript-intelligence
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/transcript-intelligence/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - scrapecreators/social-media-research-skills/skills/transcript-intelligence
+  active_owner: scrapecreators/social-media-research-skills/skills/transcript-intelligence
+  content_hash: sha256:599e19d53de3496785329626f76486ce751b491ac8cd762ee98afa8c25f0594c
+- kind: project-relative
+  target: agent-skills
   value: .agents/skills/transitions-dev
   runtime: null
   scope: project
@@ -7614,6 +8038,24 @@ deployments:
   - jakubantalik/transitions.dev/skills/transitions-dev
   active_owner: jakubantalik/transitions.dev/skills/transitions-dev
   content_hash: sha256:174d207944990fcb1c9cb5c288a1f34dd56e7f1fbde573762e1f6d185385dbef
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/trend-discovery
+  runtime: null
+  scope: project
+  owners:
+  - scrapecreators/social-media-research-skills/skills/trend-discovery
+  active_owner: scrapecreators/social-media-research-skills/skills/trend-discovery
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/trend-discovery/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - scrapecreators/social-media-research-skills/skills/trend-discovery
+  active_owner: scrapecreators/social-media-research-skills/skills/trend-discovery
+  content_hash: sha256:b22f5d14d01b27a7777c5d1637e8d61d71aceab1294144cc774d18a84eef702a
 - kind: project-relative
   target: agent-skills
   value: .agents/skills/typescript-best-practices

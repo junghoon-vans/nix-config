@@ -127,3 +127,42 @@ dependencies:
     - git: https://github.com/vercel-labs/agent-desktop.git
       path: skills/agent-desktop
       ref: v1.1.0
+    - git: https://github.com/ScrapeCreators/social-media-research-skills.git
+      path: skills/ad-library-teardown
+      ref: 64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2
+    - git: https://github.com/ScrapeCreators/social-media-research-skills.git
+      path: skills/audience-research
+      ref: 64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2
+    - git: https://github.com/ScrapeCreators/social-media-research-skills.git
+      path: skills/comment-mining
+      ref: 64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2
+    - git: https://github.com/ScrapeCreators/social-media-research-skills.git
+      path: skills/competitor-social-research
+      ref: 64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2
+    - git: https://github.com/ScrapeCreators/social-media-research-skills.git
+      path: skills/content-repurposing
+      ref: 64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2
+    - git: https://github.com/ScrapeCreators/social-media-research-skills.git
+      path: skills/creator-profile-teardown
+      ref: 64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2
+    - git: https://github.com/ScrapeCreators/social-media-research-skills.git
+      path: skills/influencer-prospecting
+      ref: 64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2
+    - git: https://github.com/ScrapeCreators/social-media-research-skills.git
+      path: skills/outlier-post-finder
+      ref: 64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2
+    - git: https://github.com/ScrapeCreators/social-media-research-skills.git
+      path: skills/product-demand-research
+      ref: 64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2
+    - git: https://github.com/ScrapeCreators/social-media-research-skills.git
+      path: skills/scrapecreators-api
+      ref: 64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2
+    - git: https://github.com/ScrapeCreators/social-media-research-skills.git
+      path: skills/social-listening-brief
+      ref: 64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2
+    - git: https://github.com/ScrapeCreators/social-media-research-skills.git
+      path: skills/transcript-intelligence
+      ref: 64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2
+    - git: https://github.com/ScrapeCreators/social-media-research-skills.git
+      path: skills/trend-discovery
+      ref: 64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2
