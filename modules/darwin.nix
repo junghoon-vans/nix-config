@@ -21,6 +21,7 @@ in
     (pkgs.callPackage ../packages/apm.nix { })
     (pkgs.callPackage ../packages/agent-desktop.nix { })
     (pkgs.callPackage ../packages/paseo.nix { })
+    pkgs.gws
     kakaotalkPatcher
   ];
   home-manager.backupCommand = homeManagerBackup;
