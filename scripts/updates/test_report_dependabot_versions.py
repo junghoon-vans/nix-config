@@ -1,3 +1,4 @@
+import copy
 import json
 import os
 from pathlib import Path
@@ -8,11 +9,15 @@ import unittest
 
 
 SCRIPT = Path(__file__).with_name("report-dependabot-versions.py")
+REAL_MIXED_FIXTURE = Path(__file__).with_name("fixtures") / "dependabot-mixed-344.json"
 REPOSITORY = "junghoon-vans/nix-config"
 PR_NUMBER = 7
 BASE_SHA = "1" * 40
 HEAD_SHA = "2" * 40
 ACTION_FILE = ".github/workflows/validate.yml"
+MIXED_PATHS = ("flake.lock", "release-pins.json")
+MIXED_HEAD = "5ebea26b470f70c9f78863d2648ec23c5efa75d9"
+MIXED_BASE = "1406520b31eb0ffed0cd33b5bcbc63c90440fe5e"
 MOCK_GH = r'''#!/usr/bin/env python3
 import base64
 import copy
@@ -26,26 +31,38 @@ args = sys.argv[1:]
 endpoint = next((arg for arg in args if arg.startswith("repos/")), "")
 fixture_path = Path(os.environ["REPORT_FIXTURE"])
 fixture = json.loads(fixture_path.read_text())
+number = fixture["pr"]["number"]
+api_log = os.environ.get("GH_API_LOG")
+if api_log:
+    with Path(api_log).open("a") as output:
+        output.write(json.dumps(args) + "\n")
 
-if "/pulls/7/files?" in endpoint:
+failure = fixture.get("api_failure")
+if failure and (failure == "all" or failure in endpoint):
+    print("simulated GitHub API failure", file=sys.stderr)
+    sys.exit(92)
+
+if f"/pulls/{number}/files?" in endpoint:
     print(json.dumps(fixture["file_pages"]))
 elif "/contents/" in endpoint:
     split = urlsplit(endpoint)
     path = unquote(split.path.split("/contents/", 1)[1])
     revision = parse_qs(split.query)["ref"][0]
     content = fixture["contents"][revision][path]
+    if not isinstance(content, str):
+        content = json.dumps(content)
     print(json.dumps({
         "type": "file", "encoding": "base64",
         "content": base64.b64encode(content.encode()).decode(),
     }))
-elif endpoint.endswith("/pulls/7"):
+elif endpoint.endswith(f"/pulls/{number}"):
     fixture["pr_reads"] = fixture.get("pr_reads", 0) + 1
     response = copy.deepcopy(fixture["pr"])
     if fixture.get("stale_on_final_read") and fixture["pr_reads"] > 1:
         response["head"]["sha"] = "3" * 40
     fixture_path.write_text(json.dumps(fixture))
     print(json.dumps(response))
-elif endpoint.endswith("/issues/7") and "PATCH" in args:
+elif endpoint.endswith(f"/issues/{number}") and "PATCH" in args:
     payload = json.loads(sys.stdin.read())
     Path(os.environ["GH_PATCH_LOG"]).open("a").write(json.dumps(payload) + "\n")
     fixture["pr"]["body"] = payload["body"]
@@ -119,6 +136,8 @@ class DependabotVersionReportTests(unittest.TestCase):
         gh.chmod(0o755)
         self.fixture_path = self.root / "fixture.json"
         self.patch_log = self.root / "patches.jsonl"
+        self.api_log = self.root / "api.jsonl"
+        self.output_path = self.root / "github-output"
 
     def tearDown(self):
         self.temp.cleanup()
@@ -132,16 +151,44 @@ class DependabotVersionReportTests(unittest.TestCase):
         }
         self.fixture_path.write_text(json.dumps(value))
 
-    def run_report(self, expected_head=HEAD_SHA):
+    def use_real_mixed_fixture(self):
+        value = json.loads(REAL_MIXED_FIXTURE.read_text())
+        self.fixture_path.write_text(json.dumps(value))
+        return value
+
+    def run_report(
+        self, expected_head=HEAD_SHA, number=PR_NUMBER, output=True, renderer_failure=False
+    ):
+        for path in (self.output_path, self.api_log):
+            if path.exists():
+                path.unlink()
         env = os.environ.copy()
         env.update({
             "PATH": str(self.bin) + os.pathsep + env.get("PATH", ""),
             "GH_TOKEN": "offline-test-token",
-            "PR_NUMBER": str(PR_NUMBER),
+            "PR_NUMBER": str(number),
             "PR_HEAD": expected_head,
             "REPORT_FIXTURE": str(self.fixture_path),
             "GH_PATCH_LOG": str(self.patch_log),
+            "GH_API_LOG": str(self.api_log),
         })
+        if output:
+            env["GITHUB_OUTPUT"] = str(self.output_path)
+        else:
+            env.pop("GITHUB_OUTPUT", None)
+        if renderer_failure:
+            sitecustomize = self.root / "sitecustomize.py"
+            sitecustomize.write_text(
+                "import os, sys, types\n"
+                "if os.environ.get('REPORT_RENDERER_FAILURE') == '1':\n"
+                "    renderer = types.ModuleType('version_table')\n"
+                "    def render_table(rows):\n"
+                "        raise ValueError('simulated version table renderer failure')\n"
+                "    renderer.render_table = render_table\n"
+                "    sys.modules['version_table'] = renderer\n"
+            )
+            env["PYTHONPATH"] = str(self.root) + os.pathsep + env.get("PYTHONPATH", "")
+            env["REPORT_RENDERER_FAILURE"] = "1"
         return subprocess.run(
             [sys.executable, str(SCRIPT)],
             cwd=self.root,
@@ -155,6 +202,30 @@ class DependabotVersionReportTests(unittest.TestCase):
         if not self.patch_log.exists():
             return []
         return [json.loads(line) for line in self.patch_log.read_text().splitlines()]
+
+    def api_calls(self):
+        if not self.api_log.exists():
+            return []
+        return [json.loads(line) for line in self.api_log.read_text().splitlines()]
+
+    def output(self):
+        return self.output_path.read_text() if self.output_path.exists() else ""
+
+    def assert_no_true_output(self):
+        self.assertNotIn("auto_merge_eligible=true", self.output())
+
+    def assert_no_content_reads_or_patches(self):
+        calls = [" ".join(args) for args in self.api_calls()]
+        self.assertFalse(any("/contents/" in call for call in calls), calls)
+        self.assertFalse(any("PATCH" in call for call in calls), calls)
+        self.assertEqual(self.patches(), [])
+
+    def assert_only_pr_validation_was_attempted(self):
+        calls = [" ".join(args) for args in self.api_calls()]
+        self.assertTrue(calls, "expected a mocked GitHub API request")
+        self.assertFalse(any("/files?" in call or "/contents/" in call for call in calls), calls)
+        self.assertFalse(any("PATCH" in call for call in calls), calls)
+        self.assertEqual(self.patches(), [])
 
     def test_action_updates_additions_removals_and_pin_metadata_are_patched(self):
         old_checkout = "a" * 40
@@ -178,6 +249,7 @@ class DependabotVersionReportTests(unittest.TestCase):
         result = self.run_report()
 
         self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.output().strip(), "auto_merge_eligible=true")
         patches = self.patches()
         self.assertEqual(len(patches), 1)
         body = patches[0]["body"]
@@ -247,7 +319,9 @@ class DependabotVersionReportTests(unittest.TestCase):
         second = self.run_report()
 
         self.assertEqual(first.returncode, 0, first.stderr)
+        self.assertEqual(self.output().strip(), "auto_merge_eligible=true")
         self.assertEqual(second.returncode, 0, second.stderr)
+        self.assertEqual(self.output().strip(), "auto_merge_eligible=true")
         patches = self.patches()
         self.assertEqual(len(patches), 1)
         body = patches[0]["body"]
@@ -270,6 +344,7 @@ class DependabotVersionReportTests(unittest.TestCase):
 
         result = self.run_report()
 
+        self.assert_no_true_output()
         self.assertNotEqual(result.returncode, 0)
         self.assertEqual(self.patches(), [])
 
@@ -280,6 +355,7 @@ class DependabotVersionReportTests(unittest.TestCase):
 
         result = self.run_report()
 
+        self.assert_no_true_output()
         self.assertNotEqual(result.returncode, 0)
         self.assertEqual(self.patches(), [])
 
@@ -295,6 +371,7 @@ class DependabotVersionReportTests(unittest.TestCase):
         result = self.run_report()
 
         self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.output().strip(), "auto_merge_eligible=true")
         self.assertEqual(len(self.patches()), 1)
         body = self.patches()[0]["body"]
         self.assertIn(old_direct, body)
@@ -353,6 +430,213 @@ class DependabotVersionReportTests(unittest.TestCase):
         )[0]
         self.assertEqual(section.strip(), "### Dependency version changes\n\nNo dependency pin changes.")
         self.assertNotIn("| Dependency |", section)
+
+    def assert_mixed_rejected(self, fixture):
+        self.fixture_path.write_text(json.dumps(fixture))
+        result = self.run_report(expected_head=MIXED_HEAD, number=344)
+        self.assertNotEqual(result.returncode, 0, result.stdout)
+        self.assert_no_true_output()
+        self.assert_no_content_reads_or_patches()
+
+    def test_real_pr344_mixed_update_skips_reporting_and_auto_merge_eligibility(self):
+        fixture = self.use_real_mixed_fixture()
+
+        self.assertEqual(fixture["pr"]["number"], 344)
+        self.assertEqual(fixture["pr"]["head"]["sha"], MIXED_HEAD)
+        self.assertEqual(fixture["pr"]["base"]["sha"], MIXED_BASE)
+        self.assertEqual(
+            [item["filename"] for item in fixture["file_pages"][0]],
+            list(MIXED_PATHS),
+        )
+
+        result = self.run_report(expected_head=MIXED_HEAD, number=344)
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("manual", result.stderr.lower())
+        self.assertEqual(self.output().strip(), "auto_merge_eligible=false")
+        self.assert_no_content_reads_or_patches()
+        calls = [" ".join(args) for args in self.api_calls()]
+        self.assertTrue(any("/pulls/344/files?" in call for call in calls), calls)
+
+    def test_mixed_paths_with_nonhash_version_or_url_changes_stay_manual(self):
+        for field in ("version", "url"):
+            with self.subTest(field=field):
+                fixture = self.use_real_mixed_fixture()
+                before = copy.deepcopy(
+                    fixture["contents"][MIXED_BASE]["release-pins.json"]
+                )
+                after = copy.deepcopy(before)
+                if field == "version":
+                    after["agent-desktop"]["version"] = "1.0.3"
+                else:
+                    before["agent-desktop"]["url"] = "https://example.com/old"
+                    after["agent-desktop"]["url"] = "https://example.com/new"
+                fixture["contents"][MIXED_BASE]["release-pins.json"] = before
+                fixture["contents"][MIXED_HEAD]["release-pins.json"] = after
+                self.fixture_path.write_text(json.dumps(fixture))
+
+                result = self.run_report(expected_head=MIXED_HEAD, number=344)
+
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertIn("manual", result.stderr.lower())
+                self.assertEqual(self.output().strip(), "auto_merge_eligible=false")
+                self.assert_no_content_reads_or_patches()
+
+    def test_mixed_nix_update_allows_optional_flake_nix_but_stays_manual(self):
+        fixture = self.use_real_mixed_fixture()
+        fixture["file_pages"][0].append({
+            "filename": "flake.nix", "status": "modified",
+        })
+        fixture["pr"]["changed_files"] = 3
+        self.fixture_path.write_text(json.dumps(fixture))
+
+        result = self.run_report(expected_head=MIXED_HEAD, number=344)
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("manual", result.stderr.lower())
+        self.assertEqual(self.output().strip(), "auto_merge_eligible=false")
+        self.assert_no_content_reads_or_patches()
+
+    def test_mixed_update_rejects_unexpected_duplicate_incomplete_and_malformed_files(self):
+        def fixture_with_files():
+            fixture = self.use_real_mixed_fixture()
+            return fixture, copy.deepcopy(fixture["file_pages"][0])
+
+        fixture, files = fixture_with_files()
+        files.append({"filename": "rogue.txt", "status": "modified"})
+        fixture["file_pages"] = [files]
+        fixture["pr"]["changed_files"] = 3
+        cases = [("unexpected extra path", fixture)]
+
+        fixture, files = fixture_with_files()
+        fixture["file_pages"] = [
+            [files[0]],
+            [copy.deepcopy(files[0]), files[1]],
+        ]
+        fixture["pr"]["changed_files"] = 3
+        cases.append(("duplicate path across pages", fixture))
+
+        fixture, files = fixture_with_files()
+        files.append(copy.deepcopy(files[1]))
+        fixture["file_pages"] = [files]
+        fixture["pr"]["changed_files"] = 3
+        cases.append(("duplicate path", fixture))
+
+        fixture, _ = fixture_with_files()
+        fixture["pr"]["changed_files"] = 3
+        cases.append(("incomplete pagination", fixture))
+
+        fixture, files = fixture_with_files()
+        fixture["file_pages"] = [files[0], files[1]]
+        cases.append(("malformed page", fixture))
+
+        fixture, files = fixture_with_files()
+        files[0] = "flake.lock"
+        fixture["file_pages"] = [files]
+        cases.append(("malformed file entry", fixture))
+
+        for filename in ("", None, []):
+            fixture, files = fixture_with_files()
+            files[0]["filename"] = filename
+            fixture["file_pages"] = [files]
+            cases.append((f"malformed filename {filename!r}", fixture))
+
+        fixture, files = fixture_with_files()
+        files[0]["previous_filename"] = "flake.lock"
+        fixture["file_pages"] = [files]
+        cases.append(("previous filename on modified entry", fixture))
+
+        for status in ("renamed", "removed", "added"):
+            fixture, files = fixture_with_files()
+            files[0]["status"] = status
+            if status == "renamed":
+                files[0]["previous_filename"] = "flake.nix"
+            fixture["file_pages"] = [files]
+            cases.append((f"{status} path", fixture))
+
+        for name, fixture in cases:
+            with self.subTest(case=name):
+                self.assert_mixed_rejected(fixture)
+
+    def test_untrusted_pr_metadata_fails_before_mixed_paths_can_be_skipped(self):
+        changes = [
+            ("bot id", ("user", "id", 1)),
+            ("bot login", ("user", "login", "human")),
+            ("bot type", ("user", "type", "User")),
+            ("fork head repository", (
+                "head", "repo", {"full_name": "attacker/nix-config"},
+            )),
+            ("wrong base branch", ("base", "ref", "release")),
+            ("fork base repository", (
+                "base", "repo", {"full_name": "attacker/nix-config"},
+            )),
+            ("invalid base SHA", ("base", "sha", "not-a-sha")),
+            ("unsupported branch", (
+                "head", "ref", "dependabot/nix/flake-inputs-invalid",
+            )),
+            ("wrong head SHA", ("head", "sha", "3" * 40)),
+        ]
+        for name, (section, key, value) in changes:
+            with self.subTest(case=name):
+                fixture = self.use_real_mixed_fixture()
+                fixture["pr"][section][key] = value
+                self.fixture_path.write_text(json.dumps(fixture))
+                result = self.run_report(expected_head=MIXED_HEAD, number=344)
+                self.assertNotEqual(result.returncode, 0, result.stdout)
+                self.assert_no_true_output()
+                self.assert_only_pr_validation_was_attempted()
+
+        fixture = self.use_real_mixed_fixture()
+        self.fixture_path.write_text(json.dumps(fixture))
+        result = self.run_report(expected_head="3" * 40, number=344)
+        self.assertNotEqual(result.returncode, 0, result.stdout)
+        self.assert_no_true_output()
+        self.assert_only_pr_validation_was_attempted()
+
+    def test_api_renderer_and_body_marker_failures_never_emit_true_eligibility(self):
+        action_content = workflow(f"      - uses: actions/checkout@{'a' * 40}\n")
+        failure_cases = (
+            ("content API failure", {"api_failure": "/contents/"}, False, "Original PR details"),
+            ("renderer failure", {}, True, "Original PR details"),
+            (
+                "malformed body markers", {},
+                False, "<!-- dependabot-version-report:start -->",
+            ),
+            (
+                "body PATCH API failure", {"api_failure": "/issues/"},
+                False, "Original PR details",
+            ),
+        )
+        for name, options, renderer_failure, body in failure_cases:
+            with self.subTest(case=name):
+                self.fixture(
+                    pull_request(body=body),
+                    [{"filename": ACTION_FILE, "status": "modified"}],
+                    {
+                        BASE_SHA: {ACTION_FILE: action_content},
+                        HEAD_SHA: {ACTION_FILE: action_content},
+                    },
+                    **options,
+                )
+                result = self.run_report(renderer_failure=renderer_failure)
+                self.assertNotEqual(result.returncode, 0, result.stdout)
+                self.assert_no_true_output()
+                self.assertEqual(self.patches(), [])
+
+    def test_standalone_reporting_succeeds_without_github_output(self):
+        content = workflow(f"      - uses: actions/checkout@{'a' * 40}\n")
+        self.fixture(
+            pull_request(),
+            [{"filename": ACTION_FILE, "status": "modified"}],
+            {BASE_SHA: {ACTION_FILE: content}, HEAD_SHA: {ACTION_FILE: content}},
+        )
+
+        result = self.run_report(output=False)
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertFalse(self.output_path.exists())
+        self.assertEqual(len(self.patches()), 1)
+
 
 
 if __name__ == "__main__":
