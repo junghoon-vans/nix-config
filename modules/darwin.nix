@@ -26,7 +26,7 @@ in
 
   homebrew = {
     enable = true;
-    taps = builtins.attrNames config.nix-homebrew.taps;
+    taps = builtins.attrNames config.nix-homebrew.taps ++ [ "fif7y/tap" ];
     greedyCasks = true;
     onActivation = {
       autoUpdate = false;
@@ -82,7 +82,7 @@ in
       "orbstack"
       "tailscale-app"
       "karabiner-elements"
-      "jordanbaird-ice"
+      "fif7y/tap/dimble" # Requires macOS 27 or later.
       "hop"
       "headlamp"
       "zed"
