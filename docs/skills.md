@@ -14,7 +14,7 @@ Declared skills: 52.
 | Skill | Repository | Package path | Ref | Skill selector | Source |
 | --- | --- | --- | --- | --- | --- |
 | `ad-library-teardown` | https://github.com/ScrapeCreators/social-media-research-skills | `skills/ad-library-teardown` | `64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2` | — | [upstream](https://github.com/ScrapeCreators/social-media-research-skills/tree/64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2/skills/ad-library-teardown) |
-| `agent-desktop` | https://github.com/vercel-labs/agent-desktop | `skills/agent-desktop` | `v1.1.0` | — | [upstream](https://github.com/vercel-labs/agent-desktop/tree/v1.1.0/skills/agent-desktop) |
+| `agent-desktop` | https://github.com/vercel-labs/agent-desktop | `skills/agent-desktop` | `v1.2.0` | — | [upstream](https://github.com/vercel-labs/agent-desktop/tree/v1.2.0/skills/agent-desktop) |
 | `archify` | https://github.com/tt-a1i/archify | `archify` | `58ab0b98d2d0def8e49dced705c7b566936723ec` | — | [upstream](https://github.com/tt-a1i/archify/tree/58ab0b98d2d0def8e49dced705c7b566936723ec/archify) |
 | `audience-research` | https://github.com/ScrapeCreators/social-media-research-skills | `skills/audience-research` | `64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2` | — | [upstream](https://github.com/ScrapeCreators/social-media-research-skills/tree/64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2/skills/audience-research) |
 | `codebase-design` | https://github.com/mattpocock/skills | `skills/engineering/codebase-design` | `49dd158d1076134a641b33efb035946536778336` | — | [upstream](https://github.com/mattpocock/skills/tree/49dd158d1076134a641b33efb035946536778336/skills/engineering/codebase-design) |
