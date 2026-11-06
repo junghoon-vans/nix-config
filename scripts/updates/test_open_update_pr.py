@@ -129,6 +129,19 @@ class OpenUpdatePRTests(unittest.TestCase):
         self.assertFalse(self.gh_log.exists())
         self.assertEqual(self.git(self.repo, "branch", "--list", BRANCH), "")
 
+    def test_task_branch_dispatch_previews_without_publishing(self):
+        (self.repo / TARGET).write_text(grouped_plugin_source("new"))
+        head = self.git(self.repo, "rev-parse", "HEAD")
+        result = self.run_helper(self.helper_env(
+            GITHUB_EVENT_NAME="workflow_dispatch",
+            GITHUB_REF="refs/heads/fix/updater",
+        ))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("revision: new", result.stdout)
+        self.assertFalse(self.gh_log.exists())
+        self.assertEqual(self.git(self.repo, "rev-parse", "HEAD"), head)
+        self.assertEqual(self.git(self.root, f"--git-dir={self.origin}", "branch", "--list", BRANCH), "")
+
     def test_new_pr_body_preserves_context_and_contains_before_after_pins(self):
         (self.repo / TARGET).write_text(grouped_plugin_source("new"))
         result = self.run_helper(self.helper_env(GH_APP_SLUG="dependency-updates"))
