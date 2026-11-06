@@ -33,5 +33,10 @@
   "paseo": {
     "version": "0.15.2",
     "hash": "sha256-JpOHVAl3vTgy0bePmq7BS+QYPMNeoFAaY8IQUXQiw4g="
+  },
+  "sem": {
+    "version": "0.29.1",
+    "hash": "sha256-ZZSUDZxIYoGH40gjZ+eva2/RN/5qhwCuyi9aVTVanEA=",
+    "licenseHash": "sha256-AXPQ/A6jilEk6cx+6p2wGhQUHOEkBQjrSX9wE5T+Ses="
   }
 }

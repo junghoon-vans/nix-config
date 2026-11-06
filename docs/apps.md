@@ -133,6 +133,7 @@ Managed by: Nix system.
 | `rust-analyzer` | Language server for the Rust language | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/languages/rust.nix`](../modules/languages/rust.nix) |
 | `rustc` | Safe, concurrent, practical language (wrapper script) | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/languages/rust.nix`](../modules/languages/rust.nix) |
 | `rustfmt` | Tool for formatting Rust code according to style guidelines | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/languages/rust.nix`](../modules/languages/rust.nix) |
+| `sem` | Semantic code discovery and Git diff CLI | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `temurin-bin` | Eclipse Temurin, prebuilt OpenJDK binary | `junghoonui-MacBookAir` | [`modules/languages/java.nix`](../modules/languages/java.nix) |
 | `typescript` | Superset of JavaScript that compiles to clean JavaScript output | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/languages/typescript.nix`](../modules/languages/typescript.nix) |
 | `typescript-language-server` | Language Server Protocol implementation for TypeScript using tsserver | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/languages/typescript.nix`](../modules/languages/typescript.nix) |

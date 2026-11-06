@@ -127,6 +127,10 @@ dependencies:
       path: plugins/kordoc/skills/kordoc
       ref: a3e7d7d85e58539507436f51ca7c38156eb15e43
     - path: ./skills/humanize-korean
+    # APM identifies the plugin root as Copilot-only; a direct skill subpath
+    # omits its sibling MIT LICENSE, so vendor only the selected skill and license.
+    # Unchanged from https://github.com/Ataraxy-Labs/sem/tree/04f6990ca0c58fd01e9b78a48fee387596edc983/integrations/agent-plugin.
+    - path: ./skills/sem-code-review
     - git: https://github.com/vercel-labs/agent-desktop.git
       path: skills/agent-desktop
       ref: v1.2.0

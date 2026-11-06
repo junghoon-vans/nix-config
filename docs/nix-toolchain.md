@@ -27,6 +27,7 @@ keep compatibility-sensitive revisions and dependency hashes in their Nix module
 | OMP | `release-pins.json` | `modules/omp.nix` | Apple Silicon release binary |
 | APM CLI | `release-pins.json` | `packages/apm.nix` | System executable is `/run/current-system/sw/bin/apm` |
 | Paseo | `release-pins.json` | `packages/paseo.nix` | Apple Silicon desktop app and bundled daemon |
+| Sem | `release-pins.json` | `packages/sem.nix` | Apple Silicon release binary, MIT license included; Nix disables background update checks |
 | Bun | `release-pins.json` | `modules/languages/bun.nix` | Apple Silicon release binary |
 | Protobuf | `protobuf36` flake input | `flake.nix`, `modules/languages/go.nix` | Source build |
 | Gno / gnokey | `gnoRev` and Go dependency hash | `modules/languages/gno.nix` | Both binaries use the same source revision |
@@ -34,6 +35,14 @@ keep compatibility-sensitive revisions and dependency hashes in their Nix module
 | Zed Gno WASI adapter | Release URL and hash | `modules/home-manager.nix` | Architecture-independent WebAssembly |
 | gnomcp | `release-pins.json` | `modules/mcp/gnomcp.nix` | Local stdio MCP server |
 | Hermes | Tagged `hermes-agent`, commit-pinned `hermes-omp-acp` + `flake.lock` hashes | `flake.nix`, `modules/hermes.nix` | Upstream messaging package with ACP SDK and external delegator; Apple Silicon macOS |
+
+Sem's `sem-code-review` skill is separately pinned by APM without the upstream plugin,
+Weave skill, installers, or client permission files. Prefix review commands with
+`SEM_NO_NETWORK=1 SEM_NO_TELEMETRY=1`; the package also sets `SEM_NO_UPDATE_CHECK=1`
+because upstream update checks do not honor the network flag. These controls are not
+an OS sandbox: do not use `sem check` for inspection, because it runs project commands.
+Local caches and metadata share the OS account; personal/company isolation still
+requires separate homes/accounts and the host agent's existing data-handling policy.
 
 Gno tools are built from a pinned commit rather than mutable `chain/mainnet` assets. The dependency
 cache uses `proxyVendor` to retain the C sources needed for gnokey Ledger support. Installed

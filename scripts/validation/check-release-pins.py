@@ -7,7 +7,7 @@ import re
 from pathlib import Path
 
 pins = json.loads(Path("release-pins.json").read_text())
-expected = {"agent-desktop", "apm", "bun", "egoLite", "gnomcp", "officecli", "omp", "paseo"}
+expected = {"agent-desktop", "apm", "bun", "egoLite", "gnomcp", "officecli", "omp", "paseo", "sem"}
 if not isinstance(pins, dict) or pins.keys() != expected:
     raise SystemExit("release-pins.json must contain exactly the supported packages")
 
@@ -15,6 +15,8 @@ for name, pin in pins.items():
     fields = {"version", "hash", "skillHash"} if name == "officecli" else {"version", "hash"}
     if name == "egoLite":
         fields = {"version", "hash", "appBuild", "appHash"}
+    if name == "sem":
+        fields = {"version", "hash", "licenseHash"}
     if not isinstance(pin, dict) or pin.keys() != fields:
         raise SystemExit(f"{name}: expected {', '.join(sorted(fields))}")
     if not isinstance(pin["version"], str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9.+_-]*", pin["version"]):

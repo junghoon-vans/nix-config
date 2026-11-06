@@ -15,6 +15,13 @@ dependencies:
   source: local
   local_path: ./skills/jira-cloud-formatting
   content_hash: sha256:b93ed650262fbe6d52fa9d52c41cdf4867368ab180a0b8d43e6e32a9106097e0
+- repo_url: _local/sem-code-review
+  name: sem-code-review
+  version: unknown
+  package_type: claude_skill
+  source: local
+  local_path: ./skills/sem-code-review
+  content_hash: sha256:d785adfa09feec8a133851b578fbd1a383662c720b77a26a6b52d424734904a9
 - repo_url: anthropics/knowledge-work-plugins
   name: documentation
   host: github.com

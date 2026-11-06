@@ -94,6 +94,7 @@
         homebrew = homebrewPackage;
         apm = pkgs.callPackage ./packages/apm.nix { };
         agent-desktop = pkgs.callPackage ./packages/agent-desktop.nix { };
+        sem = pkgs.callPackage ./packages/sem.nix { };
       };
       formatter.${system} = pkgs.writeShellApplication {
         name = "nixfmt-all";
