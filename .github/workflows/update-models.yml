@@ -1,0 +1,59 @@
+name: update OpenAI models
+
+on:
+  schedule:
+    - cron: "0 20 * * *" # 05:00 Asia/Seoul (UTC+09:00), next calendar day
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: update-openai-models
+  cancel-in-progress: false
+
+jobs:
+  update:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Create repository-scoped update token
+        id: app-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: ${{ vars.DEPENDENCY_UPDATES_APP_CLIENT_ID }}
+          private-key: ${{ secrets.DEPENDENCY_UPDATES_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token }}
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+      - name: Install model configuration parser
+        run: python -m pip install --disable-pip-version-check -r scripts/security/requirements.txt
+      - name: Test model support and update behavior
+        run: python3 -B -m unittest discover -s scripts/updates -p 'test_*model*.py'
+      - name: Collect static OpenAI client support evidence
+        run: >-
+          python3 -B scripts/updates/collect-model-support.py
+          --root .
+          --output "$RUNNER_TEMP/openai-model-support.json"
+      - name: Update supported model pins and prepare manual-review PR body
+        run: >-
+          python3 -B scripts/updates/update-models.py
+          --root .
+          --evidence "$RUNNER_TEMP/openai-model-support.json"
+          --body-file "$RUNNER_TEMP/openai-model-update.md"
+      - name: Publish model-only update pull request
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+        run: |
+          bash scripts/updates/publish-model-update.sh \
+            automation/update-openai-models \
+            "$RUNNER_TEMP/openai-model-update.md"

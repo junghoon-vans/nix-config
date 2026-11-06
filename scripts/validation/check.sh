@@ -19,6 +19,7 @@ bash_scripts=(
   scripts/nix/bootstrap.sh
   scripts/nix/home-manager-backups-cleanup.sh
   scripts/updates/open-update-pr.sh
+  scripts/updates/publish-model-update.sh
   scripts/validation/check.sh
   scripts/zed/install-gno-extension.sh
 )
@@ -44,6 +45,8 @@ python3 -B scripts/validation/check-release-pins.py
 python3 -B scripts/docs/update-inventory.py --check
 python3 -B scripts/updates/update-fixed-release.py --help >/dev/null
 python3 -B scripts/updates/update-tagged-skills.py --help >/dev/null
+python3 -B scripts/updates/collect-model-support.py --help >/dev/null
+python3 -B scripts/updates/update-models.py --help >/dev/null
 python3 -B scripts/updates/update-mcp-versions.py --help >/dev/null
 
 nix_files=()
