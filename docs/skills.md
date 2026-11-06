@@ -9,7 +9,7 @@ Names use explicit skill selectors, then aliases, then the final path component.
 Source links use the declared ref and package path; selectors identify package exports,
 not inferred repository directories. See [APM management](apm.md) for deployment and updates.
 
-Declared skills: 52.
+Declared skills: 53.
 
 | Skill | Repository | Package path | Ref | Skill selector | Source |
 | --- | --- | --- | --- | --- | --- |
@@ -48,6 +48,7 @@ Declared skills: 52.
 | `scrapecreators-api` | https://github.com/ScrapeCreators/social-media-research-skills | `skills/scrapecreators-api` | `64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2` | — | [upstream](https://github.com/ScrapeCreators/social-media-research-skills/tree/64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2/skills/scrapecreators-api) |
 | `security-audit` | https://github.com/cloudflare/security-audit-skill | `skills/security-audit` | `c1c8a8c1471069fb0e188eeaff69b8e8db6564a8` | — | [upstream](https://github.com/cloudflare/security-audit-skill/tree/c1c8a8c1471069fb0e188eeaff69b8e8db6564a8/skills/security-audit) |
 | `security-best-practices` | https://github.com/openai/skills | `skills/.curated/security-best-practices` | `49f948faa9258a0c61caceaf225e179651397431` | — | [upstream](https://github.com/openai/skills/tree/49f948faa9258a0c61caceaf225e179651397431/skills/.curated/security-best-practices) |
+| `sem-code-review` | local | `./skills/sem-code-review` | `—` | — | [local](../skills/sem-code-review) |
 | `skill-creator` | https://github.com/anthropics/skills | `skills/skill-creator` | `34040c9c568585f6929bedeaad110ad08f079624` | — | [upstream](https://github.com/anthropics/skills/tree/34040c9c568585f6929bedeaad110ad08f079624/skills/skill-creator) |
 | `skill-inspector` | https://github.com/NVIDIA/SkillSpector | `skills/skill-inspector` | `69d7d059da38160296b2311320ed4c72a9c3fdb6` | — | [upstream](https://github.com/NVIDIA/SkillSpector/tree/69d7d059da38160296b2311320ed4c72a9c3fdb6/skills/skill-inspector) |
 | `slack-messaging` | https://github.com/slackapi/slack-skills-plugin | `skills/slack-messaging` | `ad6be88096678812c448b0279390b4d25bce0164` | — | [upstream](https://github.com/slackapi/slack-skills-plugin/tree/ad6be88096678812c448b0279390b4d25bce0164/skills/slack-messaging) |
