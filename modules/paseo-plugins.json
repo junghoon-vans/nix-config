@@ -27,8 +27,8 @@
     "source": "github",
     "repository": "hichamboushaba/paseo-plugins",
     "directory": "keep-awake",
-    "revision": "39a286dbe2166fb1e925420abc4a8a123be5bd7b",
-    "hash": "sha256-Cdl4auMV9QvTW23amW2G+IewHQr5xzZhrfx9zhyP29o=",
+    "revision": "36335eda4510534c80461752a391438afe945120",
+    "hash": "sha256-qvhBhdy7niz4W+H1GHhdLYCgJ+1uBjL6pDPODNFLzlU=",
     "enabled": true
   },
   "inline-image-preview": {

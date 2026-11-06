@@ -2005,8 +2005,8 @@ dependencies:
 - repo_url: vercel-labs/agent-desktop
   name: agent-desktop
   host: github.com
-  resolved_commit: d3dc190afbf34cd2377252398ddd5c30efbd093a
-  resolved_ref: v1.1.0
+  resolved_commit: 2b0a7334fc111730454b726e6800aa41cdafc093
+  resolved_ref: v1.2.0
   version: unknown
   virtual_path: skills/agent-desktop
   is_virtual: true
@@ -2019,12 +2019,12 @@ dependencies:
   - .agents/skills/agent-desktop/references/commands-system.md
   - .agents/skills/agent-desktop/references/workflows.md
   deployed_file_hashes:
-    .agents/skills/agent-desktop/SKILL.md: sha256:ac02fcd45fa931b87fe02316641261716d1df5135d54ec7f9d305705cbf6972a
-    .agents/skills/agent-desktop/references/commands-interaction.md: sha256:97f7623630b815534909bd99b20851928248c71ed7835e1803ef450025ce8235
+    .agents/skills/agent-desktop/SKILL.md: sha256:941873a93fca670fc16362de192521f2b5ca27675fb55f18c2112cde86ca9089
+    .agents/skills/agent-desktop/references/commands-interaction.md: sha256:eb5c800213a2bd23892886c642b44ef6c2967d70ba97ac176ffee08135e9ce47
     .agents/skills/agent-desktop/references/commands-observation.md: sha256:dce6dadad7d54ecde98f309df6842fa1982ee498e0e04171e142c6d0a3d100b7
-    .agents/skills/agent-desktop/references/commands-system.md: sha256:6a34c898c3923bf1a76bd3eafab314b64abbf9f0560f8e7e5276ef834876a7c1
+    .agents/skills/agent-desktop/references/commands-system.md: sha256:164676e9ffddae0895e86ae1a638edbd0823c7e849ae102ff251d9b957ee60df
     .agents/skills/agent-desktop/references/workflows.md: sha256:9c5a93361f992d73eff50e9ec99bb895424ababd57d3f6742ff71e73734c1af1
-  content_hash: sha256:abafc809e21ee6b3a1c367b8fdac66f4dc05ab9ad53994a0d6d64ee49a1f8862
+  content_hash: sha256:fbf04016d5c583faed55e321b182df341f4aed70b7001132f147b82ece8be454
 - repo_url: vercel-labs/agent-skills
   alias: vercel-composition-patterns
   name: vercel-composition-patterns
@@ -2324,7 +2324,7 @@ deployments:
   owners:
   - vercel-labs/agent-desktop/skills/agent-desktop
   active_owner: vercel-labs/agent-desktop/skills/agent-desktop
-  content_hash: sha256:ac02fcd45fa931b87fe02316641261716d1df5135d54ec7f9d305705cbf6972a
+  content_hash: sha256:941873a93fca670fc16362de192521f2b5ca27675fb55f18c2112cde86ca9089
 - kind: project-relative
   target: agent-skills
   value: .agents/skills/agent-desktop/references/commands-interaction.md
@@ -2333,7 +2333,7 @@ deployments:
   owners:
   - vercel-labs/agent-desktop/skills/agent-desktop
   active_owner: vercel-labs/agent-desktop/skills/agent-desktop
-  content_hash: sha256:97f7623630b815534909bd99b20851928248c71ed7835e1803ef450025ce8235
+  content_hash: sha256:eb5c800213a2bd23892886c642b44ef6c2967d70ba97ac176ffee08135e9ce47
 - kind: project-relative
   target: agent-skills
   value: .agents/skills/agent-desktop/references/commands-observation.md
@@ -2351,7 +2351,7 @@ deployments:
   owners:
   - vercel-labs/agent-desktop/skills/agent-desktop
   active_owner: vercel-labs/agent-desktop/skills/agent-desktop
-  content_hash: sha256:6a34c898c3923bf1a76bd3eafab314b64abbf9f0560f8e7e5276ef834876a7c1
+  content_hash: sha256:164676e9ffddae0895e86ae1a638edbd0823c7e849ae102ff251d9b957ee60df
 - kind: project-relative
   target: agent-skills
   value: .agents/skills/agent-desktop/references/workflows.md

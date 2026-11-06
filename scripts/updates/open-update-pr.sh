@@ -21,6 +21,13 @@ fi
 title="$(python3 -B "$(dirname "${BASH_SOURCE[0]}")/dependency_report.py" --title "${paths[@]}")"
 body="$(printf '%s' "$body" | python3 -B "$(dirname "${BASH_SOURCE[0]}")/dependency_report.py" "${paths[@]}")"
 
+# Task-branch dispatches validate updates without replacing production bot branches,
+# opening PRs from an unmerged base, or enabling their automatic merge.
+if [[ "${GITHUB_EVENT_NAME:-}" == workflow_dispatch && "${GITHUB_REF:-}" != refs/heads/main ]]; then
+  printf 'Preview only for %s\n%s\n%s\n' "${GITHUB_REF:-unknown ref}" "$title" "$body"
+  exit 0
+fi
+
 bot_login="${GH_APP_SLUG:?GH_APP_SLUG must identify the PR GitHub App}[bot]"
 bot_id="$(gh api "users/$bot_login" --jq '.id')"
 git config user.name "$bot_login"

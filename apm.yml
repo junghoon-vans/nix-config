@@ -133,7 +133,7 @@ dependencies:
     - path: ./skills/sem-code-review
     - git: https://github.com/vercel-labs/agent-desktop.git
       path: skills/agent-desktop
-      ref: v1.1.0
+      ref: v1.2.0
     - git: https://github.com/ScrapeCreators/social-media-research-skills.git
       path: skills/ad-library-teardown
       ref: 64ba7b4dea71e130d2712ffb6c1c1024b3b7c4b2
