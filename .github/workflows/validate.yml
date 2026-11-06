@@ -63,6 +63,57 @@ jobs:
           --output-dir "$RUNNER_TEMP/skill-input-validation"
           --plan-only
 
+  model-support:
+    name: OpenAI model static compatibility
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+      - name: Install model configuration parser
+        run: python -m pip install --disable-pip-version-check -r scripts/security/requirements.txt
+      - name: Test OpenAI model support and update behavior
+        run: python3 -B -m unittest discover -s scripts/updates -p 'test_*model*.py'
+      - name: Collect static OpenAI client support evidence
+        run: >-
+          python3 -B scripts/updates/collect-model-support.py
+          --root .
+          --output "$RUNNER_TEMP/openai-model-support.json"
+      - name: Check changed refs against pinned static client support
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: >-
+          python3 -B scripts/updates/update-models.py
+          --root .
+          --evidence "$RUNNER_TEMP/openai-model-support.json"
+          --body-file "$RUNNER_TEMP/openai-model-check.md"
+          --check
+          --base-ref "$BASE_SHA"
+      - name: Report static support evidence and limitations
+        if: always()
+        run: |
+          {
+            printf '%s\n' '## OpenAI model static support evidence'
+            printf '%s\n' 'Static client support is not proof of live-account access or successful inference.'
+            if [[ -s "$RUNNER_TEMP/openai-model-support.json" ]]; then
+              cat "$RUNNER_TEMP/openai-model-support.json"
+            else
+              printf '%s\n' 'No evidence file was produced. Static support could not be established; validation fails closed.'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload static support evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: openai-model-static-support
+          path: ${{ runner.temp }}/openai-model-support.json
+          if-no-files-found: ignore
+          retention-days: 14
+
   security:
     name: SkillSpector advisory
     needs: changes
@@ -185,9 +236,14 @@ jobs:
 
   validate:
     if: always()
-    needs: [changes, apm, checks, evaluate]
+    needs: [changes, apm, checks, evaluate, model-support]
     runs-on: ubuntu-latest
     steps:
+      - name: Require successful model support validation
+        if: needs.model-support.result != 'success'
+        run: |
+          printf '%s\n' 'OpenAI model static compatibility validation did not succeed.' >&2
+          exit 1
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Require successful configuration validation
         env:
