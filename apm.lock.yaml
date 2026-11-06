@@ -1321,6 +1321,37 @@ dependencies:
     .agents/skills/supabase-postgres-best-practices/references/security-rls-basics.md: sha256:e04dd1a3a382aafdaaa73fe9f7976352acdde6e90c2a2470d281b94d4f44b096
     .agents/skills/supabase-postgres-best-practices/references/security-rls-performance.md: sha256:2e1faeca7d5746e246b1c78f9492fe2a9cfa41c4d7fa1e23c402d58fa18ea014
   content_hash: sha256:5766a8e9524c3c2a81041409be237c3baf515aa04a135871a21dd351682d173f
+- repo_url: trailofbits/skills
+  name: property-based-testing
+  host: github.com
+  resolved_commit: 470419e16f97e112d01fc32f4898aea1755015d9
+  resolved_ref: 470419e16f97e112d01fc32f4898aea1755015d9
+  version: unknown
+  virtual_path: plugins/property-based-testing/skills/property-based-testing
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .agents/skills/property-based-testing
+  - .agents/skills/property-based-testing/README.md
+  - .agents/skills/property-based-testing/SKILL.md
+  - .agents/skills/property-based-testing/agents/openai.yaml
+  - .agents/skills/property-based-testing/assets/trail-of-bits-mark.svg
+  - .agents/skills/property-based-testing/references/generating.md
+  - .agents/skills/property-based-testing/references/interpreting-failures.md
+  - .agents/skills/property-based-testing/references/libraries.md
+  - .agents/skills/property-based-testing/references/refactoring.md
+  - .agents/skills/property-based-testing/references/reviewing.md
+  deployed_file_hashes:
+    .agents/skills/property-based-testing/README.md: sha256:ffbe30eec09cc64fb1eae836b07ca1d82939bda3f1e6f0dceadcdd78793a3112
+    .agents/skills/property-based-testing/SKILL.md: sha256:9448cacb65c6237a7c22dc59602667177ecae405524079ae9ff92240590b995a
+    .agents/skills/property-based-testing/agents/openai.yaml: sha256:51d635deefa254d8cdf6dc56450851b6ec9545cd37f88a4eb4035cf3f2262fff
+    .agents/skills/property-based-testing/assets/trail-of-bits-mark.svg: sha256:4bf74c789b38dcf6ad762c136b6832363d27ae19fbaa9a18ec18d66ecce6ca05
+    .agents/skills/property-based-testing/references/generating.md: sha256:c0e72dfc89babe3c32de718b81b94044362c85e776d7475e950dfeaab78bb58e
+    .agents/skills/property-based-testing/references/interpreting-failures.md: sha256:dbae7db8773712ba03268a3d56ea5aa6720af0650a5189580bfd88aa2edc3f9a
+    .agents/skills/property-based-testing/references/libraries.md: sha256:f7218acf8e668130ef3048983472579d04e12030c5401926f666363e5f69c686
+    .agents/skills/property-based-testing/references/refactoring.md: sha256:6eb5c206f575704791f089608bb06e41d6eed91b9d3c7fb27912f969aed07a18
+    .agents/skills/property-based-testing/references/reviewing.md: sha256:110b08118a1e7b1a2566def6e9d2a0bf43fc2deefce857d2ce3b4382b07bc774
+  content_hash: sha256:dc32d4a49a758d1263316b04c223d446acf4d7991f4c41e9d31b7632550cc1f5
 - repo_url: tt-a1i/archify
   name: archify
   host: github.com
@@ -6733,6 +6764,96 @@ deployments:
   - scrapecreators/social-media-research-skills/skills/product-demand-research
   active_owner: scrapecreators/social-media-research-skills/skills/product-demand-research
   content_hash: sha256:88d57b03fa5200686bd436d5658847f776d33edc365442d36260f8a8be109eaf
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/property-based-testing
+  runtime: null
+  scope: project
+  owners:
+  - trailofbits/skills/plugins/property-based-testing/skills/property-based-testing
+  active_owner: trailofbits/skills/plugins/property-based-testing/skills/property-based-testing
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/property-based-testing/README.md
+  runtime: null
+  scope: project
+  owners:
+  - trailofbits/skills/plugins/property-based-testing/skills/property-based-testing
+  active_owner: trailofbits/skills/plugins/property-based-testing/skills/property-based-testing
+  content_hash: sha256:ffbe30eec09cc64fb1eae836b07ca1d82939bda3f1e6f0dceadcdd78793a3112
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/property-based-testing/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - trailofbits/skills/plugins/property-based-testing/skills/property-based-testing
+  active_owner: trailofbits/skills/plugins/property-based-testing/skills/property-based-testing
+  content_hash: sha256:9448cacb65c6237a7c22dc59602667177ecae405524079ae9ff92240590b995a
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/property-based-testing/agents/openai.yaml
+  runtime: null
+  scope: project
+  owners:
+  - trailofbits/skills/plugins/property-based-testing/skills/property-based-testing
+  active_owner: trailofbits/skills/plugins/property-based-testing/skills/property-based-testing
+  content_hash: sha256:51d635deefa254d8cdf6dc56450851b6ec9545cd37f88a4eb4035cf3f2262fff
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/property-based-testing/assets/trail-of-bits-mark.svg
+  runtime: null
+  scope: project
+  owners:
+  - trailofbits/skills/plugins/property-based-testing/skills/property-based-testing
+  active_owner: trailofbits/skills/plugins/property-based-testing/skills/property-based-testing
+  content_hash: sha256:4bf74c789b38dcf6ad762c136b6832363d27ae19fbaa9a18ec18d66ecce6ca05
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/property-based-testing/references/generating.md
+  runtime: null
+  scope: project
+  owners:
+  - trailofbits/skills/plugins/property-based-testing/skills/property-based-testing
+  active_owner: trailofbits/skills/plugins/property-based-testing/skills/property-based-testing
+  content_hash: sha256:c0e72dfc89babe3c32de718b81b94044362c85e776d7475e950dfeaab78bb58e
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/property-based-testing/references/interpreting-failures.md
+  runtime: null
+  scope: project
+  owners:
+  - trailofbits/skills/plugins/property-based-testing/skills/property-based-testing
+  active_owner: trailofbits/skills/plugins/property-based-testing/skills/property-based-testing
+  content_hash: sha256:dbae7db8773712ba03268a3d56ea5aa6720af0650a5189580bfd88aa2edc3f9a
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/property-based-testing/references/libraries.md
+  runtime: null
+  scope: project
+  owners:
+  - trailofbits/skills/plugins/property-based-testing/skills/property-based-testing
+  active_owner: trailofbits/skills/plugins/property-based-testing/skills/property-based-testing
+  content_hash: sha256:f7218acf8e668130ef3048983472579d04e12030c5401926f666363e5f69c686
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/property-based-testing/references/refactoring.md
+  runtime: null
+  scope: project
+  owners:
+  - trailofbits/skills/plugins/property-based-testing/skills/property-based-testing
+  active_owner: trailofbits/skills/plugins/property-based-testing/skills/property-based-testing
+  content_hash: sha256:6eb5c206f575704791f089608bb06e41d6eed91b9d3c7fb27912f969aed07a18
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/property-based-testing/references/reviewing.md
+  runtime: null
+  scope: project
+  owners:
+  - trailofbits/skills/plugins/property-based-testing/skills/property-based-testing
+  active_owner: trailofbits/skills/plugins/property-based-testing/skills/property-based-testing
+  content_hash: sha256:110b08118a1e7b1a2566def6e9d2a0bf43fc2deefce857d2ce3b4382b07bc774
 - kind: project-relative
   target: agent-skills
   value: .agents/skills/scrapecreators-api

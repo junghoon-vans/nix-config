@@ -92,6 +92,9 @@ dependencies:
     - git: https://github.com/mattpocock/skills.git
       path: skills/engineering/tdd
       ref: 49dd158d1076134a641b33efb035946536778336
+    - git: https://github.com/trailofbits/skills.git
+      path: plugins/property-based-testing/skills/property-based-testing
+      ref: 470419e16f97e112d01fc32f4898aea1755015d9
     - git: https://github.com/anthropics/knowledge-work-plugins.git
       path: engineering/skills/incident-response
       ref: bdf7160f2b33598fb0cb3860027e033cbaec7ce6
