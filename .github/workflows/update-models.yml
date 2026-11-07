@@ -36,8 +36,12 @@ jobs:
           python-version: "3.12"
       - name: Install model configuration parser
         run: python -m pip install --disable-pip-version-check -r scripts/security/requirements.txt
+      - name: Install static DMG extraction tool
+        run: sudo apt-get update && sudo apt-get install -y 7zip
       - name: Test model support and update behavior
-        run: python3 -B -m unittest discover -s scripts/updates -p 'test_*model*.py'
+        run: |
+          python3 -B -m unittest discover -s scripts/updates -p 'test_*model*.py'
+          python3 -B -m unittest discover -s scripts/updates -p 'test_aside_dmg.py'
       - name: Collect static OpenAI client support evidence
         run: >-
           python3 -B scripts/updates/collect-model-support.py
