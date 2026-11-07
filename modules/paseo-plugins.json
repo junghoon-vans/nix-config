@@ -38,5 +38,13 @@
     "revision": "f8b892c5171215cf6f403b1882525907f8294a14",
     "hash": "sha256-bydWf8mWaaMudEjWMLQ9LO/I3ekrw7KlI9vxoqjZGXs=",
     "enabled": true
+  },
+  "turn-speed": {
+    "source": "github",
+    "repository": "Drenalol/paseo-turn-speed",
+    "directory": "",
+    "revision": "fbbc9191389509f7eb466bef52d5033f294d6483",
+    "hash": "sha256-91aDxmLCBpPVPSyZRA8PGFNt1oKOAE+KuePOLrMuQKk=",
+    "enabled": true
   }
 }
