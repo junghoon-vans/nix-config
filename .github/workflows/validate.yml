@@ -64,7 +64,7 @@ jobs:
           --plan-only
 
   model-support:
-    name: OpenAI model static compatibility
+    name: OpenAI model compatibility
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -78,12 +78,12 @@ jobs:
         run: python -m pip install --disable-pip-version-check -r scripts/security/requirements.txt
       - name: Test OpenAI model support and update behavior
         run: python3 -B -m unittest discover -s scripts/updates -p 'test_*model*.py'
-      - name: Collect static OpenAI client support evidence
+      - name: Collect pinned OMP/Hermes and LIVE Aside catalog evidence
         run: >-
           python3 -B scripts/updates/collect-model-support.py
           --root .
           --output "$RUNNER_TEMP/openai-model-support.json"
-      - name: Check changed refs against pinned static client support
+      - name: Check changed refs against exact client catalog support
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: >-
@@ -93,23 +93,24 @@ jobs:
           --body-file "$RUNNER_TEMP/openai-model-check.md"
           --check
           --base-ref "$BASE_SHA"
-      - name: Report static support evidence and limitations
+      - name: Report catalog evidence and limitations
         if: always()
         run: |
           {
-            printf '%s\n' '## OpenAI model static support evidence'
-            printf '%s\n' 'Static client support is not proof of live-account access or successful inference.'
+            printf '%s\n' '## OpenAI model compatibility evidence'
+            printf '%s\n' 'OMP/Hermes: STATIC pinned catalogs. Aside only: LIVE mutable official catalog, not pinned-client verification.'
+            printf '%s\n' 'Account access and successful inference are NOT VERIFIED.'
             if [[ -s "$RUNNER_TEMP/openai-model-support.json" ]]; then
               cat "$RUNNER_TEMP/openai-model-support.json"
             else
-              printf '%s\n' 'No evidence file was produced. Static support could not be established; validation fails closed.'
+              printf '%s\n' 'No evidence file was produced. Catalog support could not be established; validation fails closed.'
             fi
           } >> "$GITHUB_STEP_SUMMARY"
-      - name: Upload static support evidence
+      - name: Upload catalog support evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
-          name: openai-model-static-support
+          name: openai-model-support
           path: ${{ runner.temp }}/openai-model-support.json
           if-no-files-found: ignore
           retention-days: 14
@@ -242,7 +243,7 @@ jobs:
       - name: Require successful model support validation
         if: needs.model-support.result != 'success'
         run: |
-          printf '%s\n' 'OpenAI model static compatibility validation did not succeed.' >&2
+          printf '%s\n' 'OpenAI model compatibility validation did not succeed.' >&2
           exit 1
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Require successful configuration validation

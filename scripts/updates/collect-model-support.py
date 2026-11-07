@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Collect explicit openai-codex catalog entries, never runtime/account discovery.
+"""Collect pinned OMP/Hermes catalogs and Aside-only LIVE official catalog evidence.
 
 --fixture-dir reads CLIENT/SOURCE_PATH instead of the network. Its output carries
 an unconditional NONPRODUCTION error so update-models.py cannot consume it.
 Source failures are recorded per client; a successful exit means a report was
-written, not that every client has static support evidence.
+written, not that every client has support evidence.
 """
 
 import argparse
@@ -15,6 +15,8 @@ from pathlib import Path
 import re
 import urllib.error
 import urllib.request
+
+from aside_model_catalog import collect_source as collect_aside
 
 
 OMP_PATH = "packages/catalog/src/models.json"
@@ -160,7 +162,7 @@ def fetch(url):
 def collect(root, fixture_dir=None):
     evidence = {
         "schema_version": 1, "observed_at": datetime.now(timezone.utc).isoformat(),
-        "sources": [], "errors": ["aside: no pinned explicit static catalog adapter; support unverified"],
+        "sources": [], "errors": [],
     }
     if fixture_dir is not None:
         evidence["errors"].append("NONPRODUCTION: local fixture sources; not valid update evidence")
@@ -205,6 +207,13 @@ def collect(root, fixture_dir=None):
             evidence["errors"].append(message)
             if row is not None:
                 row["error"] = message
+    if fixture_dir is not None:
+        evidence["errors"].append("aside: LIVE catalog disabled in fixture mode")
+    else:
+        try:
+            evidence["sources"].append(collect_aside())
+        except (OSError, ValueError, KeyError, TypeError, RecursionError) as error:
+            evidence["errors"].append(f"aside: LIVE official catalog unavailable or ambiguous: {error}")
     return evidence
 
 

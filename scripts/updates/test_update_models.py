@@ -127,7 +127,7 @@ class ModelSelectionTests(unittest.TestCase):
         self.assertEqual(changed, {})
         unsupported = (self.root / path).read_text().replace("openai-codex/gpt-6.10-terra", "openai-codex/gpt-99-terra")
         self.write(path, unsupported)
-        with self.assertRaisesRegex(ValueError, "lack exact static support"):
+        with self.assertRaisesRegex(ValueError, r"gpt-99-terra \(omp\)"):
             self.run_update(check=True, base_ref="HEAD")
         self.assertEqual((self.root / path).read_text(), unsupported)
 

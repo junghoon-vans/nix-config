@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Update configured OpenAI models from fresh static client-support evidence."""
+"""Update configured OpenAI models using pinned OMP/Hermes and LIVE Aside catalogs."""
 
 import argparse
 from datetime import datetime, timedelta, timezone
@@ -9,6 +9,8 @@ import subprocess
 from pathlib import Path
 
 import yaml
+
+from aside_model_catalog import validate_source as validate_aside_source
 
 MAX_EVIDENCE_AGE = timedelta(hours=48)
 MAX_FUTURE_SKEW = timedelta(minutes=5)
@@ -512,6 +514,10 @@ def validate_evidence(evidence, now=None):
         error = source.get("error")
         if error:
             source_errors.setdefault((source["client"], source["role"]), []).append(str(error))
+        if len(set(models)) != len(models):
+            raise ValueError(f"{source['client']}: duplicate source model IDs")
+        if source["client"] == "aside" and not error:
+            validate_aside_source({**source, "models": set(models)}, now=now)
         normalized.append({**source, "models": set(models)})
     return timestamp, normalized, source_errors
 
@@ -532,11 +538,15 @@ def bind_pinned_sources(root, sources, test_only_fixtures=False):
         client = source["client"]
         if source.get("error"):
             continue
-        if client not in expected or source["provider"] != OPENAI_PROVIDER or source["role"] != "support":
-            raise ValueError("unsupported static catalog identity")
+        if client not in CLIENTS or source["provider"] != OPENAI_PROVIDER or source["role"] != "support":
+            raise ValueError("unsupported catalog identity")
         if client in seen:
             raise ValueError(f"{client}: ambiguous duplicate catalog")
         seen.add(client)
+        if client == "aside":
+            # Provenance, raw schema, exact IDs and observation freshness were
+            # validated above. LIVE Aside evidence never relaxes OMP/Hermes pins.
+            continue
         pin, repo, path = expected[client]
         if source.get("pin_revision") != pin:
             raise ValueError(f"{client}: catalog does not match repository pin")
@@ -571,13 +581,13 @@ def _support_sets(sources, errors, clients):
         if client_errors:
             gaps[client] = "support evidence error: " + "; ".join(client_errors)
         elif not rows:
-            gaps[client] = "no pinned static support source"
+            gaps[client] = "no LIVE official catalog source" if client == "aside" else "no pinned static support source"
         else:
             supported = set.intersection(*(source["models"] for source in rows))
             if supported:
                 support[client] = supported
             else:
-                gaps[client] = "pinned static support sources have no shared model IDs"
+                gaps[client] = "support catalogs have no shared model IDs"
     return support, gaps
 
 
@@ -585,14 +595,14 @@ def _discovery_sets(sources, errors, clients):
     discovery = {}
     gaps = {}
     for client in sorted(clients):
-        # An explicit pinned catalog is STATIC discovery as well as support;
-        # no account availability or forward-compatibility synthesis is inferred.
+        # Exact catalog entries are discovery as well as support (Aside: LIVE).
+        # No account availability or forward-compatibility synthesis is inferred.
         rows = _sources_for(sources, client, "support")
         client_errors = errors.get((client, "discovery"), []) + errors.get((client, None), [])
         if client_errors:
             gaps[client] = "discovery evidence error: " + "; ".join(client_errors)
         elif not rows:
-            gaps[client] = "no static discovery source"
+            gaps[client] = "no catalog discovery source"
         else:
             discovery[client] = set.union(*(source["models"] for source in rows))
     return discovery, gaps
@@ -642,9 +652,10 @@ def _changed_references(root, current_references, base_references):
 
 def _status_for(model_id, client, support, support_gaps):
     if client not in support:
-        return support_gaps.get(client, "no pinned static support source")
+        return support_gaps.get(client, "no client catalog support source")
     if model_id not in support[client]:
-        return "not listed by the pinned static support source"
+        return ("not listed by the LIVE official catalog" if client == "aside"
+                else "not listed by the pinned static support source")
     return None
 
 
@@ -747,7 +758,7 @@ def _report(root, sources, errors, references, support, support_gaps, replacemen
 
     current_gaps = _unsupported_current(references, support, support_gaps)
     if current_gaps:
-        report.extend(["Current static-support gaps (advisory unless this reference changed in check mode):", ""])
+        report.extend(["Current catalog-support gaps (advisory unless this reference changed in check mode):", ""])
         report.extend(f"- {gap}" for gap in current_gaps)
         report.append("")
     if blocked:
@@ -755,7 +766,7 @@ def _report(root, sources, errors, references, support, support_gaps, replacemen
         report.extend(f"- {reason}" for reason in blocked)
         report.append("")
 
-    report.extend(["Static support evidence sources:", ""])
+    report.extend(["Support evidence sources (STATIC pins; Aside-only LIVE catalog):", ""])
     relevant_clients = {reference.client for reference in references}
     relevant_sources = [
         source for source in sources
@@ -763,10 +774,16 @@ def _report(root, sources, errors, references, support, support_gaps, replacemen
     ]
     for source in sorted(relevant_sources, key=lambda row: (row["client"], row["role"], row["url"], row["revision"])):
         suffix = f"; error: {source['error']}" if source.get("error") else ""
-        report.append(
-            f"- STATIC `{source['client']}` {source['role']} ({source['kind']}): {source['url']} "
-            f"(pinned revision `{source['revision']}`){suffix}"
-        )
+        if source["client"] == "aside":
+            report.append(
+                f"- LIVE `aside` {source['role']} ({source['kind']}): {source['url']} "
+                f"(observed `{source.get('observed_at', 'unavailable')}`){suffix}"
+            )
+        else:
+            report.append(
+                f"- STATIC `{source['client']}` {source['role']} ({source['kind']}): {source['url']} "
+                f"(pinned revision `{source['revision']}`){suffix}"
+            )
     if not relevant_sources:
         report.append("- No client source records are available.")
     for (client, role), messages in sorted(errors.items(), key=lambda pair: (pair[0][0], str(pair[0][1]))):
@@ -775,7 +792,8 @@ def _report(root, sources, errors, references, support, support_gaps, replacemen
         report.append(f"- `{client}` support: {reason}")
     report.extend([
         "",
-        "This is static client-support evidence only. Live account availability and inference behavior were NOT VERIFIED.",
+        "OMP/Hermes evidence is STATIC and pinned. Aside evidence is a mutable LIVE official catalog, NOT pinned-client verification.",
+        "Live account availability and inference behavior were NOT VERIFIED.",
         "Review the configuration diff and manually merge after validation.",
     ])
     return report
@@ -811,7 +829,7 @@ def update(root, evidence_path, body_file, check=False, base_ref=None, now=None,
             if status:
                 failures.append(f"{reference.model_id} ({reference.client}): {status}")
         if failures:
-            raise ValueError("changed configured model IDs lack exact static support: " + "; ".join(failures))
+            raise ValueError("changed configured model IDs lack exact catalog support: " + "; ".join(failures))
         replacements, blocked = {}, []
     else:
         replacements, blocked = _updates_for(references, support, support_gaps, discovery, discovery_gaps)
