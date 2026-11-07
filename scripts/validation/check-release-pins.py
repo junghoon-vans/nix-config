@@ -7,7 +7,7 @@ import re
 from pathlib import Path
 
 pins = json.loads(Path("release-pins.json").read_text())
-expected = {"agent-desktop", "apm", "bun", "egoLite", "gnomcp", "officecli", "omp", "paseo", "sem"}
+expected = {"agent-desktop", "apm", "bun", "egoLite", "gnomcp", "officecli", "omp", "openmarket", "paseo", "sem"}
 if not isinstance(pins, dict) or pins.keys() != expected:
     raise SystemExit("release-pins.json must contain exactly the supported packages")
 
