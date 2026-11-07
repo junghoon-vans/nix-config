@@ -16,7 +16,7 @@ let
       modelCategories = {
         standard = model "gpt-6-luna" "medium";
         deep = model "gpt-6.1-sol" "medium";
-        visual = model "gpt-6.1-terra" "high";
+        visual = model "gpt-5.6-terra" "high";
       };
       imageGenerationModel = null;
       permission = {
