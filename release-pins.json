@@ -30,6 +30,10 @@
     "version": "18.17.0",
     "hash": "sha256-UfKDbyZ6i6bBLPtQ+A518DAcz7G9U1NfxvnfAxmdo2Q="
   },
+  "openmarket": {
+    "version": "0.1.9",
+    "hash": "sha256-pA5BKl71JD+udzHndCOG3j79wPeUF47+IAkVyzmnyZA="
+  },
   "paseo": {
     "version": "0.15.3",
     "hash": "sha256-mWW7Q84FC8B9UiTORPBNoLqeNTmUShox+If+/l/U318="

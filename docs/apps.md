@@ -123,6 +123,7 @@ Managed by: Nix system.
 | `nodejs` | Event-driven I/O framework for the V8 JavaScript engine | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/languages/node.nix`](../modules/languages/node.nix) |
 | `officecli` | Read, create, and edit Office documents from the command line | `junghoonui-MacBookAir` | [`hosts/junghoonui-MacBookAir/presentations.nix`](../hosts/junghoonui-MacBookAir/presentations.nix) |
 | `omp` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/omp.nix`](../modules/omp.nix) |
+| `openmarket` | Market charting and trading desktop app with an AI agent | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `paseo` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `pnpm` | Fast, disk space efficient package manager for JavaScript | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/languages/node.nix`](../modules/languages/node.nix) |
 | `protobuf` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/languages/go.nix`](../modules/languages/go.nix) |
