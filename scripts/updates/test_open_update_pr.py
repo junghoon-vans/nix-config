@@ -203,6 +203,57 @@ class OpenUpdatePRTests(unittest.TestCase):
         self.assertIn("--title chore(deps): update example --body", creation)
         self.assertNotIn("| unchanged |", creation)
 
+    def test_deleted_remote_branch_with_stale_tracking_ref_can_be_recreated(self):
+        self.git(self.repo, "push", "origin", f"HEAD:refs/heads/{BRANCH}")
+        self.git(self.repo, "fetch", "origin")
+        self.git(self.root, f"--git-dir={self.origin}", "update-ref", "-d", f"refs/heads/{BRANCH}")
+        (self.repo / TARGET).write_text(grouped_plugin_source("current-update"))
+
+        result = self.run_helper(self.helper_env(GH_APP_SLUG="dependency-updates"))
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        source = self.git(self.root, f"--git-dir={self.origin}", "show", f"{BRANCH}:{TARGET}")
+        self.assertEqual(json.loads(source)["example"]["revision"], "current-update")
+
+    def test_remote_advance_since_checkout_can_be_refreshed(self):
+        self.git(self.repo, "push", "origin", f"HEAD:refs/heads/{BRANCH}")
+        self.git(self.repo, "fetch", "origin")
+        self.git(self.repo, "commit", "--allow-empty", "-m", "remote advance")
+        advanced = self.git(self.repo, "rev-parse", "HEAD")
+        self.git(self.root, f"--git-dir={self.origin}", "fetch", str(self.repo), "HEAD")
+        self.git(self.root, f"--git-dir={self.origin}", "update-ref", f"refs/heads/{BRANCH}", advanced)
+        (self.repo / TARGET).write_text(grouped_plugin_source("current-update"))
+
+        result = self.run_helper(self.helper_env(GH_APP_SLUG="dependency-updates", GH_PR_COUNT="1"))
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        source = self.git(self.root, f"--git-dir={self.origin}", "show", f"{BRANCH}:{TARGET}")
+        self.assertEqual(json.loads(source)["example"]["revision"], "current-update")
+
+    def test_concurrent_change_after_lease_snapshot_is_not_overwritten(self):
+        initial = self.git(self.repo, "rev-parse", "HEAD")
+        self.git(self.repo, "commit", "--allow-empty", "-m", "competing publisher")
+        competing = self.git(self.repo, "rev-parse", "HEAD")
+        self.git(self.root, f"--git-dir={self.origin}", "fetch", str(self.repo), "HEAD")
+        self.git(self.root, f"--git-dir={self.origin}", "update-ref", f"refs/heads/{BRANCH}", initial)
+        hook = self.repo / ".git/hooks/pre-push"
+        hook.write_text(
+            f"#!/bin/sh\n"
+            f"git --git-dir='{self.origin}' update-ref 'refs/heads/{BRANCH}' '{competing}'\n"
+        )
+        hook.chmod(0o755)
+        (self.repo / TARGET).write_text(grouped_plugin_source("current-update"))
+
+        result = self.run_helper(self.helper_env(GH_APP_SLUG="dependency-updates"))
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(
+            self.git(self.root, f"--git-dir={self.origin}", "rev-parse", f"refs/heads/{BRANCH}"),
+            competing,
+        )
+        self.assertNotIn("pr create", self.gh_log.read_text())
+        self.assertNotIn("pr edit", self.gh_log.read_text())
+
     def test_formatting_only_change_stops_before_github_or_branch_mutation(self):
         (self.repo / TARGET).write_text(grouped_plugin_source("old") + "\n")
         result = self.run_helper(self.helper_env(GH_APP_SLUG="dependency-updates"))
