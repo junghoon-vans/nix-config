@@ -20,7 +20,6 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    nixpkgs.config.allowUnfreePredicate = pkg: lib.getName pkg == "ego-lite";
     environment.systemPackages = [ cfg.package ];
   };
 }
