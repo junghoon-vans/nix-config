@@ -12,10 +12,10 @@ let
   };
   settings = pkgs.writeText "aside-managed-settings.json" (
     builtins.toJSON {
-      defaultModel = model "gpt-5.6-luna" "high";
+      defaultModel = model "gpt-6-luna" "high";
       modelCategories = {
-        standard = model "gpt-5.6-luna" "medium";
-        deep = model "gpt-5.6-sol" "medium";
+        standard = model "gpt-6-luna" "medium";
+        deep = model "gpt-6.1-sol" "medium";
         visual = model "gpt-5.6-terra" "high";
       };
       imageGenerationModel = null;
