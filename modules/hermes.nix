@@ -60,6 +60,7 @@ let
   delegationSource = "${inputs.hermes-official-plugins}/advanced-delegation";
   agentDesktop = pkgs.callPackage ../packages/agent-desktop.nix { };
   agentDesktopSource = ../home/.hermes/plugins/agent-desktop;
+  egoBrowserSource = ../home/.hermes/plugins/ego-browser;
   hermesPackages = inputs.hermes-agent.packages.${pkgs.stdenv.hostPlatform.system};
   # Hermes 0.22.5 attaches Linux ELF fixups to its Darwin pm artifacts too.
   # Keep the upstream artifact pins, but do not run auto-patchelf on Mach-O.
@@ -95,6 +96,11 @@ let
       "${egoPackage}/share"
       "${home}/.agents/skills"
     ];
+    nix_managed_skill_dirs = [
+      "${providerResources}/skills"
+      "${egoPackage}/share"
+    ];
+    nix_managed_skill_names = [ "ego-browser" ];
     # This Home Manager-owned profile runs separately from the default host gateway.
     gateway.standalone = true;
     agent = {
@@ -128,14 +134,21 @@ let
         Never retry unknown delivery automatically. Permission changes require
         explicit user approval and are not exposed by this tool. Do not use
         computer_use or CUA. Preserve the private short TMPDIR unchanged.
-        Browser work defaults to Aside. For an explicit Ego Lite/Ego browser request or
-        approved switch, delegate to OMP and direct it to follow the official ego-browser
-        skill; use ${egoPackage}/bin/ego-browser if command resolution needs to be explicit.
-        Preserve the existing user-confirmation requirements for submissions, destructive
-        actions, purchases, and messages; Ego access is not blanket consent. Browser
-        permission prompts and device choosers require the user to act; hand off and stop.
-        Never switch to Ego automatically after an Aside failure, and never substitute
-        Agent Desktop for browser work.
+        Browser-based UI testing, verification, screenshots, reproduction, and
+        read-only QA of local or staging applications default to the direct
+        ego_browser tool and official ego-browser skill. Use Aside MCP for general
+        web search, research, logged-in data exploration, and data collection;
+        use APIs for API-oriented tasks. An explicit user browser choice overrides
+        these defaults when safe and available.
+        For mixed research and QA, gather with Aside, then verify with Ego using
+        traceable URLs and the reproduction scenario. Never transfer cookies or
+        credentials between browsers. Do not automatically fail over after
+        authentication, permission, or other errors; stop and hand off to the user.
+        Preserve confirmation requirements for submissions, destructive actions,
+        purchases, and messages. Never navigate unrelated user tabs. Browser
+        permission prompts and device choosers require user action; hand off and
+        stop. Do not install or update browsers, CLIs, or extensions to bypass an
+        unavailable browser or error. Never substitute Agent Desktop for browser work.
 
         ${mcpRegistry.awareness}
       '';
@@ -153,6 +166,7 @@ let
         "context7"
         "atlassian"
         "aside"
+        "ego_browser"
       ];
       # Expose only the narrow plugin, never a general terminal.
       cli = [
@@ -167,6 +181,7 @@ let
         "context7"
         "atlassian"
         "aside"
+        "ego_browser"
       ];
     };
     platforms.slack = {
@@ -217,21 +232,28 @@ let
         "omp-acp-provider"
         "advanced-delegation"
         "agent-desktop"
+        "ego-browser"
       ];
-      entries.agent-desktop.settings = {
-        command = lib.getExe agentDesktop;
-        timeout = 30;
-      };
-      entries.omp-acp-provider.settings = {
-        command = lib.getExe config.workstation.omp.package;
-        args = [
-          "acp"
-          "--config"
-          "${ompAcpConfig}"
-          "--approval-mode"
-          "yolo"
-        ];
-        mcp_enabled = true;
+      entries = {
+        agent-desktop.settings = {
+          command = lib.getExe agentDesktop;
+          timeout = 30;
+        };
+        ego-browser.settings = {
+          command = "${egoPackage}/bin/ego-browser";
+          timeout = 120;
+        };
+        omp-acp-provider.settings = {
+          command = lib.getExe config.workstation.omp.package;
+          args = [
+            "acp"
+            "--config"
+            "${ompAcpConfig}"
+            "--approval-mode"
+            "yolo"
+          ];
+          mcp_enabled = true;
+        };
       };
     };
     approvals = {
@@ -292,13 +314,14 @@ in
       hermesRuntimeCheck =
         pkgs.runCommand "hermes-runtime-check"
           {
+            nativeBuildInputs = [ pkgs.nodejs ];
             HERMES_INSTALL_ROOT = "${cfg.package}/share/hermes-agent";
             HERMES_BUNDLED_PLUGINS = "${cfg.package}/share/hermes-agent/plugins";
             HERMES_BUNDLED_SKILLS = "${cfg.package}/share/hermes-agent/skills";
-            PYTHONDONTWRITEBYTECODE = "1";
-            # Exercise the installed launcher, including its extraPythonPackages.
             PYTHONPATH = runtimeProbe;
             HERMES_RUNTIME_PROBE = "1";
+            HERMES_PREPARE_CONFIG = ../scripts/hermes/prepare-config.py;
+            HERMES_CONFIG_PYTHON = "${supportPython}/bin/python3";
           }
           ''
             ${lib.getExe cfg.package} \
@@ -309,10 +332,19 @@ in
               }/LaunchAgents/org.nixos.hermes.gateway-${profileName}.plist \
               ${agentDesktopSource} \
               ${egoPackage}/share \
-              ${config.home-manager.users.${user}.home.file.".omp/agent/skills/ego-browser".source}
+              ${config.home-manager.users.${user}.home.file.".omp/agent/skills/ego-browser".source} \
+              ${egoBrowserSource}
             env -u HERMES_RUNTIME_PROBE \
               PYTHONPATH=${cfg.package.hermesVenv}/${cfg.package.python.sitePackages} \
               ${cfg.package.pmRuntime}/bin/python3 ${../tests/hermes/test_pm_admission.py}
+            env -u HERMES_RUNTIME_PROBE \
+              HOME="$TMPDIR" HERMES_HOME="$TMPDIR/ego-tests" \
+              EGO_BROWSER_PLUGIN=${egoBrowserSource}/__init__.py \
+              HERMES_PREPARE_CONFIG=${../scripts/hermes/prepare-config.py} \
+              PYTHONPATH=${cfg.package.hermesVenv}/${cfg.package.python.sitePackages} \
+              ${cfg.package.pmRuntime}/bin/python3 ${../tests/hermes/test_ego_browser.py}
+            env -u HERMES_RUNTIME_PROBE -u PYTHONPATH \
+              ${supportPython}/bin/python3 ${../scripts/hermes}/test_prepare_config.py
             touch "$out"
           '';
     };
@@ -328,6 +360,7 @@ in
           };
           "${profilePath}/plugins/advanced-delegation".source = delegationSource;
           "${profilePath}/plugins/agent-desktop".source = agentDesktopSource;
+          "${profilePath}/plugins/ego-browser".source = egoBrowserSource;
         };
         activation = {
           prepareHermes =

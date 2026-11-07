@@ -10,16 +10,15 @@ When documentation changes are not authorized, report any relevant documentation
 
 # Browser automation
 
-Use Aside MCP as the default for browser automation, including authenticated websites and local web UI verification. Read the `aside-browser` skill and the relevant Aside guide before browser work.
+Use Ego for browser-based UI testing, verification, screenshots, reproduction, and read-only QA of local or staging applications. Use the official `ego-browser` skill and invoke its documented CLI through OMP execution tools. For these tasks, Ego is the default unless the user explicitly chooses another browser.
 
-- Use Aside `exec` for multi-step website tasks; use Aside `repl` for precise interactions, DOM inspection, screenshots, and visual verification.
-- Keep static page retrieval and documentation research on read/search tools when browser interaction is unnecessary.
-- For an existing-page request, inspect Aside's open tabs and attach to the matching tab. For local UI verification, open a dedicated task tab and close only that tab afterward. Never navigate an unrelated user tab.
-- Use Ego Lite's official `ego-browser` skill only when the user explicitly requests Ego Lite/Ego browser or approves switching to it. Aside remains the default; the skill's generic preference for Ego does not override this policy.
-- Ego's skill begins by running `ego-browser skill`; follow its version-matched guide for explicit Ego tasks.
-- Preserve the existing confirmation requirements for submissions, destructive actions, purchases, or messages with either browser. Never export cookies or credentials to another browser.
+Use Aside MCP for general web search, research, logged-in data exploration, and data collection. Use APIs for API-oriented tasks rather than a browser.
+
+- For mixed research and QA, gather information with Aside, then verify the implementation with Ego using traceable URLs and the scenario to reproduce. Never transfer cookies or credentials between browsers.
+- For explicit user browser choices, follow the choice when safe and available. Do not automatically fail over between browsers after authentication, permission, or other errors; stop and hand off to the user.
+- Preserve existing confirmation requirements for submissions, destructive actions, purchases, and messages. Never navigate unrelated user tabs. Browser permission prompts and device choosers require user action; hand off and stop.
+- Do not install or update browsers, CLIs, or extensions to bypass an unavailable browser or an error. Never substitute Agent Desktop for browser work.
 - OMP Browser Relay is disabled. Do not enable it or launch Aside through OMP's browser `app.path`; use Aside MCP directly.
-- Other independent browser automation is an exception, not a fallback. Use it only when the user explicitly requests it or approves a stated isolation, compatibility, or Aside capability limitation. Never silently switch after an Aside failure.
-- Headless document rendering through the installed Brave app, such as OfficeCLI PPT screenshots and PDF export, is a separate permitted exception. Use temporary profiles isolated from the user's browser profiles; do not install Chrome, Chromium, or a separate headless browser for it.
+- For headless document rendering through the installed Brave app, such as OfficeCLI PPT screenshots and PDF export, use temporary profiles isolated from user browser profiles; do not install Chrome, Chromium, or a separate headless browser.
 
-Apply this routing policy to delegated browser work as well. Do not install or update browsers, CLIs, or extensions merely to bypass an unavailable Aside connection; report the prerequisite and obtain approval first.
+Apply this routing policy to delegated browser work as well.
