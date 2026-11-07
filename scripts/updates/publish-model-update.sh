@@ -26,6 +26,9 @@ bot_login="${GH_APP_SLUG:?GH_APP_SLUG must identify the PR GitHub App}[bot]"
 bot_id="$(gh api "users/$bot_login" --jq '.id')"
 git config user.name "$bot_login"
 git config user.email "${bot_id}+${bot_login}@users.noreply.github.com"
+# Refresh the lease without trusting checkout-time remote-tracking refs.
+remote_head="$(git ls-remote --heads origin "refs/heads/$branch")"
+remote_head="${remote_head%%[[:space:]]*}"
 git switch -C "$branch"
 git add -- "${model_paths[@]}"
 if git diff --cached --quiet -- "${model_paths[@]}"; then
@@ -35,7 +38,7 @@ fi
 
 title='chore(models): update OpenAI model references'
 git commit -m "$title" -- "${model_paths[@]}"
-git push --force-with-lease origin "HEAD:$branch"
+git push "--force-with-lease=refs/heads/$branch:$remote_head" origin "HEAD:refs/heads/$branch"
 open_pr="$(gh pr list --head "$branch" --state open --json number --jq '.[0].number // empty')"
 if [[ -n "$open_pr" ]]; then
   gh pr edit "$open_pr" --title "$title" --body "$body"

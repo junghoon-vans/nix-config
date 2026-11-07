@@ -259,3 +259,14 @@ jobs:
             automation/update-paseo-plugins \
             "$body" \
             modules/paseo-plugins.json
+
+  updater-results:
+    if: always()
+    needs: [homebrew, fixed-releases, gno, hermes, tagged-skills, npm-mcps, paseo-plugins]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Report every updater and retain failures
+        env:
+          UPDATER_RESULTS: ${{ toJSON(needs) }}
+        run: python3 -B scripts/updates/report-update-results.py

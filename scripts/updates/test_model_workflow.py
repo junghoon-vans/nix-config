@@ -160,6 +160,20 @@ class ModelUpdateWorkflowTests(unittest.TestCase):
             "model pin: current",
         )
 
+    def test_deleted_remote_branch_does_not_block_model_publication(self):
+        self.git(self.repo, "push", "origin", f"HEAD:refs/heads/{BRANCH}")
+        self.git(self.repo, "fetch", "origin")
+        self.git(self.root, f"--git-dir={self.origin}", "update-ref", "-d", f"refs/heads/{BRANCH}")
+        (self.repo / MODEL_PATHS[0]).write_text("model pin: current\n")
+
+        result = self.run_helper(self.helper_env())
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(
+            self.git(self.root, f"--git-dir={self.origin}", "show", f"{BRANCH}:{MODEL_PATHS[0]}"),
+            "model pin: current",
+        )
+
     def test_github_identity_failure_does_not_switch_or_push_branch(self):
         (self.repo / MODEL_PATHS[0]).write_text("model pin: updated\n")
 

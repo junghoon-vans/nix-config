@@ -32,10 +32,14 @@ bot_login="${GH_APP_SLUG:?GH_APP_SLUG must identify the PR GitHub App}[bot]"
 bot_id="$(gh api "users/$bot_login" --jq '.id')"
 git config user.name "$bot_login"
 git config user.email "${bot_id}+${bot_login}@users.noreply.github.com"
+# Checkout-time tracking refs can be stale after an earlier PR is merged/deleted.
+# Lease against the observed publication target, including an absent branch.
+remote_head="$(git ls-remote --heads origin "refs/heads/$branch")"
+remote_head="${remote_head%%[[:space:]]*}"
 git switch -C "$branch"
 git add --all -- "${paths[@]}"
 git commit -m "$title"
-git push --force-with-lease origin "HEAD:$branch"
+git push "--force-with-lease=refs/heads/$branch:$remote_head" origin "HEAD:refs/heads/$branch"
 
 if [ "$(gh pr list --head "$branch" --state open --json number --jq 'length')" -eq 0 ]; then
   gh pr create --base main --head "$branch" --title "$title" --body "$body"
