@@ -8,6 +8,7 @@ import re
 import subprocess
 from pathlib import Path
 
+import aside_dmg
 import yaml
 
 MAX_EVIDENCE_AGE = timedelta(hours=48)
@@ -532,25 +533,29 @@ def bind_pinned_sources(root, sources, test_only_fixtures=False):
         client = source["client"]
         if source.get("error"):
             continue
-        if client not in expected or source["provider"] != OPENAI_PROVIDER or source["role"] != "support":
-            raise ValueError("unsupported static catalog identity")
         if client in seen:
             raise ValueError(f"{client}: ambiguous duplicate catalog")
         seen.add(client)
-        pin, repo, path = expected[client]
-        if source.get("pin_revision") != pin:
-            raise ValueError(f"{client}: catalog does not match repository pin")
+        if source["provider"] != OPENAI_PROVIDER or source["role"] != "support":
+            raise ValueError("unsupported static catalog identity")
         fixture = test_only_fixtures and source["kind"] == "nonproduction-fixture"
         if fixture:
             if not source["url"].startswith("file:"):
                 raise ValueError("fixture catalog requires a file URL")
             continue
+        if client == "aside":
+            aside_dmg.validate_source(root, source)
+            continue
+        if client not in expected:
+            raise ValueError("unsupported static catalog identity")
+        pin, repo, path = expected[client]
+        if source.get("pin_revision") != pin:
+            raise ValueError(f"{client}: catalog does not match repository pin")
         revision = source["revision"]
         if (source["kind"] != "static-catalog" or not re.fullmatch(r"[0-9a-f]{40}", revision)
                 or (client == "hermes" and revision != pin)
                 or source["url"] != f"https://raw.githubusercontent.com/{repo}/{revision}/{path}"):
             raise ValueError(f"{client}: invalid pinned catalog provenance")
-
 
 def _sources_for(sources, client, role):
     return [
@@ -763,9 +768,16 @@ def _report(root, sources, errors, references, support, support_gaps, replacemen
     ]
     for source in sorted(relevant_sources, key=lambda row: (row["client"], row["role"], row["url"], row["revision"])):
         suffix = f"; error: {source['error']}" if source.get("error") else ""
+        details = ""
+        if source["client"] == "aside" and source["kind"] == "static-dmg-catalog":
+            details = (
+                f"; DMG version `{source['browser_version']}` sha256 `{source['artifact_sha256']}`; "
+                f"Homebrew cask `{source['cask_url']}`; daemon `{source['daemon_version']}` "
+                f"(binary sha256 `{source['daemon_sha256']}`)"
+            )
         report.append(
             f"- STATIC `{source['client']}` {source['role']} ({source['kind']}): {source['url']} "
-            f"(pinned revision `{source['revision']}`){suffix}"
+            f"(pinned revision `{source['revision']}`){details}{suffix}"
         )
     if not relevant_sources:
         report.append("- No client source records are available.")
