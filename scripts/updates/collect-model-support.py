@@ -13,6 +13,7 @@ from datetime import datetime, timezone
 import json
 from pathlib import Path
 import re
+import aside_dmg
 import urllib.error
 import urllib.request
 
@@ -160,10 +161,11 @@ def fetch(url):
 def collect(root, fixture_dir=None):
     evidence = {
         "schema_version": 1, "observed_at": datetime.now(timezone.utc).isoformat(),
-        "sources": [], "errors": ["aside: no pinned explicit static catalog adapter; support unverified"],
+        "sources": [], "errors": [],
     }
     if fixture_dir is not None:
         evidence["errors"].append("NONPRODUCTION: local fixture sources; not valid update evidence")
+        evidence["errors"].append("aside: NONPRODUCTION fixture mode does not fetch the DMG")
     for client, path, parse in (("omp", OMP_PATH, parse_omp), ("hermes", HERMES_PATH, parse_hermes)):
         row = None
         try:
@@ -205,6 +207,11 @@ def collect(root, fixture_dir=None):
             evidence["errors"].append(message)
             if row is not None:
                 row["error"] = message
+    if fixture_dir is None:
+        try:
+            evidence["sources"].append(aside_dmg.collect(root))
+        except Exception as error:
+            evidence["errors"].append(f"aside: static source unavailable or ambiguous: {error}")
     return evidence
 
 
