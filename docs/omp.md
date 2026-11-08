@@ -1,13 +1,22 @@
 # Oh My Pi
 
-Nix installs the pinned OMP release from `modules/omp.nix`. Home Manager deploys the shared agent
-configuration from `home/.omp/agent/` to `~/.omp/agent/`; Zed invokes
+Nix installs the pinned OMP release from `modules/omp.nix`. Home Manager deploys the agent support
+files from `home/.omp/agent/` to `~/.omp/agent/`; Zed invokes
 `/run/current-system/sw/bin/omp acp`.
 
 ## Shared and machine-local settings
 
-The repository owns shared settings in `home/.omp/agent/config.yml`. Machine paths, credentials,
-and other workstation-specific values must not be committed.
+The repository owns shared settings in `home/.omp/agent/config.yml`. The packaged executable
+prepends its immutable store copy to `PI_CONFIG_FILES` for both interactive and ACP sessions.
+OMP owns the writable `~/.omp/agent/config.yml`; Home Manager must not symlink that path into
+`/nix/store`, because OMP resolves its target before creating a sibling native lock file.
+Machine paths, credentials, and other workstation-specific values must not be committed.
+
+On the next approved activation, Home Manager removes its old managed `config.yml` symlink.
+OMP can then create a regular user-owned file on its next settings write; authentication and
+local overlays are unchanged. No manual deletion or `sudo omp` is needed. Shared overlay keys
+take precedence over global and project settings; use a later overlay or `--config` to override
+them. Undeclared settings remain writable in the global file.
 
 The managed shell config automatically adds this optional OMP overlay when the file exists:
 
