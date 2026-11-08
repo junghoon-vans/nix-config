@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Prefetch direct flat GitHub release sources using their evaluated Nix pins."""
+"""Prefetch direct GitHub release sources by replaying their original Nix recipes."""
 import argparse
 import glob
 import json
@@ -16,6 +16,7 @@ def main():
     args = parser.parse_args()
     nix_env = {key: value for key, value in os.environ.items() if key not in {"GH_TOKEN", "GITHUB_TOKEN"}}
     projection = Path(__file__).with_name("github-release-sources.nix").read_text()
+    recipe = Path(__file__).with_name("replay-release-source.nix")
     result = subprocess.run(
         ["nix", "eval", "--no-write-lock-file", "--json", "--apply", projection, args.packages],
         env=nix_env, stdout=subprocess.PIPE, text=True, check=True,
@@ -45,14 +46,28 @@ def main():
                 check=True,
             )
             result = subprocess.run(
+                ["nix", "store", "add-file", "--name", unquote(asset), str(destination)],
+                env=nix_env, stdout=subprocess.PIPE, text=True, check=True,
+            )
+            archive_path = result.stdout.strip()
+            replacement = (
+                f"import {json.dumps(str(recipe))} {{ "
+                f"sourcePath = {json.dumps(source['path'])}; "
+                f"archivePath = {json.dumps(archive_path)}; }}"
+            )
+            result = subprocess.run(
                 [
-                    "nix", "store", "prefetch-file", "--json", "--name", source["name"],
-                    "--hash-type", source["hashAlgo"], "--expected-hash", source["hash"],
-                    destination.as_uri(),
+                    "nix", "eval", "--impure", "--no-write-lock-file", "--raw",
+                    "--apply", replacement, args.packages,
                 ],
                 env=nix_env, stdout=subprocess.PIPE, text=True, check=True,
             )
-            actual_path = json.loads(result.stdout)["storePath"]
+            derivation = result.stdout.strip()
+            result = subprocess.run(
+                ["nix", "build", "--no-link", "--json", f"{derivation}^out"],
+                env=nix_env, stdout=subprocess.PIPE, text=True, check=True,
+            )
+            actual_path = json.loads(result.stdout)[0]["outputs"]["out"]
             if actual_path != source["path"]:
                 raise RuntimeError(f"Source store path mismatch: {actual_path} != {source['path']}")
 

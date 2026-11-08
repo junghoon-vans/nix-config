@@ -5,12 +5,10 @@ builtins.concatLists (
     let
       source = package.src or null;
       urls = if source == null then [ ] else source.urls or [ ];
-      algorithm = source.outputHashAlgo or null;
     in
     if
       source != null
-      && (source.outputHashMode or "") == "flat"
-      && (source.postFetch or "") == ""
+      && (source.outputHash or null) != null
       && builtins.any (
         url: builtins.match "https://github.com/[^/]+/[^/]+/releases/download/.*" url != null
       ) urls
@@ -19,8 +17,6 @@ builtins.concatLists (
         {
           inherit (source) name;
           inherit urls;
-          hash = source.outputHash;
-          hashAlgo = if algorithm == null || algorithm == "" then "sha256" else algorithm;
           path = toString source;
         }
       ]
