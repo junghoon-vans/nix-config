@@ -10,7 +10,7 @@ let
   inherit (workstationUser) username homeDirectory;
   paseoPlugins = builtins.fromJSON (builtins.readFile ./paseo-plugins.json);
   paseoPluginConfig = lib.mapAttrs (
-    _: plugin:
+    name: plugin:
     let
       source =
         assert plugin.source == "github";
@@ -18,10 +18,15 @@ let
           url = "https://github.com/${plugin.repository}/archive/${plugin.revision}.tar.gz";
           inherit (plugin) hash;
         };
+      package =
+        if name == "paseo-exporter" then
+          pkgs.callPackage ../packages/paseo-exporter.nix { inherit source; }
+        else
+          source;
     in
     {
       source = "directory";
-      path = "${source}" + lib.optionalString (plugin.directory != "") "/${plugin.directory}";
+      path = "${package}" + lib.optionalString (plugin.directory != "") "/${plugin.directory}";
       inherit (plugin) enabled;
     }
   ) paseoPlugins;
