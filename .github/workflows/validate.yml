@@ -193,6 +193,10 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
       - uses: DeterminateSystems/magic-nix-cache-action@84c0677f58dcedf3b91f8223ce36a9ea5b3c84b7 # v15
+      - name: Prefetch pinned APM source through the GitHub API
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 -B scripts/ci/prefetch-github-sources.py .#apm
       - name: Verify locked APM deployment in an isolated home
         run: |
           apm_store="$(nix build --no-link --print-out-paths .#apm)"
@@ -206,6 +210,10 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
       - uses: DeterminateSystems/magic-nix-cache-action@84c0677f58dcedf3b91f8223ce36a9ea5b3c84b7 # v15
+      - name: Prefetch pinned APM source through the GitHub API
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 -B scripts/ci/prefetch-github-sources.py .#apm
       - name: Build pinned APM for regression and deployment checks
         id: apm
         run: |
@@ -230,9 +238,14 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
-      - uses: DeterminateSystems/magic-nix-cache-action@84c0677f58dcedf3b91f8223ce36a9ea5b3c84b7 # v15
       - name: Evaluate Darwin configuration
         run: nix eval .#darwinConfigurations.${{ matrix.host }}.config.system.build.toplevel.drvPath
+      - name: Prefetch direct GitHub sources from Nix declarations
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          python3 -B scripts/ci/prefetch-github-sources.py
+          .#darwinConfigurations.${{ matrix.host }}.config.environment.systemPackages
       - name: Build Darwin configuration
         run: nix build .#darwinConfigurations.${{ matrix.host }}.system
       - name: Run packaged Hermes integration tests (isolated profile, loopback ACP)

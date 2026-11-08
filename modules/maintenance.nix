@@ -9,6 +9,7 @@ in
     enable = lib.mkEnableOption "the weekly disk-maintenance LaunchAgent";
     mole.enable = lib.mkEnableOption "Mole cleanup during weekly disk maintenance";
     dockerPrune.enable = lib.mkEnableOption "Docker prune during weekly disk maintenance";
+    nixGc.enable = lib.mkEnableOption "weekly collection of unreferenced Nix store paths";
   };
 
   config = lib.mkIf cfg.enable {
@@ -19,7 +20,9 @@ in
           "${userHome}/.local/bin/weekly-disk-maintenance"
         ]
         ++ lib.optionals cfg.mole.enable [ "--mole-clean" ]
-        ++ lib.optionals cfg.dockerPrune.enable [ "--docker-prune" ];
+        ++ lib.optionals cfg.dockerPrune.enable [ "--docker-prune" ]
+        ++ lib.optionals cfg.nixGc.enable [ "--nix-gc" ];
+        EnvironmentVariables.PATH = "/nix/var/nix/profiles/default/bin:/usr/bin:/bin:/usr/sbin:/sbin";
         StartCalendarInterval = {
           Weekday = 1;
           Hour = 10;

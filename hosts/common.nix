@@ -29,6 +29,7 @@ in
       enable = true;
       mole.enable = true;
       dockerPrune.enable = true;
+      nixGc.enable = true;
     };
   };
 

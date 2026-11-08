@@ -46,6 +46,7 @@ switch:
 	@test -n "$(HOST)" || { printf '%s\n' 'Set HOST, for example: make switch HOST=junghoonui-MacBookAir' >&2; exit 2; }
 	sudo -H darwin-rebuild switch --flake .#$(HOST)
 	./scripts/apm/setup-apm.sh "$(CURDIR)"
+	sudo -H nix-env --profile /nix/var/nix/profiles/system --delete-generations +4
 
 brew-update:
 	./scripts/homebrew/update.sh update
