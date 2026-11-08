@@ -18,9 +18,12 @@ let
       inherit (ompRelease) hash;
     };
     dontUnpack = true;
+    nativeBuildInputs = [ pkgs.makeWrapper ];
     meta.mainProgram = "omp";
     installPhase = ''
       install -Dm755 "$src" "$out/bin/omp"
+      wrapProgram "$out/bin/omp" \
+        --prefix PI_CONFIG_FILES : ${../home/.omp/agent/config.yml}
     '';
   };
 in
