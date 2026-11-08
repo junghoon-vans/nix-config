@@ -232,6 +232,10 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
       - name: Evaluate Darwin configuration
         run: nix eval .#darwinConfigurations.${{ matrix.host }}.config.system.build.toplevel.drvPath
+      - name: Prefetch pinned Paseo through the GitHub API
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 -B scripts/ci/prefetch-paseo.py
       - name: Build Darwin configuration
         run: nix build .#darwinConfigurations.${{ matrix.host }}.system
       - name: Run packaged Hermes integration tests (isolated profile, loopback ACP)
