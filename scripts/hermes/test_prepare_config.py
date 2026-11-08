@@ -148,6 +148,101 @@ class HermesRuntimeConfig(unittest.TestCase):
             "disabled": ["local"],
         })
 
+    def test_managed_skill_generations_project_shared_collisions_without_losing_other_skills(self):
+        old_root = self.store / "old-ego" / "share"
+        stale_untracked_root = self.store / "untracked-old-ego" / "share"
+        current_root = self.store / "current-ego" / "share"
+        shared_root = self.root / "agents" / "skills"
+        local_root = self.root / "local-skills"
+
+        def add_skill(root, name, body):
+            skill = root / name / "SKILL.md"
+            skill.parent.mkdir(parents=True, exist_ok=True)
+            skill.write_text(f"---\nname: {name}\n---\n\n{body}\n")
+
+        add_skill(current_root, "ego-browser", "canonical declared Ego skill")
+        add_skill(shared_root, "ego-browser", "stale shared Ego copy")
+        add_skill(shared_root, "review-notes", "unrelated shared skill")
+        add_skill(local_root, "local-only", "unrelated external skill")
+
+        self.runtime.write_text(yaml.safe_dump({
+            "skills": {
+                "external_dirs": [
+                    str(old_root), str(stale_untracked_root), str(shared_root), str(local_root),
+                ],
+                "disabled": ["local"],
+            },
+            "nix_managed_skill_dirs": [str(old_root)],
+            "nix_managed_skill_names": ["ego-browser"],
+            "command_allowlist": ["git status"],
+        }, sort_keys=False))
+        self.runtime.chmod(0o600)
+        self.write_defaults(self.defaults_path, {
+            "skills": {"external_dirs": [str(current_root), str(shared_root)]},
+            "nix_managed_skill_dirs": [str(current_root)],
+            "nix_managed_skill_names": ["ego-browser"],
+        })
+
+        with patch.object(MODULE, "NIX_STORE_ROOT", self.store):
+            self.check()
+        first_runtime = self.runtime.stat()
+        result = yaml.safe_load(self.runtime.read_text())
+        external_dirs = result["skills"]["external_dirs"]
+
+        self.assertNotIn(str(old_root), external_dirs)
+        self.assertNotIn(str(stale_untracked_root), external_dirs)
+        self.assertNotIn(str(shared_root), external_dirs)
+        self.assertIn(str(current_root), external_dirs)
+        self.assertIn(str(local_root), external_dirs)
+        self.assertEqual(result["skills"]["disabled"], ["local"])
+        self.assertEqual(result["command_allowlist"], ["git status"])
+        self.assertEqual(result["nix_managed_skill_dirs"], [str(current_root)])
+        self.assertEqual(shared_root.joinpath("ego-browser", "SKILL.md").read_text().splitlines()[-1],
+                         "stale shared Ego copy")
+
+        projection = next(
+            Path(path) for path in external_dirs
+            if path in result["nix_managed_skill_projection_sources"]
+        )
+        self.assertEqual(
+            result["nix_managed_skill_projection_sources"][str(projection)],
+            str(shared_root),
+        )
+        self.assertFalse((projection / "ego-browser").exists())
+        self.assertEqual((projection / "review-notes" / "SKILL.md").read_text().splitlines()[-1],
+                         "unrelated shared skill")
+
+        # Hermes treats every external root as one tier: a same-name copy in
+        # two roots makes the name ambiguous rather than preferring list order.
+        ego_candidates = [
+            skill for directory in external_dirs
+            for skill in Path(directory).rglob("SKILL.md")
+            if yaml.safe_load(skill.read_text().split("---", 2)[1]).get("name") == "ego-browser"
+        ]
+        self.assertEqual(len(ego_candidates), 1)
+        self.assertEqual(ego_candidates[0].read_text().splitlines()[-1],
+                         "canonical declared Ego skill")
+
+        self.check()
+        repeated = self.runtime.stat()
+        self.assertEqual(repeated.st_ino, first_runtime.st_ino)
+        self.assertEqual(repeated.st_mtime_ns, first_runtime.st_mtime_ns)
+        self.assertEqual(yaml.safe_load(self.runtime.read_text())["skills"]["external_dirs"], external_dirs)
+
+        projection_data = projection.parent / "user-owned-data"
+        projection_data.write_text("keep")
+        self.write_defaults(self.defaults_path, {
+            "skills": {"external_dirs": [str(current_root), str(shared_root)]},
+            "nix_managed_skill_dirs": [str(current_root)],
+            "nix_managed_skill_names": [],
+        })
+        self.check()
+        unfiltered = yaml.safe_load(self.runtime.read_text())
+        self.assertIn(str(shared_root), unfiltered["skills"]["external_dirs"])
+        self.assertFalse(projection.exists())
+        self.assertFalse(projection.with_suffix(".json").exists())
+        self.assertEqual(projection_data.read_text(), "keep")
+
     def test_managed_server_generations_replace_remove_and_preserve_local_state(self):
         local = {"command": "local-mcp", "env": {"LOCAL_SETTING": "keep"}}
         self.runtime.write_text(yaml.safe_dump({
