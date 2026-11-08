@@ -1,4 +1,12 @@
 {
+  "paseo-exporter": {
+    "source": "github",
+    "repository": "sgoley/paseo-exporter",
+    "directory": "",
+    "revision": "056d4252e03d6a476b835622a93a5d35ea07c889",
+    "hash": "sha256-aGLRUPfGYEpHbBdgOHDhSH7KUnINC/3IHxJwYtyrWEk=",
+    "enabled": true
+  },
   "paseo-bots": {
     "source": "github",
     "repository": "oliexe/paseo-bots",
