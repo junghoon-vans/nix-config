@@ -196,7 +196,7 @@ jobs:
       - name: Prefetch pinned APM source through the GitHub API
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python3 -B scripts/ci/prefetch-github-releases.py .#apm
+        run: python3 -B scripts/ci/prefetch-github-sources.py .#apm
       - name: Verify locked APM deployment in an isolated home
         run: |
           apm_store="$(nix build --no-link --print-out-paths .#apm)"
@@ -213,7 +213,7 @@ jobs:
       - name: Prefetch pinned APM source through the GitHub API
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python3 -B scripts/ci/prefetch-github-releases.py .#apm
+        run: python3 -B scripts/ci/prefetch-github-sources.py .#apm
       - name: Build pinned APM for regression and deployment checks
         id: apm
         run: |
@@ -240,11 +240,11 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
       - name: Evaluate Darwin configuration
         run: nix eval .#darwinConfigurations.${{ matrix.host }}.config.system.build.toplevel.drvPath
-      - name: Prefetch direct GitHub release sources from Nix declarations
+      - name: Prefetch direct GitHub sources from Nix declarations
         env:
           GH_TOKEN: ${{ github.token }}
         run: >-
-          python3 -B scripts/ci/prefetch-github-releases.py
+          python3 -B scripts/ci/prefetch-github-sources.py
           .#darwinConfigurations.${{ matrix.host }}.config.environment.systemPackages
       - name: Build Darwin configuration
         run: nix build .#darwinConfigurations.${{ matrix.host }}.system
