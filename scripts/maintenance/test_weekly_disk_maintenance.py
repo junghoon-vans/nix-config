@@ -29,6 +29,7 @@ class WeeklyDiskMaintenanceTests(unittest.TestCase):
         )
         self.write_stub("mole", 'printf "mole %s\\n" "$*" >>"$CALL_LOG"\n')
         self.write_stub("docker", 'printf "docker %s\\n" "$*" >>"$CALL_LOG"\n')
+        self.write_stub("nix-store", "exit 77\n")
 
         self.env = dict(
             os.environ,
@@ -68,6 +69,7 @@ class WeeklyDiskMaintenanceTests(unittest.TestCase):
         result = self.run_maintenance(
             "--mole-clean",
             "--docker-prune",
+            "--nix-gc",
             WEEKLY_DISK_DRY_RUN="1",
         )
 
@@ -97,6 +99,12 @@ class WeeklyDiskMaintenanceTests(unittest.TestCase):
         result = self.run_maintenance(WEEKLY_DISK_DRY_RUN="0")
 
         self.assertEqual(result.returncode, 0)
+        self.assertFalse(self.calls.exists())
+
+    def test_nix_gc_failure_is_reported_even_below_disk_threshold(self):
+        result = self.run_maintenance("--nix-gc", WEEKLY_DISK_THRESHOLD_PERCENT="95")
+
+        self.assertEqual(result.returncode, 77)
         self.assertFalse(self.calls.exists())
 
 
