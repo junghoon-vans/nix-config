@@ -326,6 +326,116 @@ class PackagedHermesIntegration(unittest.TestCase):
             f"provider source: {expected_provider}"
         )
 
+    def test_projected_nested_skill_main_and_reference_are_read_by_hermes(self):
+        from tools.skills_tool import clear_skills_cache, skill_view
+
+        source_root = self.root / "projection-source"
+        skill_dir = source_root / "guidebook" / "projected-reader"
+        (skill_dir / "references").mkdir(parents=True)
+        main_content = "---\nname: projected-reader-alias\n---\n\nDisposable projected skill.\n"
+        reference_content = "Disposable projected reference.\n"
+        (skill_dir / "SKILL.md").write_text(main_content)
+        (skill_dir / "references" / "usage.md").write_text(reference_content)
+
+        ordinary = source_root / "ordinary-reader"
+        (ordinary / "references/nested").mkdir(parents=True)
+        (ordinary / "SKILL.md").write_text("---\nname: ordinary-reader\n---\n\nOrdinary skill.\n")
+        (ordinary / "references/nested/usage.md").write_text("Nested ordinary reference.\n")
+        partial = source_root / "parent-reader"
+        (partial / "references/nested").mkdir(parents=True)
+        (partial / "SKILL.md").write_text("---\nname: parent-reader-alias\n---\n\nRetained parent.\n")
+        (partial / "references/nested/usage.md").write_text("Parent reference version one.\n")
+        hidden = partial / "managed-guide"
+        hidden.mkdir()
+        (hidden / "SKILL.md").write_text("---\nname: managed-guide\n---\n\nHidden child.\n")
+
+        shadowed_root = source_root / "managed-guide"
+        shadowed_root.mkdir()
+        (shadowed_root / "SKILL.md").write_text("---\nname: managed-guide\n---\n\nStale copy.\n")
+        managed_root = self.root / "managed-skills"
+        managed_skill = managed_root / "managed-guide"
+        managed_skill.mkdir(parents=True)
+        (managed_skill / "SKILL.md").write_text("---\nname: managed-guide\n---\n\nManaged copy.\n")
+
+        profile_home = self.root / "projected-profile"
+        profile_home.mkdir(mode=0o700)
+        defaults_path = self.root / "projected-defaults.yaml"
+        defaults_path.write_text(json.dumps({
+            "skills": {"external_dirs": [str(source_root)]},
+            "nix_managed_skill_dirs": [str(managed_root)],
+            "nix_managed_skill_names": ["managed-guide"],
+        }))
+        def prepare():
+            prepared = subprocess.run(
+                [
+                    os.environ["HERMES_CONFIG_PYTHON"], str(self.prepare_config_script),
+                    str(profile_home), str(defaults_path),
+                ],
+                capture_output=True,
+                text=True,
+                timeout=30,
+                check=False,
+            )
+            self.assertEqual(prepared.returncode, 0, prepared.stdout + prepared.stderr)
+
+        prepare()
+
+        with patch.dict(os.environ, {"HERMES_HOME": str(profile_home)}):
+            clear_skills_cache()
+            try:
+                main = json.loads(skill_view("projected-reader-alias", preprocess=False))
+                self.assertTrue(main.get("success"), main)
+                self.assertEqual(main["content"], main_content)
+                reference = json.loads(skill_view(
+                    "projected-reader-alias", file_path="references/usage.md", preprocess=False,
+                ))
+                self.assertTrue(reference.get("success"), reference)
+                self.assertEqual(reference["content"], reference_content)
+                for name, content in (
+                    ("ordinary-reader", "Nested ordinary reference.\n"),
+                    ("parent-reader-alias", "Parent reference version one.\n"),
+                ):
+                    with self.subTest(skill=name):
+                        loaded = json.loads(skill_view(name, preprocess=False))
+                        self.assertTrue(loaded.get("success"), loaded)
+                        loaded_reference = json.loads(skill_view(
+                            name, file_path="references/nested/usage.md", preprocess=False,
+                        ))
+                        self.assertTrue(loaded_reference.get("success"), loaded_reference)
+                        self.assertEqual(loaded_reference["content"], content)
+                managed = json.loads(skill_view("managed-guide", preprocess=False))
+                self.assertTrue(managed.get("success"), managed)
+                self.assertIn("Managed copy.", managed["content"])
+
+                # A whole-skill link must retain Hermes's own escape protection.
+                outside = self.root / "outside-reference.md"
+                outside.write_text("Must remain inaccessible from this skill.\n")
+                escape = skill_dir / "references/escape.md"
+                escape.symlink_to(outside)
+                escaped = json.loads(skill_view(
+                    "projected-reader-alias", file_path="references/escape.md", preprocess=False,
+                ))
+                self.assertFalse(escaped.get("success"), escaped)
+                escape.unlink()
+
+                (partial / "references/nested/usage.md").write_text("Parent reference version two.\n")
+                prepare()
+                clear_skills_cache()
+                refreshed = json.loads(skill_view(
+                    "parent-reader-alias", file_path="references/nested/usage.md", preprocess=False,
+                ))
+                self.assertTrue(refreshed.get("success"), refreshed)
+                self.assertEqual(refreshed["content"], "Parent reference version two.\n")
+                prepare()
+                traversal = json.loads(skill_view(
+                    "projected-reader-alias",
+                    file_path="../managed-skills/managed-guide/SKILL.md",
+                    preprocess=False,
+                ))
+                self.assertFalse(traversal.get("success"), traversal)
+            finally:
+                clear_skills_cache()
+
     def test_ego_cli_resolves_from_launchd_path_without_app_setup(self):
         definition = plistlib.loads(self.launchd_plist.read_bytes())
         launchd_path = definition["EnvironmentVariables"]["PATH"]
