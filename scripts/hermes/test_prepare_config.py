@@ -243,6 +243,184 @@ class HermesRuntimeConfig(unittest.TestCase):
         self.assertFalse(projection.with_suffix(".json").exists())
         self.assertEqual(projection_data.read_text(), "keep")
 
+    def test_projection_preserves_aliases_and_parent_child_shadowing(self):
+        source_root = self.root / "external-skills"
+        managed_names = [
+            "directory-shadow",
+            "category/path-shadow",
+            "frontmatter-shadow",
+            "hidden-child",
+            "shadow-parent",
+        ]
+
+        def add_skill(relative, name, body):
+            skill = source_root / relative / "SKILL.md"
+            skill.parent.mkdir(parents=True, exist_ok=True)
+            skill.write_text(f"---\nname: {name}\n---\n\n{body}\n")
+
+        add_skill(Path("directory-shadow"), "directory-name", "Shadowed by directory name.")
+        add_skill(Path("category/path-shadow"), "path-name", "Shadowed by relative path.")
+        add_skill(Path("category/frontmatter-candidate"), "frontmatter-shadow", "Shadowed by name.")
+        add_skill(Path("category/parent"), "retained-parent", "Parent remains visible.")
+        add_skill(Path("category/parent/hidden-child"), "hidden-child", "Child is shadowed.")
+        add_skill(Path("category/shadow-parent"), "shadow-parent", "Parent and subtree are shadowed.")
+        add_skill(Path("category/shadow-parent/visible-child"), "visible-child", "Must stay hidden.")
+        # Excluded subtrees must not be inspected or re-exposed by parent links.
+        (source_root / "category/shadow-parent/unused.md").symlink_to(
+            self.root / "missing-excluded-reference.md"
+        )
+        add_skill(Path("nested/live-reader"), "nested-frontmatter", "Unshadowed nested skill.")
+
+        parent_reference = source_root / "category/parent/references/retained.md"
+        parent_reference.parent.mkdir(parents=True)
+        parent_reference.write_text("Retained parent reference.\n")
+        live_reference = source_root / "nested/live-reader/references/guide.md"
+        live_reference.parent.mkdir(parents=True)
+        live_reference.write_text("Live nested reference.\n")
+
+        managed_root = self.store / "managed-skills"
+        managed_root.mkdir()
+        self.write_defaults(self.defaults_path, {
+            "skills": {"external_dirs": [str(source_root)]},
+            "nix_managed_skill_dirs": [str(managed_root)],
+            "nix_managed_skill_names": managed_names,
+        })
+
+        self.check()
+        result = yaml.safe_load(self.runtime.read_text())
+        projection = Path(next(iter(result[MODULE.SKILL_PROJECTIONS_KEY])))
+
+        self.assertFalse(projection.is_symlink())
+        self.assertEqual(result[MODULE.SKILL_PROJECTIONS_KEY][str(projection)], str(source_root))
+        self.assertEqual(result[MODULE.SKILL_NAMES_KEY], managed_names)
+        for relative in (
+            "directory-shadow",
+            "category/path-shadow",
+            "category/frontmatter-candidate",
+            "category/parent/hidden-child",
+            "category/shadow-parent",
+        ):
+            self.assertFalse((projection / relative).exists(), relative)
+
+        partial_parent = projection / "category/parent"
+        self.assertFalse(partial_parent.is_symlink())
+        self.assertEqual(
+            (partial_parent / "SKILL.md").read_text().splitlines()[-1],
+            "Parent remains visible.",
+        )
+        self.assertEqual(
+            (partial_parent / "references/retained.md").read_text(),
+            "Retained parent reference.\n",
+        )
+        self.assertFalse((partial_parent / "references/retained.md").is_symlink())
+        self.assertTrue((projection / "nested/live-reader").is_symlink())
+        self.assertEqual(
+            (projection / "nested/live-reader/references/guide.md").read_text(),
+            "Live nested reference.\n",
+        )
+
+    def test_partial_projection_refreshes_content_and_path_per_profile(self):
+        source_root = self.root / "update-source"
+        partial_skill = source_root / "guide/partial-reader"
+        partial_skill.mkdir(parents=True)
+        (partial_skill / "SKILL.md").write_text("---\nname: partial-reader\n---\n\nVersion one.\n")
+        hidden_child = partial_skill / "hidden-child"
+        hidden_child.mkdir()
+        (hidden_child / "SKILL.md").write_text("---\nname: hidden-child\n---\n\nShadowed child.\n")
+        reference = partial_skill / "references/original.md"
+        reference.parent.mkdir()
+        reference.write_text("Reference version one.\n")
+
+        managed_root = self.store / "managed-update-skills"
+        managed_root.mkdir()
+        self.write_defaults(self.defaults_path, {
+            "skills": {"external_dirs": [str(source_root)]},
+            "nix_managed_skill_dirs": [str(managed_root)],
+            "nix_managed_skill_names": ["hidden-child"],
+        })
+
+        self.check()
+        profile_a = yaml.safe_load(self.runtime.read_text())
+        projection_a1 = Path(next(iter(profile_a[MODULE.SKILL_PROJECTIONS_KEY])))
+        self.assertEqual(
+            (projection_a1 / "guide/partial-reader/references/original.md").read_text(),
+            "Reference version one.\n",
+        )
+        unrelated = projection_a1.parent / "user-owned-data"
+        unrelated.write_text("keep")
+
+        profile_b_home = self.root / "second-profile"
+        profile_b_home.mkdir(mode=0o700)
+        profile_b_config_path = MODULE.prepare_runtime_config(profile_b_home, self.defaults_path)
+        profile_b = yaml.safe_load(profile_b_config_path.read_text())
+        projection_b = Path(next(iter(profile_b[MODULE.SKILL_PROJECTIONS_KEY])))
+        self.assertNotEqual(projection_a1, projection_b)
+        self.assertEqual(projection_b.parent, profile_b_home / ".nix-managed-skills")
+
+        reference.write_text("Reference version two.\n")
+        self.check()
+        profile_a_updated = yaml.safe_load(self.runtime.read_text())
+        projection_a2 = Path(next(iter(profile_a_updated[MODULE.SKILL_PROJECTIONS_KEY])))
+        self.assertNotEqual(projection_a1, projection_a2)
+        self.assertFalse(projection_a1.exists())
+        self.assertEqual(
+            (projection_a2 / "guide/partial-reader/references/original.md").read_text(),
+            "Reference version two.\n",
+        )
+        self.assertEqual(
+            (projection_b / "guide/partial-reader/references/original.md").read_text(),
+            "Reference version one.\n",
+        )
+
+        renamed_reference = reference.with_name("updated.md")
+        reference.rename(renamed_reference)
+        self.check()
+        profile_a_renamed = yaml.safe_load(self.runtime.read_text())
+        projection_a3 = Path(next(iter(profile_a_renamed[MODULE.SKILL_PROJECTIONS_KEY])))
+        self.assertNotEqual(projection_a2, projection_a3)
+        self.assertFalse((projection_a3 / "guide/partial-reader/references/original.md").exists())
+        self.assertEqual(
+            (projection_a3 / "guide/partial-reader/references/updated.md").read_text(),
+            "Reference version two.\n",
+        )
+        self.assertEqual(unrelated.read_text(), "keep")
+
+    def test_external_skill_symlink_escapes_are_refused(self):
+        for case in ("outside-root", "sibling-skill"):
+            with self.subTest(case=case):
+                source_root = self.root / f"external-{case}"
+                partial_skill = source_root / "partial-reader"
+                partial_skill.mkdir(parents=True)
+                (partial_skill / "SKILL.md").write_text("---\nname: partial-reader\n---\n\nParent.\n")
+                hidden_child = partial_skill / "hidden-child"
+                hidden_child.mkdir()
+                (hidden_child / "SKILL.md").write_text("---\nname: hidden-child\n---\n\nHidden.\n")
+                references = partial_skill / "references"
+                references.mkdir()
+                link = references / "escape.md"
+
+                if case == "outside-root":
+                    target = self.root / "external-secret.md"
+                else:
+                    sibling = source_root / "sibling-skill"
+                    sibling.mkdir()
+                    (sibling / "SKILL.md").write_text("---\nname: sibling-skill\n---\n\nSibling.\n")
+                    target = sibling / "private-reference.md"
+                target.write_text("Must not be projected into the parent skill.\n")
+                link.symlink_to(os.path.relpath(target, link.parent))
+
+                managed_root = self.store / f"managed-{case}"
+                managed_root.mkdir()
+                self.write_defaults(self.defaults_path, {
+                    "skills": {"external_dirs": [str(source_root)]},
+                    "nix_managed_skill_dirs": [str(managed_root)],
+                    "nix_managed_skill_names": ["hidden-child"],
+                })
+
+                with self.assertRaisesRegex(RuntimeError, "escapes its (root|skill directory)"):
+                    self.check()
+                self.assertFalse(self.runtime.exists())
+
     def test_managed_server_generations_replace_remove_and_preserve_local_state(self):
         local = {"command": "local-mcp", "env": {"LOCAL_SETTING": "keep"}}
         self.runtime.write_text(yaml.safe_dump({
