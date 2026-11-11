@@ -27,7 +27,7 @@
       "command": "npx",
       "args": [
         "-y",
-        "--package=ux-ui-agent-skills@3.0.0",
+        "--package=ux-ui-agent-skills@3.1.0",
         "ux-ui-mcp"
       ],
       "instructions": false
