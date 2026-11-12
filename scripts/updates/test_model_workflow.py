@@ -32,7 +32,12 @@ case "$1" in
     ;;
   pr)
     case "$2" in
-      list) printf '%s\\n' "${GH_OPEN_PR:-}" ;;
+      list)
+        case "$*" in
+          *"--json labels"*) printf '%s\\n' "${GH_PR_HELD:-false}" ;;
+          *) printf '%s\\n' "${GH_OPEN_PR:-}" ;;
+        esac
+        ;;
       edit|create) ;;
       *) exit 92 ;;
     esac
@@ -172,6 +177,37 @@ class ModelUpdateWorkflowTests(unittest.TestCase):
         self.assertEqual(
             self.git(self.root, f"--git-dir={self.origin}", "show", f"{BRANCH}:{MODEL_PATHS[0]}"),
             "model pin: current",
+        )
+
+    def test_held_model_pr_preserves_remote_repair_without_publication(self):
+        self.git(self.repo, "switch", "-c", BRANCH)
+        (self.repo / MODEL_PATHS[0]).write_text("model pin: repaired\n")
+        self.git(self.repo, "add", MODEL_PATHS[0])
+        self.git(self.repo, "commit", "-m", "manual model CI repair")
+        repaired = self.git(self.repo, "rev-parse", "HEAD")
+        self.git(self.repo, "push", "origin", BRANCH)
+        self.git(self.repo, "switch", "main")
+        (self.repo / MODEL_PATHS[0]).write_text("model pin: new upstream\n")
+
+        result = self.run_helper(self.helper_env(GH_PR_HELD="true", GH_OPEN_PR="42"))
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("ci-repair/manual-review", result.stdout)
+        self.assertEqual(self.git(self.repo, "branch", "--show-current"), "main")
+        self.assertEqual(self.git(self.repo, "rev-parse", BRANCH), repaired)
+        self.assertEqual(
+            self.git(self.root, f"--git-dir={self.origin}", "rev-parse", BRANCH), repaired,
+        )
+        self.assertNotIn("pr edit", self.gh_log.read_text())
+        self.assertNotIn("pr create", self.gh_log.read_text())
+
+    def test_unreadable_hold_status_never_publishes_model_update(self):
+        (self.repo / MODEL_PATHS[0]).write_text("model pin: new upstream\n")
+        result = self.run_helper(self.helper_env(GH_PR_HELD="invalid"))
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(self.git(self.repo, "branch", "--show-current"), "main")
+        self.assertEqual(
+            self.git(self.root, f"--git-dir={self.origin}", "branch", "--list", BRANCH), "",
         )
 
     def test_github_identity_failure_does_not_switch_or_push_branch(self):

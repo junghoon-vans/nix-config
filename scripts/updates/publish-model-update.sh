@@ -21,6 +21,15 @@ git diff --quiet HEAD -- "${model_paths[@]}" && {
   exit 0
 }
 
+# Model updates are manual-merge-only, but must also preserve held CI repairs.
+held="$(gh pr list --repo junghoon-vans/nix-config --base main --head "$branch" --state open \
+  --json labels --jq 'any(.[]; any(.labels[]; (.name | ascii_downcase) == "ci-repair/manual-review"))')"
+case "$held" in
+  true) printf 'Skipping %s: ci-repair/manual-review preserves the repair\n' "$branch"; exit 0 ;;
+  false) ;;
+  *) printf 'Cannot determine manual-review hold for %s\n' "$branch" >&2; exit 1 ;;
+esac
+
 body="$(cat "$body_file")"
 bot_login="${GH_APP_SLUG:?GH_APP_SLUG must identify the PR GitHub App}[bot]"
 bot_id="$(gh api "users/$bot_login" --jq '.id')"

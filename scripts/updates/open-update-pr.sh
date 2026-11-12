@@ -28,6 +28,15 @@ if [[ "${GITHUB_EVENT_NAME:-}" == workflow_dispatch && "${GITHUB_REF:-}" != refs
   exit 0
 fi
 
+# Query live labels before replacing a branch that may contain a human CI repair.
+held="$(gh pr list --repo junghoon-vans/nix-config --base main --head "$branch" --state open \
+  --json labels --jq 'any(.[]; any(.labels[]; (.name | ascii_downcase) == "ci-repair/manual-review"))')"
+case "$held" in
+  true) printf 'Skipping %s: ci-repair/manual-review preserves the repair\n' "$branch"; exit 0 ;;
+  false) ;;
+  *) printf 'Cannot determine manual-review hold for %s\n' "$branch" >&2; exit 1 ;;
+esac
+
 bot_login="${GH_APP_SLUG:?GH_APP_SLUG must identify the PR GitHub App}[bot]"
 bot_id="$(gh api "users/$bot_login" --jq '.id')"
 git config user.name "$bot_login"
