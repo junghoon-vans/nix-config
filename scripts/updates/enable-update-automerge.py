@@ -10,6 +10,7 @@ import sys
 
 REPOSITORY = "junghoon-vans/nix-config"
 BOT = "nix-config-dependabot[bot]"
+MANUAL_REVIEW_LABEL = "ci-repair/manual-review"
 UPDATE_PATHS = {
     "automation/update-homebrew": {"flake.lock"},
     **{
@@ -41,6 +42,11 @@ ENABLE_MUTATION = """mutation($id: ID!, $head: GitObjectID!) {
     pullRequest { id headRefOid autoMergeRequest { mergeMethod } }
   }
 }"""
+DISABLE_MUTATION = """mutation($id: ID!) {
+  disablePullRequestAutoMerge(input: {pullRequestId: $id}) {
+    pullRequest { id }
+  }
+}"""
 
 
 def api(*args):
@@ -53,7 +59,14 @@ def api(*args):
     return value
 
 
+def held(pr):
+    # Missing/malformed labels must fail closed, not silently clear a hold.
+    return any(label["name"].lower() == MANUAL_REVIEW_LABEL for label in pr["labels"])
+
+
 def validate_scope(pr, files, branch, head, source="updater"):
+    if held(pr):
+        raise ValueError(f"{MANUAL_REVIEW_LABEL} requires manual review")
     if source == "dependabot":
         trusted_author = (
             pr["user"]["login"] == "dependabot[bot]"
@@ -107,6 +120,10 @@ def enable(number, branch, head, source="updater"):
         for field in fields
     ):
         raise ValueError("GitHub lacks atomic expectedHeadOid support; manual merge required")
+    # Labels are not covered by expectedHeadOid. Refresh after schema lookup,
+    # immediately before enabling (or accepting an existing auto-merge request).
+    current = api(endpoint)
+    validate_scope(current, files, branch, head, source)
     existing = current.get("auto_merge")
     if existing:
         if existing["merge_method"] != "squash":
@@ -123,6 +140,13 @@ def enable(number, branch, head, source="updater"):
     ):
         raise ValueError("GitHub did not confirm SQUASH auto-merge for the expected head")
     verified = api(endpoint)
+    if held(verified):
+        # Best-effort compensation for a hold arriving during the mutation.
+        # This is not atomic: repairs must quiesce old enablers before editing.
+        api("graphql", "-f", f"query={DISABLE_MUTATION}", "-f", f"id={current['node_id']}")
+        if api(endpoint).get("auto_merge"):
+            raise ValueError(f"{MANUAL_REVIEW_LABEL}: auto-merge revocation failed")
+        raise ValueError(f"{MANUAL_REVIEW_LABEL}: auto-merge revoked; manual review required")
     validate_scope(verified, files, branch, head, source)
     if not verified.get("auto_merge") or verified["auto_merge"]["merge_method"] != "squash":
         raise ValueError("Auto-merge read-back failed; inspect PR manually")

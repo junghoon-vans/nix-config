@@ -17,6 +17,7 @@ PR = {
     "head": {"ref": "automation/update-paseo-plugins", "sha": HEAD,
              "repo": {"full_name": REPO}},
     "changed_files": 1, "auto_merge": None,
+    "labels": [],
     "mergeable_state": "clean",
 }
 # A subprocess fixture at the gh API boundary. It never contacts GitHub.
@@ -44,6 +45,13 @@ if "graphql" in args:
         if fixture.get("graphql_errors"):
             print(json.dumps({"errors": [{"message": "head changed"}], "data": None}))
             sys.exit(0)
+        if "disablePullRequestAutoMerge" in query:
+            if fixture.get("disable_failure"):
+                sys.exit(44)
+            Path(str(mutation_log) + ".disabled").write_text("disabled")
+            print(json.dumps({"data": {"disablePullRequestAutoMerge": {
+                "pullRequest": {"id": pr["node_id"]}}}}))
+            sys.exit(0)
         result = {"id": pr["node_id"], "headRefOid": pr["head"]["sha"],
                   "autoMergeRequest": {"mergeMethod": "SQUASH"}}
         if fixture.get("bad_response"):
@@ -64,8 +72,15 @@ else:
         if counter.exists():
             pr["head"]["sha"] = "b" * 40
         counter.write_text("read")
+    counter = Path(os.environ["GH_AUTOMERGE_FIXTURE"] + ".label-reads")
+    reads = int(counter.read_text()) + 1 if counter.exists() else 1
+    counter.write_text(str(reads))
+    if reads >= fixture.get("hold_after_read", 999):
+        pr["labels"] = [{"name": "ci-repair/manual-review"}]
     if mutation_log.exists() and not fixture.get("bad_readback"):
         pr["auto_merge"] = {"merge_method": "squash"}
+    if Path(str(mutation_log) + ".disabled").exists():
+        pr["auto_merge"] = None
     response = pr
 print(json.dumps(response))
 '''
@@ -184,6 +199,44 @@ class EnableUpdateAutomergeTests(unittest.TestCase):
     def test_head_change_during_file_listing_never_mutates(self):
         self.fixture["head_race"] = True
         self.assert_refused()
+
+    def test_manual_review_hold_refuses_both_sources_even_if_already_enabled(self):
+        for source in ("updater", "dependabot"):
+            for existing in (None, {"merge_method": "squash"}):
+                with self.subTest(source=source, existing=existing):
+                    if source == "dependabot":
+                        self.dependabot_fixture()
+                    self.fixture["pr"]["labels"] = [{"name": "ci-repair/manual-review"}]
+                    self.fixture["pr"]["auto_merge"] = existing
+                    self.assert_refused(source=source)
+
+    def test_hold_appearing_during_schema_lookup_refuses_enable(self):
+        self.fixture["hold_after_read"] = 3
+        self.assert_refused()
+
+    def test_hold_appearing_after_enable_revokes_automerge(self):
+        self.fixture["hold_after_read"] = 4
+        result = self.run_helper()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("ci-repair/manual-review", result.stderr)
+        calls = [json.loads(line) for line in self.log.read_text().splitlines()]
+        self.assertEqual(len(calls), 2)
+        self.assertIn("disablePullRequestAutoMerge", " ".join(calls[1]))
+        self.assertTrue(Path(str(self.log) + ".disabled").exists())
+
+    def test_racing_hold_revocation_failure_is_not_reported_as_success(self):
+        self.fixture.update(hold_after_read=4, disable_failure=True)
+        result = self.run_helper()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("Auto-merge refused", result.stderr)
+        self.assertNotIn("Enabled SQUASH", result.stdout)
+        self.assertEqual(len(self.log.read_text().splitlines()), 2)
+
+    def test_hold_labels_fail_closed_and_match_case_insensitively(self):
+        for labels in (None, [{}], [{"name": "CI-Repair/Manual-Review"}]):
+            with self.subTest(labels=labels):
+                self.fixture["pr"]["labels"] = labels
+                self.assert_refused()
 
     def test_existing_squash_is_idempotent_but_wrong_method_is_refused(self):
         self.fixture["pr"]["auto_merge"] = {"merge_method": "squash"}

@@ -40,7 +40,12 @@ case "$1" in
     ;;
   pr)
     case "$2" in
-      list) printf '%s\\n' "${GH_PR_COUNT:-0}" ;;
+      list)
+        case "$*" in
+          *"--json labels"*) printf '%s\\n' "${GH_PR_HELD:-false}" ;;
+          *) printf '%s\\n' "${GH_PR_COUNT:-0}" ;;
+        esac
+        ;;
       view) printf '%s\\n' '7' ;;
       edit|create) ;;
       *) exit 91 ;;
@@ -261,6 +266,40 @@ class OpenUpdatePRTests(unittest.TestCase):
         self.assertIn("No dependency changes", result.stderr)
         self.assertFalse(self.gh_log.exists())
         self.assertEqual(self.git(self.repo, "branch", "--show-current"), "main")
+
+    def test_held_open_pr_preserves_repair_branch_and_does_not_publish(self):
+        self.git(self.repo, "switch", "-c", BRANCH)
+        (self.repo / TARGET).write_text(grouped_plugin_source("repaired"))
+        self.git(self.repo, "add", TARGET)
+        self.git(self.repo, "commit", "-m", "manual CI repair")
+        repaired = self.git(self.repo, "rev-parse", "HEAD")
+        self.git(self.repo, "push", "origin", BRANCH)
+        self.git(self.repo, "switch", "main")
+        (self.repo / TARGET).write_text(grouped_plugin_source("new-upstream"))
+
+        result = self.run_helper(self.helper_env(
+            GH_APP_SLUG="dependency-updates", GH_PR_HELD="true", GH_PR_COUNT="1",
+        ))
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("ci-repair/manual-review", result.stdout)
+        self.assertEqual(self.git(self.repo, "branch", "--show-current"), "main")
+        self.assertEqual(self.git(self.repo, "rev-parse", BRANCH), repaired)
+        self.assertEqual(
+            self.git(self.root, f"--git-dir={self.origin}", "rev-parse", BRANCH), repaired,
+        )
+        self.assertNotIn("pr edit", self.gh_log.read_text())
+        self.assertNotIn("pr create", self.gh_log.read_text())
+        self.assertFalse((self.root / "mutations.jsonl").exists())
+
+    def test_unreadable_hold_status_never_publishes_update(self):
+        (self.repo / TARGET).write_text(grouped_plugin_source("new-upstream"))
+        result = self.run_helper(self.helper_env(GH_APP_SLUG="dependency-updates", GH_PR_HELD="invalid"))
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(self.git(self.repo, "branch", "--show-current"), "main")
+        self.assertEqual(
+            self.git(self.root, f"--git-dir={self.origin}", "branch", "--list", BRANCH), "",
+        )
 
     def test_github_api_failure_stops_before_branch_or_push(self):
         (self.repo / TARGET).write_text(plugin_source("changed"))
