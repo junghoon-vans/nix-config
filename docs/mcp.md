@@ -43,20 +43,21 @@ authenticated or reached. Its live availability remains unverified.
 
 ### Atlassian
 
-Native Hermes reuses the OMP Atlassian URL, `https://mcp.atlassian.com/v1/mcp/authv2`, with
-`auth: oauth`. Its exact allowlist is `atlassianUserInfo`, `getAccessibleAtlassianResources`,
+Native Hermes reuses the OMP Atlassian URL, `https://mcp.atlassian.com/v2/mcp?tools=all`, with
+`auth: oauth`. The `tools=all` compatibility mode exposes a flat `tools/list` catalog so the
+existing exact-tool allowlist can select `atlassianUserInfo`, `getAccessibleAtlassianResources`,
 `getJiraIssue`, `searchJiraIssuesUsingJql`, `getConfluenceContent`, and `searchConfluence`.
 No deferred catalog or generic `discover`, `executeRead`, `executeWrite`, or
-`executeDestructive` tools are exposed. The allowlist contains exact read/search tools from
-Atlassian's current v2 catalog; because the configured endpoint is v1, actual tool discovery and
-authentication remain unverified. The static allowlist is not evidence that every listed tool is
-exposed by this endpoint.
+`executeDestructive` tools are exposed by Hermes. Actual tool discovery and authentication remain
+unverified; the static allowlist is not evidence that every listed tool is available to the user.
 
 Atlassian documents OAuth as an interactive flow in which the user reviews and grants consent.
 Available tools and data depend on that consent, granted scopes, organization settings, and the
 user's site access; the client allowlist does not narrow the authority granted at consent. Do not
-copy an OMP token or OAuth state into Hermes. Atlassian's migration guide says v1 will automatically
-expose v2 tools from 2027-03-01; this change leaves the existing OMP URL unchanged.
+copy an OMP token or OAuth state into Hermes. v2 is a separate OAuth resource: v1 credentials do
+not carry over, and each client must reauthenticate separately after an approved activation.
+Atlassian's migration guide says v1 will automatically expose v2 tools from 2027-03-01; the
+checked-in OMP and Hermes configuration already targets the v2 flat catalog explicitly.
 
 ### Aside
 
@@ -110,8 +111,9 @@ so verify the actual discovery after authentication rather than assuming CI acce
   Hermes expects a runtime `${HERMES_GITHUB_TOKEN}` placeholder, not shell substitution.
 - Atlassian: only after activation is separately approved, run
   `hermes -p omp-worker mcp login atlassian` and review the OAuth consent in the browser.
-  This consent is user-specific and separate from OMP authentication; do not copy its tokens
-  or state between clients or profiles.
+  v1 credentials cannot be reused for v2. Complete a separate user-approved v2 login in OMP;
+  Hermes consent and authentication remain independent. Do not copy tokens or OAuth state
+  between clients or profiles.
 - Context7: the checked-in endpoint is configured without an API key and has not been tested
   live. Do not infer that it is authenticated or reachable from its generated URL. If the user
   later chooses an authentication method, keep its secret in that user's approved local secret
