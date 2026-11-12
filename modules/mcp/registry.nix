@@ -129,8 +129,8 @@ rec {
     )}
     Configured does not mean authenticated. Native Hermes discovery and authentication are
     unverified; verify actual native tool availability and access in the active profile
-    before claiming success. The Atlassian allowlist uses v2 catalog tool names while its
-    shared OMP URL remains v1/authv2; v1 discovery and authentication are unverified.
+    before claiming success. Atlassian uses the v2 flat tool catalog so the read/search
+    allowlist can select exact tools; each client must reauthenticate for the v2 resource.
     Likewise verify OMP connectivity in its delegated session; offline fixtures are not
     live evidence. Use delegate_task with option omp for gnomcp, ux-ui-gates, repository
     work, and approved writes. Never copy OAuth state or tokens between clients or profiles.

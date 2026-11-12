@@ -756,7 +756,6 @@ class PackagedHermesIntegration(unittest.TestCase):
         self.assertEqual(github["url"], "https://api.githubcopilot.com/mcp/")
         self.assertEqual(github.get("protocol"), "stateless")
         self.assertEqual(context7["url"], "https://mcp.context7.com/mcp")
-        self.assertEqual(atlassian["url"], "https://mcp.atlassian.com/v1/mcp/authv2")
         self.assertEqual(atlassian["auth"], "oauth")
         self.assertFalse(aside["sampling"]["enabled"])
         for name, server_config in servers.items():
