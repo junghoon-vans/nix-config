@@ -27,8 +27,8 @@
     "source": "github",
     "repository": "ZedObaia/paseo-plugins",
     "directory": "plugins/resources",
-    "revision": "fb4ffb82afb368a38e55bd0773a6007e7bf0c1a9",
-    "hash": "sha256-f8wRWP4XJ4WfOvDqSSTQBmgKayPtcTXgiiaa3u7TmFU=",
+    "revision": "bbb7ca1069e86ea83bb2a4b3148bc2710f79a37a",
+    "hash": "sha256-12qDzk7cVJdMJ4dqhQ0RgyS5+tuh5U/XLEzglssS1aU=",
     "enabled": true
   },
   "keep-awake": {
