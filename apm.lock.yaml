@@ -1,5 +1,5 @@
 lockfile_version: '1'
-apm_version: 0.35.0
+apm_version: 0.35.1
 dependencies:
 - repo_url: _local/humanize-korean
   name: humanize-korean
@@ -2005,8 +2005,8 @@ dependencies:
 - repo_url: vercel-labs/agent-desktop
   name: agent-desktop
   host: github.com
-  resolved_commit: 2b0a7334fc111730454b726e6800aa41cdafc093
-  resolved_ref: v1.2.0
+  resolved_commit: a7765959eb44d27d0f9b0799066e377b6d1d2cd1
+  resolved_ref: v1.3.0
   version: unknown
   virtual_path: skills/agent-desktop
   is_virtual: true
@@ -2019,12 +2019,12 @@ dependencies:
   - .agents/skills/agent-desktop/references/commands-system.md
   - .agents/skills/agent-desktop/references/workflows.md
   deployed_file_hashes:
-    .agents/skills/agent-desktop/SKILL.md: sha256:941873a93fca670fc16362de192521f2b5ca27675fb55f18c2112cde86ca9089
-    .agents/skills/agent-desktop/references/commands-interaction.md: sha256:eb5c800213a2bd23892886c642b44ef6c2967d70ba97ac176ffee08135e9ce47
-    .agents/skills/agent-desktop/references/commands-observation.md: sha256:dce6dadad7d54ecde98f309df6842fa1982ee498e0e04171e142c6d0a3d100b7
-    .agents/skills/agent-desktop/references/commands-system.md: sha256:164676e9ffddae0895e86ae1a638edbd0823c7e849ae102ff251d9b957ee60df
+    .agents/skills/agent-desktop/SKILL.md: sha256:abd913be10552c028e461e0a45c20e3734a7a1e5251fc2f9ef6fd63fdd606a6e
+    .agents/skills/agent-desktop/references/commands-interaction.md: sha256:5ef8a87be8aed9b0102adb3c332dcd50586c7fb28dc0f1490207ab9321673bf5
+    .agents/skills/agent-desktop/references/commands-observation.md: sha256:9c31aec6f51dacfc14ff68dc04533a8dcf3ed5edb3f935d90e453f471894b936
+    .agents/skills/agent-desktop/references/commands-system.md: sha256:673c931a285b360c1deb669983e87ca8571ee8520f48c81f00d49f711e0e95ac
     .agents/skills/agent-desktop/references/workflows.md: sha256:9c5a93361f992d73eff50e9ec99bb895424ababd57d3f6742ff71e73734c1af1
-  content_hash: sha256:fbf04016d5c583faed55e321b182df341f4aed70b7001132f147b82ece8be454
+  content_hash: sha256:58032407daa209b72e7c087ee1885058f8e190b2481795bd7830aba8e70b7cbc
 - repo_url: vercel-labs/agent-skills
   alias: vercel-composition-patterns
   name: vercel-composition-patterns
@@ -2324,7 +2324,7 @@ deployments:
   owners:
   - vercel-labs/agent-desktop/skills/agent-desktop
   active_owner: vercel-labs/agent-desktop/skills/agent-desktop
-  content_hash: sha256:941873a93fca670fc16362de192521f2b5ca27675fb55f18c2112cde86ca9089
+  content_hash: sha256:abd913be10552c028e461e0a45c20e3734a7a1e5251fc2f9ef6fd63fdd606a6e
 - kind: project-relative
   target: agent-skills
   value: .agents/skills/agent-desktop/references/commands-interaction.md
@@ -2333,7 +2333,7 @@ deployments:
   owners:
   - vercel-labs/agent-desktop/skills/agent-desktop
   active_owner: vercel-labs/agent-desktop/skills/agent-desktop
-  content_hash: sha256:eb5c800213a2bd23892886c642b44ef6c2967d70ba97ac176ffee08135e9ce47
+  content_hash: sha256:5ef8a87be8aed9b0102adb3c332dcd50586c7fb28dc0f1490207ab9321673bf5
 - kind: project-relative
   target: agent-skills
   value: .agents/skills/agent-desktop/references/commands-observation.md
@@ -2342,7 +2342,7 @@ deployments:
   owners:
   - vercel-labs/agent-desktop/skills/agent-desktop
   active_owner: vercel-labs/agent-desktop/skills/agent-desktop
-  content_hash: sha256:dce6dadad7d54ecde98f309df6842fa1982ee498e0e04171e142c6d0a3d100b7
+  content_hash: sha256:9c31aec6f51dacfc14ff68dc04533a8dcf3ed5edb3f935d90e453f471894b936
 - kind: project-relative
   target: agent-skills
   value: .agents/skills/agent-desktop/references/commands-system.md
@@ -2351,7 +2351,7 @@ deployments:
   owners:
   - vercel-labs/agent-desktop/skills/agent-desktop
   active_owner: vercel-labs/agent-desktop/skills/agent-desktop
-  content_hash: sha256:164676e9ffddae0895e86ae1a638edbd0823c7e849ae102ff251d9b957ee60df
+  content_hash: sha256:673c931a285b360c1deb669983e87ca8571ee8520f48c81f00d49f711e0e95ac
 - kind: project-relative
   target: agent-skills
   value: .agents/skills/agent-desktop/references/workflows.md
