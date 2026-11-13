@@ -11,8 +11,8 @@
     "source": "github",
     "repository": "oliexe/paseo-bots",
     "directory": "",
-    "revision": "39a700006c204aef25de4e0db11419b6f75ac814",
-    "hash": "sha256-bVKoX3NcKCSpq2MHRdGWG3aaWVGnTKVPitSDNLOwyYg=",
+    "revision": "069f8ebc5de28568461e224747dac9d54941ce2b",
+    "hash": "sha256-F58L4x5Dq42teUA9ULCdRCSAHkqNQ3zhevZaMX+c1Zk=",
     "enabled": true
   },
   "paseo-jira": {
