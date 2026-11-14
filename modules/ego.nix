@@ -15,11 +15,15 @@ in
     package = lib.mkOption {
       type = lib.types.package;
       default = egoLite;
-      description = "Pinned Ego Lite app, CLI, and official browser skill.";
+      description = "CLI launcher for a separately installed Ego Lite app and pinned official browser skill.";
     };
   };
 
   config = lib.mkIf cfg.enable {
     environment.systemPackages = [ cfg.package ];
+    system.checks.text = lib.mkAfter ''
+      ${pkgs.bash}/bin/bash ${../scripts/ego/check-migration.sh} \
+        ${lib.escapeShellArg config.users.users.${config.system.primaryUser}.home} /Applications || exit 1
+    '';
   };
 }

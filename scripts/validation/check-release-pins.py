@@ -13,20 +13,13 @@ if not isinstance(pins, dict) or pins.keys() != expected:
 
 for name, pin in pins.items():
     fields = {"version", "hash", "skillHash"} if name == "officecli" else {"version", "hash"}
-    if name == "egoLite":
-        fields = {"version", "hash", "appBuild", "appHash"}
     if name == "sem":
         fields = {"version", "hash", "licenseHash"}
     if not isinstance(pin, dict) or pin.keys() != fields:
         raise SystemExit(f"{name}: expected {', '.join(sorted(fields))}")
     if not isinstance(pin["version"], str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9.+_-]*", pin["version"]):
         raise SystemExit(f"{name}: invalid version")
-    if name == "egoLite" and (
-        not isinstance(pin["appBuild"], str)
-        or not re.fullmatch(r"[A-Za-z0-9_-]+", pin["appBuild"])
-    ):
-        raise SystemExit(f"{name}: invalid appBuild")
-    for field in fields - {"version", "appBuild"}:
+    for field in fields - {"version"}:
         digest = pin[field]
         if not isinstance(digest, str) or not digest.startswith("sha256-"):
             raise SystemExit(f"{name}.{field}: expected sha256 SRI hash")

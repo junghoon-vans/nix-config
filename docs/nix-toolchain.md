@@ -48,6 +48,35 @@ Gno tools are built from a pinned commit rather than mutable `chain/mainnet` ass
 cache uses `proxyVendor` to retain the C sources needed for gnokey Ledger support. Installed
 binaries report their source commit.
 
+### Ego Lite
+
+Ego Lite's GUI is a versionless, mutable upstream download. It is the only app deliberately
+outside the fixed-release build contract: Nix never downloads its DMG, pins its GUI version,
+or checks a GUI hash. Other fetched artifacts remain version-pinned and integrity-hashed.
+The `egoLite` entry in `release-pins.json` pins only the GitHub archive used for the official
+browser skill; its version is not compared with the installed app.
+
+Install/update the genuine app manually from [Ego Lite](https://lite.ego.app/), using the
+normal macOS signature/notarization checks. Do not disable Gatekeeper or strip quarantine.
+Nix evaluation, builds, and activation never install or update this external app.
+The Nix-managed `ego-browser` launcher uses the installed app's bundled CLI, preferring
+`~/Applications/ego lite.app`, then `/Applications/ego lite.app`. For a custom location,
+set `EGO_LITE_APP` to the full `.app` path. An invalid explicit path fails without fallback.
+The launcher does not require app version metadata or match the skill archive version.
+The official skill path and agent integrations stay Nix-managed.
+
+Before the first activation after this change, install an independent app in one of those
+two standard locations. Do not link it to `/Applications/Nix Apps/ego lite.app` or the Nix
+store. nix-darwin replaces its managed `/Applications/Nix Apps` inventory during activation;
+the old Ego copy would be removed. A pre-activation check blocks that migration while the
+old managed app exists but neither external location has an executable bundled CLI.
+The check does not install, copy, delete, launch, or change permissions on any app.
+Browser profiles and authentication state remain untouched. Without an external app,
+new hosts can still build/activate; `ego-browser` exits with installation guidance.
+Packaged Hermes checks exercise the real launcher with an isolated CLI fixture and verify
+missing-app diagnostics. They do not install the GUI or prove live browser availability;
+the pinned skill remains available without the external app.
+
 ### Hermes
 
 Hermes and its messaging dependencies come from the upstream `hermes-agent` input.

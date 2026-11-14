@@ -106,7 +106,7 @@ Managed by: Nix system.
 | `cargo-nextest` | Next-generation test runner for Rust projects | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/languages/rust.nix`](../modules/languages/rust.nix) |
 | `clippy` | Bunch of lints to catch common mistakes and improve your Rust code | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/languages/rust.nix`](../modules/languages/rust.nix) |
 | `corepack` | Package manager version manager for Node.js projects | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/languages/node.nix`](../modules/languages/node.nix) |
-| `ego-lite` | Chromium browser for AI-agent automation with the ego-browser CLI | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/ego.nix`](../modules/ego.nix) |
+| `ego-lite` | Ego Lite CLI launcher and pinned official browser skill | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/ego.nix`](../modules/ego.nix) |
 | `gno-toolchain` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/languages/gno.nix`](../modules/languages/gno.nix) |
 | `gnomcp` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/mcp/gnomcp.nix`](../modules/mcp/gnomcp.nix) |
 | `gnopls` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/languages/gno.nix`](../modules/languages/gno.nix) |

@@ -16,11 +16,7 @@ let
 in
 
 {
-  nixpkgs.config.allowUnfreePredicate =
-    pkg:
-    builtins.elem (lib.getName pkg) (
-      [ "openmarket" ] ++ lib.optional config.workstation.ego.enable "ego-lite"
-    );
+  nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [ "openmarket" ];
 
   environment.systemPackages = [
     (pkgs.callPackage ../packages/apm.nix { })
