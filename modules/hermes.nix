@@ -38,6 +38,17 @@ let
             '';
           };
         }
+        // lib.optionalAttrs (baseNameOf path == "lib.nix") {
+          # Correct the workspace dependency hash for the pinned Hermes v0.23.1 source.
+          fetchPnpmDeps =
+            fetchArgs:
+            (upstream.callPackage ({ fetchPnpmDeps }: { inherit fetchPnpmDeps; }) { }).fetchPnpmDeps (
+              fetchArgs
+              // {
+                hash = "sha256-c5SncErlf7IRWYj+b8MsAle7aplRt6Ip7rHWS037wzo=";
+              }
+            );
+        }
       );
     version = lib.removePrefix "v" (builtins.fromJSON (builtins.readFile ../flake.lock))
     .nodes.hermes-agent.original.ref;
