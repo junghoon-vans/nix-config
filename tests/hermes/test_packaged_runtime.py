@@ -168,6 +168,18 @@ class PackagedHermesIntegration(unittest.TestCase):
         temporary = tempfile.TemporaryDirectory(prefix="hermes-runtime-check-")
         cls.addClassCleanup(temporary.cleanup)
         cls.root = Path(temporary.name)
+        # Exercise the real packaged launcher, never an installed GUI or browser.
+        cls.ego_fixture_app = cls.root / "offline Ego fixture.app"
+        fixture_helper = cls.ego_fixture_app / (
+            "Contents/Frameworks/ego Framework.framework/Versions/Current/Helpers/ego-browser"
+        )
+        fixture_helper.parent.mkdir(parents=True)
+        fixture_helper.write_text(
+            f"#!{sys.executable}\nimport json, sys\n"
+            "print(json.dumps({'fixture_argv': sys.argv[1:]}))\n"
+        )
+        fixture_helper.chmod(0o700)
+        cls.missing_ego_app = cls.root / "missing Ego fixture.app"
         home = cls.root / ".hermes/profiles/omp-worker"
         cls.home = home
         home.mkdir(parents=True, mode=0o700)
@@ -326,7 +338,7 @@ class PackagedHermesIntegration(unittest.TestCase):
             f"provider source: {expected_provider}"
         )
 
-    def test_ego_cli_resolves_from_launchd_path_without_app_setup(self):
+    def test_ego_launcher_resolves_from_launchd_path_with_external_app_fixture(self):
         definition = plistlib.loads(self.launchd_plist.read_bytes())
         launchd_path = definition["EnvironmentVariables"]["PATH"]
         path_entries = launchd_path.split(os.pathsep)
@@ -346,6 +358,7 @@ class PackagedHermesIntegration(unittest.TestCase):
                 "HOME": str(self.root),
                 "PATH": launchd_path,
                 "TMPDIR": str(self.root),
+                "EGO_LITE_APP": str(self.ego_fixture_app),
             },
             capture_output=True,
             text=True,
@@ -353,7 +366,27 @@ class PackagedHermesIntegration(unittest.TestCase):
             check=False,
         )
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        self.assertIn("[ego-browser:skill] end of guide", result.stdout + result.stderr)
+        self.assertEqual(json.loads(result.stdout), {"fixture_argv": ["skill"]})
+
+        # Explicit missing app keeps this deterministic even on a host with Ego installed.
+        missing = subprocess.run(
+            ["ego-browser", "skill"],
+            env={
+                "HOME": str(self.root),
+                "PATH": launchd_path,
+                "TMPDIR": str(self.root),
+                "EGO_LITE_APP": str(self.missing_ego_app),
+            },
+            capture_output=True,
+            text=True,
+            timeout=30,
+            check=False,
+        )
+        self.assertEqual(missing.returncode, 127)
+        self.assertEqual(missing.stdout, "")
+        self.assertIn("Install the official Ego Lite app", missing.stderr)
+        self.assertIn("EGO_LITE_APP", missing.stderr)
+        self.assertFalse(self.missing_ego_app.exists())
 
     def test_omp_read_discovers_official_ego_skill_from_launchd_path(self):
         definition = plistlib.loads(self.launchd_plist.read_bytes())
@@ -931,14 +964,36 @@ class PackagedHermesIntegration(unittest.TestCase):
         self.assertIn("ego_browser", {toolset for toolset, _, _ in get_plugin_toolsets()})
         import model_tools
 
-        result = model_tools.handle_function_call(
-            "ego_browser",
-            {"operation": "skill"},
-            task_id="isolated-ego-browser-skill",
-            enabled_toolsets=["ego_browser"],
+        with patch.dict(os.environ, {"EGO_LITE_APP": str(self.ego_fixture_app)}):
+            result = model_tools.handle_function_call(
+                "ego_browser",
+                {"operation": "skill"},
+                task_id="isolated-ego-browser-skill",
+                enabled_toolsets=["ego_browser"],
+            )
+        envelope = json.loads(result)
+        self.assertTrue(envelope["ok"], envelope)
+        self.assertEqual(
+            json.loads(envelope["data"]["skill"]), {"fixture_argv": ["skill"]}
         )
-        self.assertTrue(result, "ego_browser skill dispatch returned no result")
-        self.assertIn("[ego-browser:skill] end of guide", result)
+
+        with patch.dict(os.environ, {"EGO_LITE_APP": str(self.missing_ego_app)}):
+            result = model_tools.handle_function_call(
+                "ego_browser",
+                {"operation": "skill"},
+                task_id="isolated-ego-browser-missing-app",
+                enabled_toolsets=["ego_browser"],
+            )
+        envelope = json.loads(result)
+        self.assertFalse(envelope["ok"], envelope)
+        self.assertEqual(envelope["error"]["code"], "CLI_FAILED")
+        self.assertIn("Install the official Ego Lite app", envelope["error"]["message"])
+        self.assertIn("EGO_LITE_APP", envelope["error"]["message"])
+        self.assertEqual(
+            envelope["error"]["disposition"],
+            {"delivery": "not_delivered", "retry": "unsafe"},
+        )
+        self.assertFalse(self.missing_ego_app.exists())
 
     def test_ego_screenshot_dispatch_delivers_multimodal_image_offline(self):
         from types import SimpleNamespace

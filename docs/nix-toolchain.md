@@ -73,6 +73,9 @@ old managed app exists but neither external location has an executable bundled C
 The check does not install, copy, delete, launch, or change permissions on any app.
 Browser profiles and authentication state remain untouched. Without an external app,
 new hosts can still build/activate; `ego-browser` exits with installation guidance.
+Packaged Hermes checks exercise the real launcher with an isolated CLI fixture and verify
+missing-app diagnostics. They do not install the GUI or prove live browser availability;
+the pinned skill remains available without the external app.
 
 ### Hermes
 
