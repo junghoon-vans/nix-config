@@ -2005,8 +2005,8 @@ dependencies:
 - repo_url: vercel-labs/agent-desktop
   name: agent-desktop
   host: github.com
-  resolved_commit: a7765959eb44d27d0f9b0799066e377b6d1d2cd1
-  resolved_ref: v1.3.0
+  resolved_commit: b0b7277bea09b770ef9d1fb45aad667bc432cd57
+  resolved_ref: v1.3.1
   version: unknown
   virtual_path: skills/agent-desktop
   is_virtual: true
