@@ -23,6 +23,7 @@ in
     (pkgs.callPackage ../packages/agent-desktop.nix { })
     (pkgs.callPackage ../packages/paseo.nix { })
     (pkgs.callPackage ../packages/openmarket.nix { })
+    (pkgs.callPackage ../packages/kiri.nix { })
     (pkgs.callPackage ../packages/sem.nix { })
     pkgs.gws
   ];
