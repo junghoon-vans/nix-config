@@ -19,6 +19,10 @@
     "version": "0.12.3",
     "hash": "sha256-EGI/U19OYb1RzEcZy3+ZWGDfrzcWPR9PqTaVLTu1Azw="
   },
+  "kiri": {
+    "version": "0.2.1",
+    "hash": "sha256-xCxRjrak78uZW1K5h7g+hIAooCDu9YcuCsFqHHgn//o="
+  },
   "officecli": {
     "version": "1.0.155",
     "hash": "sha256-a4PKxVEgmVAZ8pm2MtmnyeiSaPOCtybh2tEjhk47V6o=",
