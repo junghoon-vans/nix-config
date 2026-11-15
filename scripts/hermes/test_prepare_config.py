@@ -107,6 +107,67 @@ class HermesRuntimeConfig(unittest.TestCase):
             },
         )
 
+    def test_worker_approval_migration_preserves_local_state_and_sibling_defaults(self):
+        worker_defaults = {
+            "approvals": {
+                "mode": "manual",
+                "cron_mode": "approve",
+                "single_query_mode": "deny",
+                "unattended_mode": "deny",
+            },
+        }
+        self.write_defaults(self.defaults_path, worker_defaults)
+
+        sibling_defaults_path = self.store / "sibling-hermes-config.yaml"
+        self.write_defaults(sibling_defaults_path, {
+            "approvals": {
+                "mode": "manual",
+                "cron_mode": "deny",
+                "single_query_mode": "deny",
+                "unattended_mode": "deny",
+            },
+        })
+        sibling_content = sibling_defaults_path.read_bytes()
+
+        self.runtime.write_text(yaml.safe_dump({
+            "approvals": {
+                "mode": "off",
+                "cron_mode": "deny",
+                "single_query_mode": "approve",
+                "unattended_mode": "approve",
+                "local_approval_extension": "keep",
+            },
+            "api_key": "private-test-secret",
+            "command_allowlist": ["git status"],
+        }, sort_keys=False))
+        self.runtime.chmod(0o600)
+
+        self.check()
+
+        expected = {
+            "approvals": {
+                "mode": "manual",
+                "cron_mode": "approve",
+                "single_query_mode": "deny",
+                "unattended_mode": "deny",
+                "local_approval_extension": "keep",
+            },
+            "api_key": "private-test-secret",
+            "command_allowlist": ["git status"],
+        }
+        self.assertEqual(yaml.safe_load(self.runtime.read_text()), expected)
+        first_content = self.runtime.read_bytes()
+        first_stat = self.runtime.stat()
+
+        self.check()
+
+        repeated_stat = self.runtime.stat()
+        self.assertEqual(yaml.safe_load(self.runtime.read_text()), expected)
+        self.assertEqual(self.runtime.read_bytes(), first_content)
+        self.assertEqual(repeated_stat.st_ino, first_stat.st_ino)
+        self.assertEqual(repeated_stat.st_mtime_ns, first_stat.st_mtime_ns)
+        self.assertEqual(sibling_defaults_path.read_bytes(), sibling_content)
+
     def test_empty_and_scalar_overrides_preserve_unowned_mapping_keys(self):
         self.runtime.write_text(yaml.safe_dump({
             "model": "legacy-model",

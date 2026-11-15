@@ -269,6 +269,9 @@ let
     };
     approvals = {
       mode = "manual";
+      # Trust every cron job in omp-worker, not just the hourly CI monitor.
+      # Other profiles keep Hermes's deny default; interactive approvals stay manual.
+      cron_mode = "approve";
       timeout = 300;
       unattended_mode = "deny";
       single_query_mode = "deny";

@@ -238,6 +238,10 @@ class PackagedHermesIntegration(unittest.TestCase):
             "/nix/store/old-hermes-provider/skills",
         ]
         previous["nix_managed_skill_names"] = ["ego-browser"]
+        previous.setdefault("approvals", {})["cron_mode"] = "deny"
+        previous["approvals"]["discord_prompt_timeout"] = 45
+        previous["command_allowlist"] = ["git status --short"]
+        previous["synthetic_local_api_key"] = "synthetic-runtime-merge-credential"
         runtime_config = home / "config.yaml"
         runtime_config.write_text(json.dumps(previous))
         runtime_config.chmod(0o600)
@@ -929,9 +933,41 @@ class PackagedHermesIntegration(unittest.TestCase):
         for platform in ("slack", "cli"):
             with self.subTest(platform=platform):
                 self.check_platform_tools(self.config, platform)
+
+    def test_generated_config_migrates_worker_approval_policy_and_preserves_local_values(self):
         self.assertEqual(self.config["approvals"]["mode"], "manual")
-        self.assertEqual(self.config["approvals"]["unattended_mode"], "deny")
+        self.assertEqual(self.config["approvals"]["cron_mode"], "approve")
         self.assertEqual(self.config["approvals"]["single_query_mode"], "deny")
+        self.assertEqual(self.config["approvals"]["unattended_mode"], "deny")
+        self.assertEqual(self.config["approvals"]["discord_prompt_timeout"], 45)
+        self.assertEqual(self.config["command_allowlist"], ["git status --short"])
+        self.assertEqual(
+            self.config["synthetic_local_api_key"],
+            "synthetic-runtime-merge-credential",
+        )
+
+    def test_execute_code_guard_uses_worker_cron_approval_policy(self):
+        from tools import approval, approval_context
+
+        self.assertEqual(self.config["approvals"]["cron_mode"], "approve")
+        with (
+            patch.dict(os.environ, {"HERMES_CRON_SESSION": "1", "HERMES_SINGLE_QUERY_SESSION": ""}),
+            patch.object(approval, "_yolo_active", return_value=False),
+        ):
+            worker_result = approval.check_execute_code_guard(
+                "raise RuntimeError('the guard must not execute this code')",
+                "local",
+            )
+            self.assertTrue(worker_result["approved"], worker_result)
+            with patch.object(approval_context, "_get_cron_approval_mode", return_value="deny"):
+                isolated_deny_result = approval.check_execute_code_guard(
+                    "raise RuntimeError('the guard must not execute this code')",
+                    "local",
+                )
+        self.assertFalse(isolated_deny_result["approved"], isolated_deny_result)
+        self.assertEqual(isolated_deny_result["pattern_key"], "execute_code")
+
+
 
 
     def test_ego_browser_plugin_is_installed_and_configured(self):
