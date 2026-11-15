@@ -23,6 +23,8 @@ let
     pname = "gno-toolchain";
     version = "unstable-${builtins.substring 0 7 gnoRev}";
     src = gnoSource;
+    # Compiler diagnostics may retain a relative path prefix; keep checks enabled.
+    patches = [ ../../patches/gno/transpile-diagnostic-path.patch ];
     # Preserve the HID C sources used by gnokey's Ledger support.
     proxyVendor = true;
     vendorHash = gnoVendorHash;
@@ -33,6 +35,11 @@ let
     ldflags = [ "-X github.com/gnolang/gno/tm2/pkg/version.Version=${gnoRev}" ];
     # Upstream CLI tests expect the default development version in test binaries.
     checkFlags = [ "-ldflags=" ];
+    nativeCheckInputs = [ pkgs.python3 ];
+    preCheck = ''
+      python3 -B ${../../scripts/validation/check-gno-transpile-fixture.py} \
+        gnovm/cmd/gno/testdata/transpile/gobuild_flag_build_error.txtar
+    '';
     nativeBuildInputs = [ pkgs.makeWrapper ];
     postFixup = ''
       wrapProgram "$out/bin/gno" --set GNOROOT ${gnoSource}
