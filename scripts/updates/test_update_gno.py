@@ -45,9 +45,14 @@ class GnoUpdateTests(unittest.TestCase):
             path = root / "modules/languages/gno.nix"
             path.parent.mkdir(parents=True)
             path.write_text(original)
-            checker = root / "scripts/validation/check-gnopls.py"
-            checker.parent.mkdir(parents=True)
-            shutil.copyfile(source / checker.relative_to(root), checker)
+            for relative in (
+                "scripts/validation/check-gnopls.py",
+                "scripts/validation/check-gno-transpile-fixture.py",
+                "patches/gno/transpile-diagnostic-path.patch",
+            ):
+                target = root / relative
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(source / relative, target)
             for name in ("flake.nix", "flake.lock"):
                 shutil.copyfile(source / name, root / name)
             run = subprocess.run
@@ -82,9 +87,14 @@ class GnoUpdateTests(unittest.TestCase):
             path = root / "modules/languages/gno.nix"
             path.parent.mkdir(parents=True)
             path.write_text(original)
-            checker = root / "scripts/validation/check-gnopls.py"
-            checker.parent.mkdir(parents=True)
-            shutil.copyfile(updater.ROOT / checker.relative_to(root), checker)
+            for relative in (
+                "scripts/validation/check-gnopls.py",
+                "scripts/validation/check-gno-transpile-fixture.py",
+                "patches/gno/transpile-diagnostic-path.patch",
+            ):
+                target = root / relative
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(updater.ROOT / relative, target)
             prefetched = subprocess.CompletedProcess([], 0, '{"hash": "sha256-new-source"}', "")
             with patch.object(updater, "ROOT", root), \
                  patch.object(updater, "latest_release", side_effect=[("v1.5.1", "a" * 40), ("v0.1.0", "b" * 40)]), \
