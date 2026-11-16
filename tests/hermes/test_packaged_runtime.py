@@ -650,6 +650,10 @@ class PackagedHermesIntegration(unittest.TestCase):
                 "notion-get-tool-access",
                 "notion-query-data-sources",
                 "notion-get-comments",
+                "notion-create-pages",
+                "notion-update-page",
+                "notion-update-data-source",
+                "notion-get-async-task",
             ),
             "github": (
                 "get_me",
@@ -680,6 +684,10 @@ class PackagedHermesIntegration(unittest.TestCase):
                 "mcp__notion__notion_get_tool_access",
                 "mcp__notion__notion_query_data_sources",
                 "mcp__notion__notion_get_comments",
+                "mcp__notion__notion_create_pages",
+                "mcp__notion__notion_update_page",
+                "mcp__notion__notion_update_data_source",
+                "mcp__notion__notion_get_async_task",
             },
             "github": {
                 "mcp__github__get_me",
@@ -720,8 +728,14 @@ class PackagedHermesIntegration(unittest.TestCase):
                 "notion-get-tool-access",
                 "notion-query-data-sources",
                 "notion-get-comments",
-                "create_page",
-                "update_page",
+                "notion-create-pages",
+                "notion-update-page",
+                "notion-update-data-source",
+                "notion-get-async-task",
+                "notion-delete-pages",
+                "notion-delete-databases",
+                "notion-move-pages",
+                "notion-create-comment",
                 "search_people",
             ),
             "github": (
@@ -750,14 +764,21 @@ class PackagedHermesIntegration(unittest.TestCase):
             "aside": ("browser_profiles", "exec", "repl", "memory_search"),
         }
         excluded_mutation_tools = {
-            "notion": {"create_page", "update_page"},
+            "notion": {
+                "notion-delete-pages",
+                "notion-delete-databases",
+                "notion-move-pages",
+                "notion-create-comment",
+            },
             "github": {"create_issue"},
             "atlassian": {"executeWrite", "executeDestructive"},
         }
         excluded_registered_tools = {
             "notion": {
-                "mcp__notion__create_page",
-                "mcp__notion__update_page",
+                "mcp__notion__notion_delete_pages",
+                "mcp__notion__notion_delete_databases",
+                "mcp__notion__notion_move_pages",
+                "mcp__notion__notion_create_comment",
             },
             "github": {"mcp__github__create_issue"},
             "atlassian": {
@@ -768,8 +789,9 @@ class PackagedHermesIntegration(unittest.TestCase):
         for name, excluded in excluded_mutation_tools.items():
             self.assertTrue(excluded <= set(discovered_tools[name]))
         write_tools = {
-            "create_page",
-            "update_page",
+            "notion-create-pages",
+            "notion-update-page",
+            "notion-update-data-source",
             "create_issue",
             "executeWrite",
             "executeDestructive",

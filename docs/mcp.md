@@ -30,7 +30,8 @@ The Hermes version is pinned in `flake.nix` / `flake.lock`. Nix generates
 private writable `config.yaml`. CLI and Slack expose the native MCP toolsets alongside
 `delegation`, `cronjob`, `session_search`, `memory`, and `skills`. Repository inspection,
 implementation, verification, `gnomcp`, UX/UI gates, and other OMP-only capabilities go through
-`delegate_task`'s `omp` route. Other profiles and the default Hermes home are unchanged.
+`delegate_task`'s `omp` route; allowlisted native Notion writes may be used directly. Other profiles
+and the default Hermes home are unchanged.
 
 ### Context7
 
@@ -81,10 +82,20 @@ sessions are currently exposed.
 
 Notion connects to `https://mcp.notion.com/mcp` with native `auth: oauth`.
 Its server-native allowlist is `notion-search`, `notion-fetch`, `notion-get-self`,
-`notion-get-tool-access`, `notion-query-data-sources`, and `notion-get-comments`.
-Resource listing/reading stays enabled so vendor instructions and auth/bootstrap guidance
-remain accessible; prompts and content mutation tools are not exposed. This is a client
-tool restriction, not a reduction of permissions granted by the Notion OAuth consent.
+`notion-get-tool-access`, `notion-query-data-sources`, `notion-get-comments`,
+`notion-create-pages`, `notion-update-page`, `notion-update-data-source`, and
+`notion-get-async-task`. The first six remain read tools; the latter tools allow page/row
+creation, page/property/content updates, data-source schema/option updates, and checking
+asynchronous write status. Resource listing/reading remains enabled for vendor instructions
+and auth/bootstrap guidance; prompts remain disabled. These are authorized Notion writes
+through the explicitly allowlisted native tools, while GitHub and Atlassian remain read-only.
+The allowlist filters which tools the client exposes; it neither narrows OAuth consent nor
+constrains destructive arguments of an allowed tool.
+
+Before changing data-source options, fetch the current schema and preserve existing options.
+Require the user's explicit confirmation before destructive changes, including trashing pages,
+removing options, dropping schema, or deleting content. Apply the same confirmation requirement
+to any other destructive mutation. Async writes must be checked with `notion-get-async-task`.
 
 GitHub connects to `https://api.githubcopilot.com/mcp/` with `X-MCP-Readonly: true`
 and the `context,repos,pull_requests,actions` toolsets. Its server-native allowlist is
