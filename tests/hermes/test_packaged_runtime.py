@@ -556,13 +556,36 @@ atexit.register(_record_runtime)
     def test_home_manager_agent_is_outside_upstream_service_ownership(self):
         from hermes_cli import gateway
 
+        self.assertTrue(self.launchd_plist.is_file())
+        self.assertEqual(self.launchd_plist.parent.name, "LaunchAgents")
+        self.assertEqual(self.launchd_plist.name, "org.nixos.hermes.gateway-omp-worker.plist")
+        activation_package = self.launchd_plist.parent.parent
+        self.assertTrue((activation_package / "activate").is_file())
+
         definition = plistlib.loads(self.launchd_plist.read_bytes())
         label = "org.nixos.hermes.gateway-omp-worker"
         self.assertEqual(definition.get("Label"), label)
+        launchd_command = _launchd_command_from_definition(definition)
         self.assertEqual(
-            _hermes_cli_args_from_definition(definition),
+            launchd_command[2:],
             ["--profile", "omp-worker", "gateway", "run", "--external-supervisor"],
         )
+
+        host_executable, hermes_executable = launchd_command[:2]
+        gateway_app = Path(host_executable).parents[2]
+        self.assertEqual(gateway_app.name, "Hermes Gateway (omp-worker).app")
+        bundle = plistlib.loads((gateway_app / "Contents/Info.plist").read_bytes())
+        self.assertEqual(bundle.get("CFBundleIdentifier"), "org.nixos.hermes.gateway.omp-worker")
+        self.assertEqual(bundle.get("CFBundleExecutable"), "hermes-gateway-host")
+        self.assertEqual(
+            Path(host_executable).resolve(),
+            (gateway_app / "Contents/MacOS" / bundle["CFBundleExecutable"]).resolve(),
+        )
+
+        official_hermes = shutil.which("hermes", path=definition["EnvironmentVariables"]["PATH"])
+        self.assertIsNotNone(official_hermes)
+        self.assertEqual(Path(hermes_executable).resolve(), Path(official_hermes).resolve())
+
         profile_home = Path(definition["EnvironmentVariables"]["HERMES_HOME"])
         self.assertEqual(profile_home.parts[-3:], (".hermes", "profiles", "omp-worker"))
         self.assertEqual(definition.get("KeepAlive"), {"SuccessfulExit": False})
