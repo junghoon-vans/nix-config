@@ -179,39 +179,110 @@ def _skill_aliases(skill_dir, root):
 
 
 def _skill_projection_entries(source, managed_names):
-    entries = []
-    collision = False
     active = set()
 
-    def visit(directory, relative):
-        nonlocal collision
-        resolved = directory.resolve()
+    def resolve_source_path(path, skill_root):
+        try:
+            resolved = path.resolve(strict=True)
+        except (OSError, RuntimeError) as error:
+            raise RuntimeError(f"External skill source contains an invalid path: {path}") from error
+        if not resolved.is_relative_to(source):
+            raise RuntimeError(f"External skill source path escapes its root: {path}")
+        if skill_root is not None and not resolved.is_relative_to(skill_root):
+            raise RuntimeError(f"External skill source path escapes its skill directory: {path}")
+        return resolved
+
+    def inspect(directory, relative, owning_skill=None):
+        try:
+            resolved = directory.resolve(strict=True)
+        except (OSError, RuntimeError) as error:
+            raise RuntimeError(f"External skill source contains an invalid directory: {directory}") from error
+        if not resolved.is_relative_to(source):
+            raise RuntimeError(f"External skill source symlink escapes its root: {directory}")
+
+        is_skill = (directory / "SKILL.md").is_file()
+        skill_root = resolved if is_skill else owning_skill
+        if directory.is_symlink():
+            resolve_source_path(directory, skill_root)
+        metadata_path = directory / "SKILL.md"
+        if is_skill and metadata_path.is_symlink():
+            resolve_source_path(metadata_path, skill_root)
         if resolved in active:
-            return
+            return {
+                "relative": relative,
+                "resolved": resolved,
+                "is_skill": is_skill,
+                "skill_root": skill_root,
+                "shadowed": False,
+                "collision": False,
+                "files": [],
+                "children": [],
+            }
+
+        shadowed = bool(managed_names) and is_skill and bool(_skill_aliases(directory, source) & managed_names)
         active.add(resolved)
-        if (directory / "SKILL.md").is_file() and _skill_aliases(directory, source) & managed_names:
-            collision = True
-            active.remove(resolved)
-            return
-        if relative.parts:
-            entries.append(["dir", relative.as_posix()])
-        for child in sorted(directory.iterdir(), key=lambda path: path.name):
+        files = []
+        children = []
+        collision = shadowed
+        # A shadowed parent excludes its entire subtree, including references.
+        for child in [] if shadowed else sorted(directory.iterdir(), key=lambda path: path.name):
             child_relative = relative / child.name
             if child.is_dir():
-                if (child / "SKILL.md").is_file() and _skill_aliases(child, source) & managed_names:
-                    collision = True
-                    continue
-                visit(child, child_relative)
+                child_node = inspect(child, child_relative, skill_root)
+                children.append(child_node)
+                collision = collision or child_node["collision"]
+            elif child.is_file():
+                source_path = resolve_source_path(child, skill_root)
+                files.append((child, child_relative, source_path, skill_root))
             else:
-                entries.append(["link", child_relative.as_posix(), str(child.absolute())])
+                if child.is_symlink():
+                    resolve_source_path(child, skill_root)
+                raise RuntimeError(f"External skill source contains an unsupported entry: {child}")
         active.remove(resolved)
+        return {
+            "relative": relative,
+            "resolved": resolved,
+            "is_skill": is_skill,
+            "skill_root": skill_root,
+            "shadowed": shadowed,
+            "collision": collision,
+            "files": files,
+            "children": children,
+        }
 
-    visit(source, Path())
-    entries.sort()
-    return entries, collision
+    def project(node):
+        if node["shadowed"]:
+            return []
+        relative = node["relative"]
+        children = node["children"]
+        if relative.parts and node["is_skill"] and not any(child["collision"] for child in children):
+            return [["skill", relative.as_posix(), str(node["resolved"])]]
+
+        entries = [["dir", relative.as_posix()]] if relative.parts else []
+        for source_path, child_relative, resolved, skill_root in node["files"]:
+            try:
+                current = resolve_source_path(source_path, skill_root)
+                mode = stat.S_IMODE(current.stat().st_mode) & 0o777
+                digest = _file_sha256(current)
+            except OSError as error:
+                raise RuntimeError(f"Unable to read external skill source file: {source_path}") from error
+            if current != resolved:
+                raise RuntimeError(f"External skill source changed while being projected: {source_path}")
+            entries.append([
+                "file", child_relative.as_posix(), digest, mode, str(resolved),
+                str(skill_root or source),
+            ])
+        for child in children:
+            entries.extend(project(child))
+        return entries
+
+    tree = inspect(source, Path())
+    if not tree["collision"]:
+        return [], False
+    return sorted(project(tree)), True
 
 
-def _actual_projection_entries(path):
+def _actual_projection_entries(path, include_file_hashes=False):
     entries = []
     for directory, names, files in os.walk(path, followlinks=False):
         parent = Path(directory)
@@ -228,9 +299,32 @@ def _actual_projection_entries(path):
             relative = child.relative_to(path).as_posix()
             if child.is_symlink():
                 entries.append(["link", relative, os.readlink(child)])
+            elif include_file_hashes:
+                mode = stat.S_IMODE(child.stat().st_mode) & 0o777
+                entries.append(["file", relative, _file_sha256(child), mode])
             else:
                 entries.append(["file", relative])
     return sorted(entries)
+
+
+def _file_sha256(path):
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _expected_projection_entries(entries):
+    actual = []
+    for kind, relative, *target in entries:
+        if kind == "dir":
+            actual.append(["dir", relative])
+        elif kind == "skill":
+            actual.append(["link", relative, target[0]])
+        else:
+            actual.append(["file", relative, target[0], target[1]])
+    return sorted(actual)
 
 
 def _projection_base(home, create=False):
@@ -261,9 +355,21 @@ def _projection_manifest(path, base):
         value = json.loads(marker.read_text(encoding="utf-8"))
     except (FileNotFoundError, OSError, ValueError):
         return None
-    if not isinstance(value, dict) or value.get("path") != str(path) or value.get("version") != 1:
+    if not isinstance(value, dict) or value.get("path") != str(path):
         return None
-    if value.get("entries") != _actual_projection_entries(path):
+    if value.get("version") == 1:
+        try:
+            if value.get("entries") != _actual_projection_entries(path):
+                return None
+        except OSError:
+            return None
+    elif value.get("version") == 2:
+        try:
+            if value.get("projection_entries") != _actual_projection_entries(path, include_file_hashes=True):
+                return None
+        except OSError:
+            return None
+    else:
         return None
     return value
 
@@ -282,7 +388,7 @@ def _remove_owned_projection(path_value, home):
 
 def _project_external_root(value, home, managed_names):
     source = _external_path(value, home)
-    if not source.is_dir() or not managed_names:
+    if not source.is_dir():
         return value, None
     source = source.resolve()
     entries, collision = _skill_projection_entries(source, managed_names)
@@ -295,7 +401,7 @@ def _project_external_root(value, home, managed_names):
     if in_store and not entries:
         return None, None
     payload = json.dumps(
-        [str(source), sorted(managed_names), entries],
+        [2, str(source), sorted(managed_names), entries],
         ensure_ascii=False,
         separators=(",", ":"),
     ).encode("utf-8")
@@ -304,14 +410,16 @@ def _project_external_root(value, home, managed_names):
     projection = base / name
     marker = base / f"{name}.json"
     expected = {
-        "version": 1,
+        "version": 2,
         "path": str(projection),
         "source": str(source),
         "managed_names": sorted(managed_names),
         "entries": entries,
+        "projection_entries": _expected_projection_entries(entries),
     }
     if projection.exists() or projection.is_symlink():
-        if _projection_manifest(projection, base) != expected:
+        manifest = _projection_manifest(projection, base)
+        if manifest is None or any(manifest.get(key) != value for key, value in expected.items()):
             raise RuntimeError(f"Refusing to replace an unowned managed skill projection: {projection}")
         return str(projection), str(value)
     if marker.exists() or marker.is_symlink():
@@ -335,9 +443,30 @@ def _project_external_root(value, home, managed_names):
             destination = temporary / relative
             if kind == "dir":
                 destination.mkdir(parents=True, exist_ok=True, mode=0o700)
+            elif kind == "skill":
+                destination.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+                destination.symlink_to(target[0], target_is_directory=True)
             else:
                 destination.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
-                destination.symlink_to(target[0])
+                source_file = source / relative
+                try:
+                    current = source_file.resolve(strict=True)
+                except (OSError, RuntimeError) as error:
+                    raise RuntimeError(f"Unable to read external skill source file: {source_file}") from error
+                skill_root = Path(target[3])
+                if not current.is_relative_to(source) or not current.is_relative_to(skill_root):
+                    raise RuntimeError(f"External skill source path escapes its allowed directory: {source_file}")
+                if current != Path(target[2]):
+                    raise RuntimeError(f"External skill source changed while being projected: {source_file}")
+                try:
+                    content = current.read_bytes()
+                    mode = stat.S_IMODE(current.stat().st_mode) & 0o777
+                except OSError as error:
+                    raise RuntimeError(f"Unable to read external skill source file: {source_file}") from error
+                if hashlib.sha256(content).hexdigest() != target[0] or mode != target[1]:
+                    raise RuntimeError(f"External skill source changed while being projected: {source_file}")
+                destination.write_bytes(content)
+                destination.chmod(mode)
         marker_descriptor, marker_temporary = tempfile.mkstemp(prefix=".marker-", dir=base)
         os.fchmod(marker_descriptor, 0o600)
         with os.fdopen(marker_descriptor, "w", encoding="utf-8") as stream:
