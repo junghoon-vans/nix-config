@@ -2251,8 +2251,8 @@ dependencies:
 - repo_url: vercel-labs/skills
   name: find-skills
   host: github.com
-  resolved_commit: e781cb4d07433dfe1d19e924ed45cc61738c55ec
-  resolved_ref: v1.8.1
+  resolved_commit: 50894c1d98bc45ca1ab127213e59d6525065b5e7
+  resolved_ref: v1.9.0
   version: unknown
   virtual_path: skills/find-skills
   is_virtual: true
