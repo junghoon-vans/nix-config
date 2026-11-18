@@ -120,9 +120,10 @@ class EnableUpdateAutomergeTests(unittest.TestCase):
     def test_all_real_updaters_enable_only_exact_head_squash(self):
         cases = {
             "homebrew": ["flake.lock"],
-            "apm": ["release-pins.json"], "bun": ["release-pins.json"],
-            "gnomcp": ["release-pins.json"], "omp": ["release-pins.json"],
-            "paseo": ["release-pins.json"], "gno": ["modules/languages/gno.nix"],
+            "apm": ["release-pins.json", "apm.lock.yaml"],
+            "bun": ["release-pins.json"], "gnomcp": ["release-pins.json"],
+            "omp": ["release-pins.json"], "paseo": ["release-pins.json"],
+            "gno": ["modules/languages/gno.nix"],
             "hermes": ["flake.nix", "flake.lock"],
             "apm-skills": ["apm.yml", "apm.lock.yaml", "docs/skills.md"],
             "npm-mcps": ["home/.omp/agent/mcp.json"],
