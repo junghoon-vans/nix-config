@@ -71,17 +71,13 @@ class WeeklyDiskMaintenanceTests(unittest.TestCase):
             "--docker-prune",
             "--nix-gc",
             WEEKLY_DISK_DRY_RUN="1",
+            WEEKLY_DISK_THRESHOLD_PERCENT="95",
         )
 
         self.assertEqual(result.returncode, 0)
         calls = self.calls.read_text() if self.calls.exists() else ""
         self.assertNotIn("mole clean", calls)
-        for command in (
-            "docker builder prune --force",
-            "docker image prune --all --force",
-            "docker container prune --force",
-        ):
-            self.assertNotIn(command, calls)
+        self.assertFalse(any(" prune " in call for call in calls.splitlines()))
 
     def test_zero_runs_only_opted_in_cleanup_stub(self):
         result = self.run_maintenance("--mole-clean", WEEKLY_DISK_DRY_RUN="0")
@@ -100,6 +96,40 @@ class WeeklyDiskMaintenanceTests(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0)
         self.assertFalse(self.calls.exists())
+
+    def test_docker_cleanup_runs_below_threshold_with_age_limit_and_no_data_pruning(self):
+        result = self.run_maintenance("--docker-prune", WEEKLY_DISK_THRESHOLD_PERCENT="95")
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(
+            self.calls.read_text().splitlines(),
+            [
+                "docker info",
+                "docker builder prune --all --force --filter until=168h",
+                "docker image prune --all --force --filter until=168h",
+                "docker system df",
+            ],
+        )
+
+    def test_docker_unavailable_does_not_attempt_cleanup(self):
+        self.write_stub("docker", 'printf "docker %s\\n" "$*" >>"$CALL_LOG"\nexit 1\n')
+
+        result = self.run_maintenance("--docker-prune")
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.calls.read_text(), "docker info\n")
+
+    def test_docker_prune_failure_is_reported(self):
+        self.write_stub(
+            "docker",
+            'if [ "$1" = "builder" ]; then exit 19; fi\n'
+            'printf "docker %s\\n" "$*" >>"$CALL_LOG"\n',
+        )
+
+        result = self.run_maintenance("--docker-prune")
+
+        self.assertEqual(result.returncode, 19)
+        self.assertEqual(self.calls.read_text(), "docker info\n")
 
     def test_nix_gc_failure_is_reported_even_below_disk_threshold(self):
         result = self.run_maintenance("--nix-gc", WEEKLY_DISK_THRESHOLD_PERCENT="95")
