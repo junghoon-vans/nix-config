@@ -1,5 +1,5 @@
 lockfile_version: '1'
-apm_version: 0.35.1
+apm_version: 0.36.0
 dependencies:
 - repo_url: _local/humanize-korean
   name: humanize-korean
@@ -33,10 +33,16 @@ dependencies:
   package_type: claude_skill
   deployed_files:
   - .agents/skills/documentation
+  - .agents/skills/documentation/LICENSE
   - .agents/skills/documentation/SKILL.md
   deployed_file_hashes:
+    .agents/skills/documentation/LICENSE: sha256:a6946284993aeec75c7d75906064b66210c46051e562077efb30eb6dcfe72e26
     .agents/skills/documentation/SKILL.md: sha256:1d469418f786a05be83d2a05f04d68788aeed584d13863a650f5ad73c6c4cf50
   content_hash: sha256:c24a1672a7edad51225859d6549d9a61892f704a4527a65ce3cddd913ca04550
+  carried_licenses:
+  - path: LICENSE
+    source: LICENSE
+    hash: sha256:a6946284993aeec75c7d75906064b66210c46051e562077efb30eb6dcfe72e26
 - repo_url: anthropics/knowledge-work-plugins
   name: incident-response
   host: github.com
@@ -48,10 +54,16 @@ dependencies:
   package_type: claude_skill
   deployed_files:
   - .agents/skills/incident-response
+  - .agents/skills/incident-response/LICENSE
   - .agents/skills/incident-response/SKILL.md
   deployed_file_hashes:
+    .agents/skills/incident-response/LICENSE: sha256:a6946284993aeec75c7d75906064b66210c46051e562077efb30eb6dcfe72e26
     .agents/skills/incident-response/SKILL.md: sha256:9eaa7a974c90395ac7116e82710f74546f38e69f735d78f684ee13fd79646e9a
   content_hash: sha256:7bca2a38e630dae90f022997b6a50754f6e9d83ca85f9134f677cfcde9c703a6
+  carried_licenses:
+  - path: LICENSE
+    source: LICENSE
+    hash: sha256:a6946284993aeec75c7d75906064b66210c46051e562077efb30eb6dcfe72e26
 - repo_url: anthropics/knowledge-work-plugins
   name: write-spec
   host: github.com
@@ -63,10 +75,16 @@ dependencies:
   package_type: claude_skill
   deployed_files:
   - .agents/skills/write-spec
+  - .agents/skills/write-spec/LICENSE
   - .agents/skills/write-spec/SKILL.md
   deployed_file_hashes:
+    .agents/skills/write-spec/LICENSE: sha256:cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30
     .agents/skills/write-spec/SKILL.md: sha256:ca6670913878b4ac4582727562bfced5271492a5a800d934f68c9e7bc1cd4dcc
   content_hash: sha256:be9823943cc5f15fba80d32308dd74406371986c1327842c5ce4fe276705fb6a
+  carried_licenses:
+  - path: LICENSE
+    source: product-management/LICENSE
+    hash: sha256:cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30
 - repo_url: anthropics/skills
   name: frontend-design
   host: github.com
@@ -221,10 +239,16 @@ dependencies:
   package_type: claude_skill
   deployed_files:
   - .agents/skills/kordoc
+  - .agents/skills/kordoc/LICENSE
   - .agents/skills/kordoc/SKILL.md
   deployed_file_hashes:
+    .agents/skills/kordoc/LICENSE: sha256:af5f2aced9ce13fa964a5ec9f7ab3271b139f10a1950f5c5408b7b3012369571
     .agents/skills/kordoc/SKILL.md: sha256:9988c58bc422070e2bbb9a62ab6751e5faa9a20e192f01998068e57cdebe1cdf
   content_hash: sha256:4e906cb03232633fbbf31ddb4072b17205d5c28c8a5a8582b606977fa4d9be76
+  carried_licenses:
+  - path: LICENSE
+    source: LICENSE
+    hash: sha256:af5f2aced9ce13fa964a5ec9f7ab3271b139f10a1950f5c5408b7b3012369571
 - repo_url: cloudflare/security-audit-skill
   name: security-audit
   host: github.com
@@ -243,6 +267,7 @@ dependencies:
   - .agents/skills/security-audit/DATA-ISOLATION-AND-LIFECYCLE.md
   - .agents/skills/security-audit/DESKTOP-MOBILE-AND-LOCAL-IPC.md
   - .agents/skills/security-audit/HUNTING.md
+  - .agents/skills/security-audit/LICENSE
   - .agents/skills/security-audit/MEMORY-SAFETY-AND-BINARY.md
   - .agents/skills/security-audit/PROTOCOLS-RPC-AND-MESSAGING.md
   - .agents/skills/security-audit/RECONNAISSANCE.md
@@ -264,6 +289,7 @@ dependencies:
     .agents/skills/security-audit/DATA-ISOLATION-AND-LIFECYCLE.md: sha256:307dcb3e24d292715c4a041190e7bb135646a37eb6187619ae01d000a634a4ad
     .agents/skills/security-audit/DESKTOP-MOBILE-AND-LOCAL-IPC.md: sha256:58eae8ee0ca6a46611c501ec5a3ab47fdff88dd7db0d8d74789bbf8bb19d8cb2
     .agents/skills/security-audit/HUNTING.md: sha256:71c121decea1322c47c718f6e110f1a892980bb4266bd7ac55ef043a213ade09
+    .agents/skills/security-audit/LICENSE: sha256:e598e694aa506650c7192d5ea3be0e50aca0d356ea00551c53429f0b01eb6391
     .agents/skills/security-audit/MEMORY-SAFETY-AND-BINARY.md: sha256:7c8b0dccfb35315cca2455509674d49632b2fe37e1f3aac16c1a496a7e9924a7
     .agents/skills/security-audit/PROTOCOLS-RPC-AND-MESSAGING.md: sha256:8b73816fa5b3697c9c40977f0c836b40f01d6e81929ff2720fe83ce089e9a619
     .agents/skills/security-audit/RECONNAISSANCE.md: sha256:02ca887aca84de8ae137f1891bd2f0a54f28d3fa6da92a27f54734382b3381a2
@@ -278,6 +304,10 @@ dependencies:
     .agents/skills/security-audit/validate-findings.cjs: sha256:e85f232e36bfac0f866f244da50376692d6b45c690beadcb00608b0e6c8b5283
     .agents/skills/security-audit/validate-findings.test.cjs: sha256:b92001117a92c4161d43777a0ba2fa182a8a4d97f2304cc8c0cee5331497b73b
   content_hash: sha256:ac796659de231c3ab76f6ee012836072bdc82928fb019199925c9062800e16c1
+  carried_licenses:
+  - path: LICENSE
+    source: LICENSE
+    hash: sha256:e598e694aa506650c7192d5ea3be0e50aca0d356ea00551c53429f0b01eb6391
 - repo_url: cursor/plugins
   name: principle-type-system-discipline
   host: github.com
@@ -289,10 +319,16 @@ dependencies:
   package_type: claude_skill
   deployed_files:
   - .agents/skills/principle-type-system-discipline
+  - .agents/skills/principle-type-system-discipline/LICENSE
   - .agents/skills/principle-type-system-discipline/SKILL.md
   deployed_file_hashes:
+    .agents/skills/principle-type-system-discipline/LICENSE: sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e
     .agents/skills/principle-type-system-discipline/SKILL.md: sha256:c83da8031ffb4c86410030d3e261f659598fca2b7d8158fd9dc269d70a3a025e
   content_hash: sha256:dbd4efbb3e6da61329f23b43301b8aa73fde79d6fca75be3d518f51abfd30e32
+  carried_licenses:
+  - path: LICENSE
+    source: pstack/LICENSE
+    hash: sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e
 - repo_url: cursor/plugins
   name: typescript-best-practices
   host: github.com
@@ -304,12 +340,18 @@ dependencies:
   package_type: claude_skill
   deployed_files:
   - .agents/skills/typescript-best-practices
+  - .agents/skills/typescript-best-practices/LICENSE
   - .agents/skills/typescript-best-practices/SKILL.md
   - .agents/skills/typescript-best-practices/references/patterns.md
   deployed_file_hashes:
+    .agents/skills/typescript-best-practices/LICENSE: sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e
     .agents/skills/typescript-best-practices/SKILL.md: sha256:b854da40f946f1cd4681785d3e802a2a592322d351f770f5057b56430edb35d0
     .agents/skills/typescript-best-practices/references/patterns.md: sha256:eb73b5f3514c0c14d14bafca59ffb54b161422ea5fc5fe65e60c5b4d71c40178
   content_hash: sha256:0db432842e1653fa2efbfdc47dfe51929d3cfc0079279930605c9e061791fae8
+  carried_licenses:
+  - path: LICENSE
+    source: pstack/LICENSE
+    hash: sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e
 - repo_url: github/awesome-copilot
   name: git-commit
   host: github.com
@@ -321,10 +363,16 @@ dependencies:
   package_type: claude_skill
   deployed_files:
   - .agents/skills/git-commit
+  - .agents/skills/git-commit/LICENSE
   - .agents/skills/git-commit/SKILL.md
   deployed_file_hashes:
+    .agents/skills/git-commit/LICENSE: sha256:e32449d23085399adc1222f7a17408b730550258e51627c153cb108ca9955823
     .agents/skills/git-commit/SKILL.md: sha256:554d1a3c6d95f15bc1170160659ecdc9a9958b64f377f3988941b672c249b13f
   content_hash: sha256:2607fc60629b82b257136dd2a7a373f0a4466c0b49df7746d845d59313c99b21
+  carried_licenses:
+  - path: LICENSE
+    source: LICENSE
+    hash: sha256:e32449d23085399adc1222f7a17408b730550258e51627c153cb108ca9955823
 - repo_url: heydamir/unslop
   name: unslop
   host: github.com
@@ -336,6 +384,7 @@ dependencies:
   package_type: claude_skill
   deployed_files:
   - .agents/skills/unslop
+  - .agents/skills/unslop/LICENSE
   - .agents/skills/unslop/SKILL.md
   - .agents/skills/unslop/references/effects.md
   - .agents/skills/unslop/references/refs.md
@@ -350,6 +399,7 @@ dependencies:
   - .agents/skills/unslop/scripts/snapshot.mjs
   - .agents/skills/unslop/scripts/story.mjs
   deployed_file_hashes:
+    .agents/skills/unslop/LICENSE: sha256:9ba9550ad48438d0836ddab3da480b3b69ffa0aac7b7878b5a0039e7ab429411
     .agents/skills/unslop/SKILL.md: sha256:5039a0146128fa25ccf0d8cad33c9cf42d15bbb17145615f5685873e372758dd
     .agents/skills/unslop/references/effects.md: sha256:ded4f679e22843a8f68860e6cda0396fa8b8fa27202400e08337143b485c86a4
     .agents/skills/unslop/references/refs.md: sha256:12a70ce17d574914ea69eb0809e5a9605de044df1b66619159c6d0b38d6b8353
@@ -364,6 +414,10 @@ dependencies:
     .agents/skills/unslop/scripts/snapshot.mjs: sha256:a0cd251b9e58655709558cffab29b1685cd1465a5dc5499c5181fe4185cdd3ab
     .agents/skills/unslop/scripts/story.mjs: sha256:ed83ac65c92290378fe874ebc3f7e61aab51a9128628f2057651dfb0f01c1815
   content_hash: sha256:6590d540174fea4363d385964eafaac017ce4e867b00a1f597611d9b72682d52
+  carried_licenses:
+  - path: LICENSE
+    source: LICENSE
+    hash: sha256:9ba9550ad48438d0836ddab3da480b3b69ffa0aac7b7878b5a0039e7ab429411
 - repo_url: jakubantalik/transitions.dev
   materialization_repo_url: Jakubantalik/transitions.dev
   name: transitions-dev
@@ -466,16 +520,22 @@ dependencies:
   package_type: claude_skill
   deployed_files:
   - .agents/skills/use-modern-go
+  - .agents/skills/use-modern-go/LICENSE
   - .agents/skills/use-modern-go/SKILL.md
   - .agents/skills/use-modern-go/scripts/VERSION
   - .agents/skills/use-modern-go/scripts/run-tool.ps1
   - .agents/skills/use-modern-go/scripts/run-tool.sh
   deployed_file_hashes:
+    .agents/skills/use-modern-go/LICENSE: sha256:304264c63c5fb4cf3bc22746f1fd8958fc34f69cf1a389f7c7b2182985691bfd
     .agents/skills/use-modern-go/SKILL.md: sha256:333346bebb212d7acded062cdeb1f5a01e421ebdab976c4c4fcb02cca31508f7
     .agents/skills/use-modern-go/scripts/VERSION: sha256:d0b4f9120ba026c00fa23cb84b4e1620a2e6436592e58155a5151653179572c0
     .agents/skills/use-modern-go/scripts/run-tool.ps1: sha256:7bd7bd8c8394e9cdbd290251b143e54639e527d52a1099135f1ba91edb5a677b
     .agents/skills/use-modern-go/scripts/run-tool.sh: sha256:a593b2484834fc7d068e7cbe1a09f92b149ed61b9a07556ea50790d95f50a25b
   content_hash: sha256:17fc96614baa7a671f1421a7412942af2b745681042f1030fc045fc5f93b35e5
+  carried_licenses:
+  - path: LICENSE
+    source: LICENSE
+    hash: sha256:304264c63c5fb4cf3bc22746f1fd8958fc34f69cf1a389f7c7b2182985691bfd
 - repo_url: leonxlnx/taste-skill
   materialization_repo_url: Leonxlnx/taste-skill
   alias: design-taste-frontend
@@ -489,6 +549,7 @@ dependencies:
   package_type: claude_skill
   deployed_files:
   - .agents/skills/design-taste-frontend
+  - .agents/skills/design-taste-frontend/LICENSE
   - .agents/skills/design-taste-frontend/README.md
   - .agents/skills/design-taste-frontend/SKILL.md
   - .agents/skills/design-taste-frontend/assets/app.css
@@ -529,6 +590,7 @@ dependencies:
   - .agents/skills/design-taste-frontend/scripts/lint.mjs
   - .agents/skills/design-taste-frontend/scripts/scenes.mjs
   deployed_file_hashes:
+    .agents/skills/design-taste-frontend/LICENSE: sha256:4575a543ab88dad12ccea7d97e563d0bce5b448b06072e65d3264497dad326df
     .agents/skills/design-taste-frontend/README.md: sha256:5e33fd716b3e1ffaca9340f645d44c193f9b446107fa67f0cce498d33025672c
     .agents/skills/design-taste-frontend/SKILL.md: sha256:3435ed963b15a1b6447746ec8844ab2cd38d8d2e8ead3451937f42df01e408c4
     .agents/skills/design-taste-frontend/assets/app.css: sha256:16518c3a999fb81b2698137f1f743128c189272e8b1d411c4b02598c6755b67f
@@ -569,6 +631,10 @@ dependencies:
     .agents/skills/design-taste-frontend/scripts/lint.mjs: sha256:05f2fae2f56fc051b539cdbacb43a6f78fbbfb9644bb74aa11be472ff12dcaf5
     .agents/skills/design-taste-frontend/scripts/scenes.mjs: sha256:234ec582e2b841457c33033feeeba8535f9ac285495a74d08dc533a1566c90d5
   content_hash: sha256:2d5cfa3d6116729411548ac7898d1f031882a3365f236ba81893cdd0257077ce
+  carried_licenses:
+  - path: LICENSE
+    source: LICENSE
+    hash: sha256:4575a543ab88dad12ccea7d97e563d0bce5b448b06072e65d3264497dad326df
 - repo_url: mattpocock/skills
   name: codebase-design
   host: github.com
@@ -582,14 +648,20 @@ dependencies:
   - .agents/skills/codebase-design
   - .agents/skills/codebase-design/DEEPENING.md
   - .agents/skills/codebase-design/DESIGN-IT-TWICE.md
+  - .agents/skills/codebase-design/LICENSE
   - .agents/skills/codebase-design/SKILL.md
   - .agents/skills/codebase-design/agents/openai.yaml
   deployed_file_hashes:
     .agents/skills/codebase-design/DEEPENING.md: sha256:f3dd099ce99289bd213914d8ee3e2429b78309c3957ca4583f7659551b1d53c1
     .agents/skills/codebase-design/DESIGN-IT-TWICE.md: sha256:52b52e75655a27aea59c6966b410bac82448968ad46ef1ebb9f07c274e3ae010
+    .agents/skills/codebase-design/LICENSE: sha256:0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5
     .agents/skills/codebase-design/SKILL.md: sha256:2c20617f87ec8af6a434859f381b2f061a69b530444e74eb39e78bb016a6d1e2
     .agents/skills/codebase-design/agents/openai.yaml: sha256:edebc9e4fcfe102114012575eaa9600b9b5fd08c311664f389c36e7bc717740f
   content_hash: sha256:07246bd43eadfb50ac686aee5297d2cb808bf5ad00fb2ed289416b4b79e7850c
+  carried_licenses:
+  - path: LICENSE
+    source: LICENSE
+    hash: sha256:0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5
 - repo_url: mattpocock/skills
   name: diagnosing-bugs
   host: github.com
@@ -601,14 +673,20 @@ dependencies:
   package_type: claude_skill
   deployed_files:
   - .agents/skills/diagnosing-bugs
+  - .agents/skills/diagnosing-bugs/LICENSE
   - .agents/skills/diagnosing-bugs/SKILL.md
   - .agents/skills/diagnosing-bugs/agents/openai.yaml
   - .agents/skills/diagnosing-bugs/scripts/hitl-loop.template.sh
   deployed_file_hashes:
+    .agents/skills/diagnosing-bugs/LICENSE: sha256:0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5
     .agents/skills/diagnosing-bugs/SKILL.md: sha256:849198df88cdb65fd0d97236604c1fca7ff2f22d2f705f9724a800d0266b118d
     .agents/skills/diagnosing-bugs/agents/openai.yaml: sha256:3e430dbe4334a87597488c060cb3dc3786bb00c9182877d6f5ec41f62490e90b
     .agents/skills/diagnosing-bugs/scripts/hitl-loop.template.sh: sha256:35103539fc36873eea36074769ad454f9379d6fc8b2dc0e26ce987fd3bfe5503
   content_hash: sha256:9b24ecaf15dd8d5594f973c590c6904d90dd3b50f8853fefd2341b7fd4a156bf
+  carried_licenses:
+  - path: LICENSE
+    source: LICENSE
+    hash: sha256:0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5
 - repo_url: mattpocock/skills
   name: tdd
   host: github.com
@@ -620,16 +698,22 @@ dependencies:
   package_type: claude_skill
   deployed_files:
   - .agents/skills/tdd
+  - .agents/skills/tdd/LICENSE
   - .agents/skills/tdd/SKILL.md
   - .agents/skills/tdd/agents/openai.yaml
   - .agents/skills/tdd/mocking.md
   - .agents/skills/tdd/tests.md
   deployed_file_hashes:
+    .agents/skills/tdd/LICENSE: sha256:0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5
     .agents/skills/tdd/SKILL.md: sha256:5505d25bbaa8fc14a79e4d20163936958992a2995b7f1dd1d6197edc9ed722e0
     .agents/skills/tdd/agents/openai.yaml: sha256:ea6f01cf1b8c06a4b0f5b649d74b1b8ce8685e72af1b38d70d877693e092af0b
     .agents/skills/tdd/mocking.md: sha256:3ceb807fdf4a47d6a93d4d9a891e5ba6d362a6247bd08adc451feebfc17361ef
     .agents/skills/tdd/tests.md: sha256:859f9e592c188fda4fc7277dd180e4ce9c7a2e13f6efe1f6f29eccc9d28c106a
   content_hash: sha256:ef3cbb31aa8b1f8a3f9b6a042c230dc9312019e84cdc6337f60890f177fd5764
+  carried_licenses:
+  - path: LICENSE
+    source: LICENSE
+    hash: sha256:0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5
 - repo_url: nextlevelbuilder/ui-ux-pro-max-skill
   name: ui-ux-pro-max
   host: github.com
@@ -641,6 +725,7 @@ dependencies:
   package_type: claude_skill
   deployed_files:
   - .agents/skills/ui-ux-pro-max
+  - .agents/skills/ui-ux-pro-max/LICENSE
   - .agents/skills/ui-ux-pro-max/SKILL.md
   - .agents/skills/ui-ux-pro-max/data/app-interface.csv
   - .agents/skills/ui-ux-pro-max/data/catalog-summary.json
@@ -715,6 +800,7 @@ dependencies:
   - .agents/skills/ui-ux-pro-max/scripts/tests/test_web_stack_freshness.py
   - .agents/skills/ui-ux-pro-max/scripts/validate_data.py
   deployed_file_hashes:
+    .agents/skills/ui-ux-pro-max/LICENSE: sha256:738f69dfa83db5c347c678fb9d90e560877059f0de93a327c39001bff92dc014
     .agents/skills/ui-ux-pro-max/SKILL.md: sha256:ea087c341bfb5b23195c7302027268ede86da802554c18a5c4896a6017b439f9
     .agents/skills/ui-ux-pro-max/data/app-interface.csv: sha256:331e7cf2c0b222d80c566c5f255c63cb339f65bfd02e471a720f28e4864a9f08
     .agents/skills/ui-ux-pro-max/data/catalog-summary.json: sha256:6638da97231c07fb5cef3cd9d3ce483ca7b2f9748980f8c27490eb03968d8894
@@ -789,6 +875,10 @@ dependencies:
     .agents/skills/ui-ux-pro-max/scripts/tests/test_web_stack_freshness.py: sha256:74897571398585f27e2c35d09d81b0a531c8c774f4a2967e5e1b1d1b05a483d9
     .agents/skills/ui-ux-pro-max/scripts/validate_data.py: sha256:a599aa256049cf30954d1f164721b99e453eb7e4cb8241bcab2d5573e6cf58b8
   content_hash: sha256:0ce2a01517e16cd88b2d7c55b264aacfdb3f7e7feb968a4ce05399142591a0a3
+  carried_licenses:
+  - path: LICENSE
+    source: LICENSE
+    hash: sha256:738f69dfa83db5c347c678fb9d90e560877059f0de93a327c39001bff92dc014
 - repo_url: nvidia/skillspector
   materialization_repo_url: NVIDIA/SkillSpector
   name: skill-inspector
@@ -801,10 +891,16 @@ dependencies:
   package_type: claude_skill
   deployed_files:
   - .agents/skills/skill-inspector
+  - .agents/skills/skill-inspector/LICENSE
   - .agents/skills/skill-inspector/SKILL.md
   deployed_file_hashes:
+    .agents/skills/skill-inspector/LICENSE: sha256:9f8785b47596b2993a17a3fa8d747ae63126a2c5e80a9e77195a907273d71839
     .agents/skills/skill-inspector/SKILL.md: sha256:89ab1550769752ffbad782ee63fee3c345d546bded672adaac5fd03d2941aa84
   content_hash: sha256:26e8cdf95215de34f9f832ff3b897649dcef118da318886d2665a7fcd026f91d
+  carried_licenses:
+  - path: LICENSE
+    source: LICENSE
+    hash: sha256:9f8785b47596b2993a17a3fa8d747ae63126a2c5e80a9e77195a907273d71839
 - repo_url: openai/skills
   name: gh-address-comments
   host: github.com
@@ -965,10 +1061,16 @@ dependencies:
   package_type: claude_skill
   deployed_files:
   - .agents/skills/inspiration-scouting
+  - .agents/skills/inspiration-scouting/LICENSE
   - .agents/skills/inspiration-scouting/SKILL.md
   deployed_file_hashes:
+    .agents/skills/inspiration-scouting/LICENSE: sha256:1400d572fb60897f7970a763fb73d1aa7804b71bad41bf6e45061de7b7a09ac1
     .agents/skills/inspiration-scouting/SKILL.md: sha256:1404d7ea5b7f2324065d46a3db77c3c6a4f10db5bb70829ef05be0dfdd0bcc14
   content_hash: sha256:324d966829db6644de3e602929549cbbff935b752d02bb95cb32edb345731ad2
+  carried_licenses:
+  - path: LICENSE
+    source: LICENSE
+    hash: sha256:1400d572fb60897f7970a763fb73d1aa7804b71bad41bf6e45061de7b7a09ac1
 - repo_url: planetscale/database-skills
   name: mysql
   host: github.com
@@ -980,6 +1082,7 @@ dependencies:
   package_type: claude_skill
   deployed_files:
   - .agents/skills/mysql
+  - .agents/skills/mysql/LICENSE
   - .agents/skills/mysql/SKILL.md
   - .agents/skills/mysql/references/character-sets.md
   - .agents/skills/mysql/references/composite-indexes.md
@@ -1000,6 +1103,7 @@ dependencies:
   - .agents/skills/mysql/references/replication-lag.md
   - .agents/skills/mysql/references/row-locking-gotchas.md
   deployed_file_hashes:
+    .agents/skills/mysql/LICENSE: sha256:13990a7ef816ecccad065c66f3ecd66cff7ec9da3b7aa49124dd78bacd3fee66
     .agents/skills/mysql/SKILL.md: sha256:e4ea38add289809904805cc9e078a9b84a8fd8184da277466717aee8c51dc110
     .agents/skills/mysql/references/character-sets.md: sha256:b70988fc8178ab397ff483405b84abf508696905d25ec29a7091973a7ba46249
     .agents/skills/mysql/references/composite-indexes.md: sha256:7fe7a078620cdbf6a9ea37fde7dd72b9696549dd9892c0cd661bc972bdb3e6b4
@@ -1020,6 +1124,10 @@ dependencies:
     .agents/skills/mysql/references/replication-lag.md: sha256:3e47cab20a2142d3b39a5b798c1b3203e8ea985d8bcb97387b90ef6798b33c80
     .agents/skills/mysql/references/row-locking-gotchas.md: sha256:62a6157522c1f8d800f34a33bcde0be220c43a0d978f725b7b32bac10e4da873
   content_hash: sha256:99c972c81a7d6e3181569a39ffb50691a3d05b7a2458432cdcfce3238c922985
+  carried_licenses:
+  - path: LICENSE
+    source: LICENSE
+    hash: sha256:13990a7ef816ecccad065c66f3ecd66cff7ec9da3b7aa49124dd78bacd3fee66
 - repo_url: scrapecreators/social-media-research-skills
   materialization_repo_url: ScrapeCreators/social-media-research-skills
   name: ad-library-teardown
@@ -1032,10 +1140,16 @@ dependencies:
   package_type: claude_skill
   deployed_files:
   - .agents/skills/ad-library-teardown
+  - .agents/skills/ad-library-teardown/LICENSE
   - .agents/skills/ad-library-teardown/SKILL.md
   deployed_file_hashes:
+    .agents/skills/ad-library-teardown/LICENSE: sha256:37a2301a00eef329530cc65ddb9f1c1085a2fbfb1bb748adb9eb6fa05bde4f9b
     .agents/skills/ad-library-teardown/SKILL.md: sha256:93b67284b21ad9b5a1310a7d03c5c89dc79995165a277a3769698223232d5b0f
   content_hash: sha256:1f9ecc59fd94ea78dbc6d73ce89410b36ccf341f7d75092ae6e568e3bfc3693f
+  carried_licenses:
+  - path: LICENSE
+    source: LICENSE
+    hash: sha256:37a2301a00eef329530cc65ddb9f1c1085a2fbfb1bb748adb9eb6fa05bde4f9b
 - repo_url: scrapecreators/social-media-research-skills
   materialization_repo_url: ScrapeCreators/social-media-research-skills
   name: audience-research
@@ -1048,10 +1162,16 @@ dependencies:
   package_type: claude_skill
   deployed_files:
   - .agents/skills/audience-research
+  - .agents/skills/audience-research/LICENSE
   - .agents/skills/audience-research/SKILL.md
   deployed_file_hashes:
+    .agents/skills/audience-research/LICENSE: sha256:37a2301a00eef329530cc65ddb9f1c1085a2fbfb1bb748adb9eb6fa05bde4f9b
     .agents/skills/audience-research/SKILL.md: sha256:3ced7d3268b80ac18073ffc69393635e02acb4bab23314e203dbdbac73d05477
   content_hash: sha256:208db958f2f42bfdfffb6d8b35e4a8438c6d8e49d6959f7d5233fd8679a6b02d
+  carried_licenses:
+  - path: LICENSE
+    source: LICENSE
+    hash: sha256:37a2301a00eef329530cc65ddb9f1c1085a2fbfb1bb748adb9eb6fa05bde4f9b
 - repo_url: scrapecreators/social-media-research-skills
   materialization_repo_url: ScrapeCreators/social-media-research-skills
   name: comment-mining
@@ -1064,10 +1184,16 @@ dependencies:
   package_type: claude_skill
   deployed_files:
   - .agents/skills/comment-mining
+  - .agents/skills/comment-mining/LICENSE
   - .agents/skills/comment-mining/SKILL.md
   deployed_file_hashes:
+    .agents/skills/comment-mining/LICENSE: sha256:37a2301a00eef329530cc65ddb9f1c1085a2fbfb1bb748adb9eb6fa05bde4f9b
     .agents/skills/comment-mining/SKILL.md: sha256:8fb6527e7e73c2db34c85d83161c39fe04d5dd6b860d8c88f2a654af87e14db2
   content_hash: sha256:0c91de55510904aca412f85b85d06a2b270eab3609135004435913c474ad7631
+  carried_licenses:
+  - path: LICENSE
+    source: LICENSE
+    hash: sha256:37a2301a00eef329530cc65ddb9f1c1085a2fbfb1bb748adb9eb6fa05bde4f9b
 - repo_url: scrapecreators/social-media-research-skills
   materialization_repo_url: ScrapeCreators/social-media-research-skills
   name: competitor-social-research
@@ -1080,10 +1206,16 @@ dependencies:
   package_type: claude_skill
   deployed_files:
   - .agents/skills/competitor-social-research
+  - .agents/skills/competitor-social-research/LICENSE
   - .agents/skills/competitor-social-research/SKILL.md
   deployed_file_hashes:
+    .agents/skills/competitor-social-research/LICENSE: sha256:37a2301a00eef329530cc65ddb9f1c1085a2fbfb1bb748adb9eb6fa05bde4f9b
     .agents/skills/competitor-social-research/SKILL.md: sha256:3a5179df374d1fd11b244c4a874a75fb1e48cc22f4f91cde2f6fcddbfda60ce7
   content_hash: sha256:639c2996ce779630a935d1fba6b3486bd8254beddebe36c9ab206e29514791ba
+  carried_licenses:
+  - path: LICENSE
+    source: LICENSE
+    hash: sha256:37a2301a00eef329530cc65ddb9f1c1085a2fbfb1bb748adb9eb6fa05bde4f9b
 - repo_url: scrapecreators/social-media-research-skills
   materialization_repo_url: ScrapeCreators/social-media-research-skills
   name: content-repurposing
@@ -1096,10 +1228,16 @@ dependencies:
   package_type: claude_skill
   deployed_files:
   - .agents/skills/content-repurposing
+  - .agents/skills/content-repurposing/LICENSE
   - .agents/skills/content-repurposing/SKILL.md
   deployed_file_hashes:
+    .agents/skills/content-repurposing/LICENSE: sha256:37a2301a00eef329530cc65ddb9f1c1085a2fbfb1bb748adb9eb6fa05bde4f9b
     .agents/skills/content-repurposing/SKILL.md: sha256:894468df8b2491f1d36556a8e9045975c03e37f2c928ce028712ff864a28f3d2
   content_hash: sha256:bf942e3997eb3fdbbac289ddd1d92e39b4e0862db1651996eed632410485c93d
+  carried_licenses:
+  - path: LICENSE
+    source: LICENSE
+    hash: sha256:37a2301a00eef329530cc65ddb9f1c1085a2fbfb1bb748adb9eb6fa05bde4f9b
 - repo_url: scrapecreators/social-media-research-skills
   materialization_repo_url: ScrapeCreators/social-media-research-skills
   name: creator-profile-teardown
@@ -1112,10 +1250,16 @@ dependencies:
   package_type: claude_skill
   deployed_files:
   - .agents/skills/creator-profile-teardown
+  - .agents/skills/creator-profile-teardown/LICENSE
   - .agents/skills/creator-profile-teardown/SKILL.md
   deployed_file_hashes:
+    .agents/skills/creator-profile-teardown/LICENSE: sha256:37a2301a00eef329530cc65ddb9f1c1085a2fbfb1bb748adb9eb6fa05bde4f9b
     .agents/skills/creator-profile-teardown/SKILL.md: sha256:8bb24dbb8ae59fd4017a6dd78f399caead9c62a205a343e9b4b4706fb4869914
   content_hash: sha256:7ec49b5355d9ec6a94d9d171dbb25048d5da479e4928326eb5e4c935ddfe79ab
+  carried_licenses:
+  - path: LICENSE
+    source: LICENSE
+    hash: sha256:37a2301a00eef329530cc65ddb9f1c1085a2fbfb1bb748adb9eb6fa05bde4f9b
 - repo_url: scrapecreators/social-media-research-skills
   materialization_repo_url: ScrapeCreators/social-media-research-skills
   name: influencer-prospecting
@@ -1128,10 +1272,16 @@ dependencies:
   package_type: claude_skill
   deployed_files:
   - .agents/skills/influencer-prospecting
+  - .agents/skills/influencer-prospecting/LICENSE
   - .agents/skills/influencer-prospecting/SKILL.md
   deployed_file_hashes:
+    .agents/skills/influencer-prospecting/LICENSE: sha256:37a2301a00eef329530cc65ddb9f1c1085a2fbfb1bb748adb9eb6fa05bde4f9b
     .agents/skills/influencer-prospecting/SKILL.md: sha256:670e840f96ef5f13c8b1d479b10fc8bd3c24033f2b2d5bf78924d10f5d60f1b3
   content_hash: sha256:3574ed3dce7ff1d05a08ea374971cc80aaae950844108d877d764af3747f57d1
+  carried_licenses:
+  - path: LICENSE
+    source: LICENSE
+    hash: sha256:37a2301a00eef329530cc65ddb9f1c1085a2fbfb1bb748adb9eb6fa05bde4f9b
 - repo_url: scrapecreators/social-media-research-skills
   materialization_repo_url: ScrapeCreators/social-media-research-skills
   name: outlier-post-finder
@@ -1144,10 +1294,16 @@ dependencies:
   package_type: claude_skill
   deployed_files:
   - .agents/skills/outlier-post-finder
+  - .agents/skills/outlier-post-finder/LICENSE
   - .agents/skills/outlier-post-finder/SKILL.md
   deployed_file_hashes:
+    .agents/skills/outlier-post-finder/LICENSE: sha256:37a2301a00eef329530cc65ddb9f1c1085a2fbfb1bb748adb9eb6fa05bde4f9b
     .agents/skills/outlier-post-finder/SKILL.md: sha256:c648fbe9dda692cc7c034ca8b193e3b129ba4db45f8ff992f463206610d80bfa
   content_hash: sha256:be109d43f29ef36f5e155aecfd700718b08c11c197acec9ff8e4a2e9010c9c3c
+  carried_licenses:
+  - path: LICENSE
+    source: LICENSE
+    hash: sha256:37a2301a00eef329530cc65ddb9f1c1085a2fbfb1bb748adb9eb6fa05bde4f9b
 - repo_url: scrapecreators/social-media-research-skills
   materialization_repo_url: ScrapeCreators/social-media-research-skills
   name: product-demand-research
@@ -1160,10 +1316,16 @@ dependencies:
   package_type: claude_skill
   deployed_files:
   - .agents/skills/product-demand-research
+  - .agents/skills/product-demand-research/LICENSE
   - .agents/skills/product-demand-research/SKILL.md
   deployed_file_hashes:
+    .agents/skills/product-demand-research/LICENSE: sha256:37a2301a00eef329530cc65ddb9f1c1085a2fbfb1bb748adb9eb6fa05bde4f9b
     .agents/skills/product-demand-research/SKILL.md: sha256:88d57b03fa5200686bd436d5658847f776d33edc365442d36260f8a8be109eaf
   content_hash: sha256:e0f47b5b9cd8e02638a504e72112c7b70b4791ccebe06a7b59c2a535ff3044ce
+  carried_licenses:
+  - path: LICENSE
+    source: LICENSE
+    hash: sha256:37a2301a00eef329530cc65ddb9f1c1085a2fbfb1bb748adb9eb6fa05bde4f9b
 - repo_url: scrapecreators/social-media-research-skills
   materialization_repo_url: ScrapeCreators/social-media-research-skills
   name: scrapecreators-api
@@ -1176,10 +1338,16 @@ dependencies:
   package_type: claude_skill
   deployed_files:
   - .agents/skills/scrapecreators-api
+  - .agents/skills/scrapecreators-api/LICENSE
   - .agents/skills/scrapecreators-api/SKILL.md
   deployed_file_hashes:
+    .agents/skills/scrapecreators-api/LICENSE: sha256:37a2301a00eef329530cc65ddb9f1c1085a2fbfb1bb748adb9eb6fa05bde4f9b
     .agents/skills/scrapecreators-api/SKILL.md: sha256:016154fe955fe3a41e83e8e00af82adf2ba34e47eeadf6f121b43f2ccacea418
   content_hash: sha256:53b3f03866951c84f791720b9c4381c9238ff4d67f6c588710870d476604b6d0
+  carried_licenses:
+  - path: LICENSE
+    source: LICENSE
+    hash: sha256:37a2301a00eef329530cc65ddb9f1c1085a2fbfb1bb748adb9eb6fa05bde4f9b
 - repo_url: scrapecreators/social-media-research-skills
   materialization_repo_url: ScrapeCreators/social-media-research-skills
   name: social-listening-brief
@@ -1192,10 +1360,16 @@ dependencies:
   package_type: claude_skill
   deployed_files:
   - .agents/skills/social-listening-brief
+  - .agents/skills/social-listening-brief/LICENSE
   - .agents/skills/social-listening-brief/SKILL.md
   deployed_file_hashes:
+    .agents/skills/social-listening-brief/LICENSE: sha256:37a2301a00eef329530cc65ddb9f1c1085a2fbfb1bb748adb9eb6fa05bde4f9b
     .agents/skills/social-listening-brief/SKILL.md: sha256:c41b897c1b5bf6ac86aee5350e3a833da74d9928a8d31fb62a4f694daf72c64e
   content_hash: sha256:eebeb4157c04844a6fefcea178e510b8f271b65ded99af259a81b037883be609
+  carried_licenses:
+  - path: LICENSE
+    source: LICENSE
+    hash: sha256:37a2301a00eef329530cc65ddb9f1c1085a2fbfb1bb748adb9eb6fa05bde4f9b
 - repo_url: scrapecreators/social-media-research-skills
   materialization_repo_url: ScrapeCreators/social-media-research-skills
   name: transcript-intelligence
@@ -1208,10 +1382,16 @@ dependencies:
   package_type: claude_skill
   deployed_files:
   - .agents/skills/transcript-intelligence
+  - .agents/skills/transcript-intelligence/LICENSE
   - .agents/skills/transcript-intelligence/SKILL.md
   deployed_file_hashes:
+    .agents/skills/transcript-intelligence/LICENSE: sha256:37a2301a00eef329530cc65ddb9f1c1085a2fbfb1bb748adb9eb6fa05bde4f9b
     .agents/skills/transcript-intelligence/SKILL.md: sha256:599e19d53de3496785329626f76486ce751b491ac8cd762ee98afa8c25f0594c
   content_hash: sha256:df51dbcd37c57fda737e1577a376e52cb1a8e203ba9094a467960c7cba50ed6b
+  carried_licenses:
+  - path: LICENSE
+    source: LICENSE
+    hash: sha256:37a2301a00eef329530cc65ddb9f1c1085a2fbfb1bb748adb9eb6fa05bde4f9b
 - repo_url: scrapecreators/social-media-research-skills
   materialization_repo_url: ScrapeCreators/social-media-research-skills
   name: trend-discovery
@@ -1224,10 +1404,16 @@ dependencies:
   package_type: claude_skill
   deployed_files:
   - .agents/skills/trend-discovery
+  - .agents/skills/trend-discovery/LICENSE
   - .agents/skills/trend-discovery/SKILL.md
   deployed_file_hashes:
+    .agents/skills/trend-discovery/LICENSE: sha256:37a2301a00eef329530cc65ddb9f1c1085a2fbfb1bb748adb9eb6fa05bde4f9b
     .agents/skills/trend-discovery/SKILL.md: sha256:b22f5d14d01b27a7777c5d1637e8d61d71aceab1294144cc774d18a84eef702a
   content_hash: sha256:d41e316db471e7f54a5f775ea613a12ac067f340b83479e94a71a9f3daade473
+  carried_licenses:
+  - path: LICENSE
+    source: LICENSE
+    hash: sha256:37a2301a00eef329530cc65ddb9f1c1085a2fbfb1bb748adb9eb6fa05bde4f9b
 - repo_url: slackapi/slack-skills-plugin
   name: slack-messaging
   host: github.com
@@ -1239,10 +1425,16 @@ dependencies:
   package_type: claude_skill
   deployed_files:
   - .agents/skills/slack-messaging
+  - .agents/skills/slack-messaging/LICENSE
   - .agents/skills/slack-messaging/SKILL.md
   deployed_file_hashes:
+    .agents/skills/slack-messaging/LICENSE: sha256:ccbd532eabd9c4a87884b19caa6738bd6541e047460a736aca3bf1ac4fd91300
     .agents/skills/slack-messaging/SKILL.md: sha256:bbf526b687f59815ca13cf6d13c4e79d0c990214a8af3fb304fe37808c8a16f4
   content_hash: sha256:5ade5a5d2698e71a9010b750097ebaf3e6a8055591ba7611d3f8128f32be6699
+  carried_licenses:
+  - path: LICENSE
+    source: LICENSE
+    hash: sha256:ccbd532eabd9c4a87884b19caa6738bd6541e047460a736aca3bf1ac4fd91300
 - repo_url: supabase/agent-skills
   name: supabase-postgres-best-practices
   host: github.com
@@ -1255,6 +1447,7 @@ dependencies:
   deployed_files:
   - .agents/skills/supabase-postgres-best-practices
   - .agents/skills/supabase-postgres-best-practices/CHANGELOG.md
+  - .agents/skills/supabase-postgres-best-practices/LICENSE
   - .agents/skills/supabase-postgres-best-practices/SKILL.md
   - .agents/skills/supabase-postgres-best-practices/references/_contributing.md
   - .agents/skills/supabase-postgres-best-practices/references/_sections.md
@@ -1292,6 +1485,7 @@ dependencies:
   - .agents/skills/supabase-postgres-best-practices/references/security-rls-performance.md
   deployed_file_hashes:
     .agents/skills/supabase-postgres-best-practices/CHANGELOG.md: sha256:751ad110037c85d400018c9894716a04fa46357ff55c22b1169b280752e19e88
+    .agents/skills/supabase-postgres-best-practices/LICENSE: sha256:b65e575eb4f04a13c187d64e958321298e2ab84d67aa8428819f362056ba292c
     .agents/skills/supabase-postgres-best-practices/SKILL.md: sha256:ad65e776f45e761bafc609d3f506c77c1032225aa65e0c4c02f241b8071e5855
     .agents/skills/supabase-postgres-best-practices/references/_contributing.md: sha256:191e039e7d94764e6073410b513b559f9a594e0fdf0252a30c2a2986df2ab3bc
     .agents/skills/supabase-postgres-best-practices/references/_sections.md: sha256:c9e992612b422c7122de0b7542ebc2450db283edaab08cfe86c6d657fcccccd5
@@ -1328,6 +1522,10 @@ dependencies:
     .agents/skills/supabase-postgres-best-practices/references/security-rls-basics.md: sha256:e04dd1a3a382aafdaaa73fe9f7976352acdde6e90c2a2470d281b94d4f44b096
     .agents/skills/supabase-postgres-best-practices/references/security-rls-performance.md: sha256:2e1faeca7d5746e246b1c78f9492fe2a9cfa41c4d7fa1e23c402d58fa18ea014
   content_hash: sha256:5766a8e9524c3c2a81041409be237c3baf515aa04a135871a21dd351682d173f
+  carried_licenses:
+  - path: LICENSE
+    source: LICENSE
+    hash: sha256:b65e575eb4f04a13c187d64e958321298e2ab84d67aa8428819f362056ba292c
 - repo_url: trailofbits/skills
   name: property-based-testing
   host: github.com
@@ -1339,6 +1537,7 @@ dependencies:
   package_type: claude_skill
   deployed_files:
   - .agents/skills/property-based-testing
+  - .agents/skills/property-based-testing/LICENSE
   - .agents/skills/property-based-testing/README.md
   - .agents/skills/property-based-testing/SKILL.md
   - .agents/skills/property-based-testing/agents/openai.yaml
@@ -1349,6 +1548,7 @@ dependencies:
   - .agents/skills/property-based-testing/references/refactoring.md
   - .agents/skills/property-based-testing/references/reviewing.md
   deployed_file_hashes:
+    .agents/skills/property-based-testing/LICENSE: sha256:7abe19ec9bb73b36141b999b861d24ad855e808bafe0f81e84cce28556f6c297
     .agents/skills/property-based-testing/README.md: sha256:ffbe30eec09cc64fb1eae836b07ca1d82939bda3f1e6f0dceadcdd78793a3112
     .agents/skills/property-based-testing/SKILL.md: sha256:9448cacb65c6237a7c22dc59602667177ecae405524079ae9ff92240590b995a
     .agents/skills/property-based-testing/agents/openai.yaml: sha256:51d635deefa254d8cdf6dc56450851b6ec9545cd37f88a4eb4035cf3f2262fff
@@ -1359,6 +1559,10 @@ dependencies:
     .agents/skills/property-based-testing/references/refactoring.md: sha256:6eb5c206f575704791f089608bb06e41d6eed91b9d3c7fb27912f969aed07a18
     .agents/skills/property-based-testing/references/reviewing.md: sha256:110b08118a1e7b1a2566def6e9d2a0bf43fc2deefce857d2ce3b4382b07bc774
   content_hash: sha256:dc32d4a49a758d1263316b04c223d446acf4d7991f4c41e9d31b7632550cc1f5
+  carried_licenses:
+  - path: LICENSE
+    source: LICENSE
+    hash: sha256:7abe19ec9bb73b36141b999b861d24ad855e808bafe0f81e84cce28556f6c297
 - repo_url: tt-a1i/archify
   name: archify
   host: github.com
@@ -2013,18 +2217,24 @@ dependencies:
   package_type: claude_skill
   deployed_files:
   - .agents/skills/agent-desktop
+  - .agents/skills/agent-desktop/LICENSE
   - .agents/skills/agent-desktop/SKILL.md
   - .agents/skills/agent-desktop/references/commands-interaction.md
   - .agents/skills/agent-desktop/references/commands-observation.md
   - .agents/skills/agent-desktop/references/commands-system.md
   - .agents/skills/agent-desktop/references/workflows.md
   deployed_file_hashes:
+    .agents/skills/agent-desktop/LICENSE: sha256:cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30
     .agents/skills/agent-desktop/SKILL.md: sha256:abd913be10552c028e461e0a45c20e3734a7a1e5251fc2f9ef6fd63fdd606a6e
     .agents/skills/agent-desktop/references/commands-interaction.md: sha256:5ef8a87be8aed9b0102adb3c332dcd50586c7fb28dc0f1490207ab9321673bf5
     .agents/skills/agent-desktop/references/commands-observation.md: sha256:9c31aec6f51dacfc14ff68dc04533a8dcf3ed5edb3f935d90e453f471894b936
     .agents/skills/agent-desktop/references/commands-system.md: sha256:673c931a285b360c1deb669983e87ca8571ee8520f48c81f00d49f711e0e95ac
     .agents/skills/agent-desktop/references/workflows.md: sha256:9c5a93361f992d73eff50e9ec99bb895424ababd57d3f6742ff71e73734c1af1
   content_hash: sha256:58032407daa209b72e7c087ee1885058f8e190b2481795bd7830aba8e70b7cbc
+  carried_licenses:
+  - path: LICENSE
+    source: LICENSE
+    hash: sha256:cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30
 - repo_url: vercel-labs/agent-skills
   alias: vercel-composition-patterns
   name: vercel-composition-patterns
@@ -2259,10 +2469,16 @@ dependencies:
   package_type: claude_skill
   deployed_files:
   - .agents/skills/find-skills
+  - .agents/skills/find-skills/LICENSE
   - .agents/skills/find-skills/SKILL.md
   deployed_file_hashes:
+    .agents/skills/find-skills/LICENSE: sha256:661142e53c313d2bb5e1b055f5c0a39001450ff1b5e27b89dc4bc7de9a6352ca
     .agents/skills/find-skills/SKILL.md: sha256:c00eeea0e13e74fe4a9d84ba0a8542205a1b736d65f13134fe1a6647eb14976f
   content_hash: sha256:913b9d37d0d54047dd65222bb8c67b2bf04e3cb87dcad1729068d7a8b2c8c396
+  carried_licenses:
+  - path: LICENSE
+    source: LICENSE
+    hash: sha256:661142e53c313d2bb5e1b055f5c0a39001450ff1b5e27b89dc4bc7de9a6352ca
 - repo_url: wshobson/agents
   name: helm-chart-scaffolding
   host: github.com
@@ -2274,6 +2490,7 @@ dependencies:
   package_type: claude_skill
   deployed_files:
   - .agents/skills/helm-chart-scaffolding
+  - .agents/skills/helm-chart-scaffolding/LICENSE
   - .agents/skills/helm-chart-scaffolding/SKILL.md
   - .agents/skills/helm-chart-scaffolding/assets/Chart.yaml.template
   - .agents/skills/helm-chart-scaffolding/assets/values.yaml.template
@@ -2281,6 +2498,7 @@ dependencies:
   - .agents/skills/helm-chart-scaffolding/references/details.md
   - .agents/skills/helm-chart-scaffolding/scripts/validate-chart.sh
   deployed_file_hashes:
+    .agents/skills/helm-chart-scaffolding/LICENSE: sha256:f89abb55d9f073f38f1703e4518f0613c788c6174be7f13b8dfe48a1c076c746
     .agents/skills/helm-chart-scaffolding/SKILL.md: sha256:d277c3d3a1b669e4fb8bcd3a36fdec7d7ad1becc2f2ff908c841ddf306e622ed
     .agents/skills/helm-chart-scaffolding/assets/Chart.yaml.template: sha256:a752ee6b46f5f191d032fe1f4da60772a02651a3be03605acc86489875f4e1dd
     .agents/skills/helm-chart-scaffolding/assets/values.yaml.template: sha256:d4ec34d9301b82001a167babcbfcfda8a5f2c39dbbe5b85d336a9c695d35c91a
@@ -2288,6 +2506,10 @@ dependencies:
     .agents/skills/helm-chart-scaffolding/references/details.md: sha256:ff0511db5366f0cea3dfa98800e2d921bab2e22f423d5c331853826b54dd39b6
     .agents/skills/helm-chart-scaffolding/scripts/validate-chart.sh: sha256:f1de1b886fc8e171fd4c6e10f1cb53796d47dac9b7a76babd710e2a86471089a
   content_hash: sha256:9de710be8ac94b8d4e60104d47e74d65842a197b42262b0415dc365341801792
+  carried_licenses:
+  - path: LICENSE
+    source: LICENSE
+    hash: sha256:f89abb55d9f073f38f1703e4518f0613c788c6174be7f13b8dfe48a1c076c746
 deployments:
 - kind: project-relative
   target: agent-skills
@@ -2298,6 +2520,15 @@ deployments:
   - scrapecreators/social-media-research-skills/skills/ad-library-teardown
   active_owner: scrapecreators/social-media-research-skills/skills/ad-library-teardown
   content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/ad-library-teardown/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - scrapecreators/social-media-research-skills/skills/ad-library-teardown
+  active_owner: scrapecreators/social-media-research-skills/skills/ad-library-teardown
+  content_hash: sha256:37a2301a00eef329530cc65ddb9f1c1085a2fbfb1bb748adb9eb6fa05bde4f9b
 - kind: project-relative
   target: agent-skills
   value: .agents/skills/ad-library-teardown/SKILL.md
@@ -2316,6 +2547,15 @@ deployments:
   - vercel-labs/agent-desktop/skills/agent-desktop
   active_owner: vercel-labs/agent-desktop/skills/agent-desktop
   content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/agent-desktop/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - vercel-labs/agent-desktop/skills/agent-desktop
+  active_owner: vercel-labs/agent-desktop/skills/agent-desktop
+  content_hash: sha256:cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30
 - kind: project-relative
   target: agent-skills
   value: .agents/skills/agent-desktop/SKILL.md
@@ -5216,6 +5456,15 @@ deployments:
   content_hash: null
 - kind: project-relative
   target: agent-skills
+  value: .agents/skills/audience-research/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - scrapecreators/social-media-research-skills/skills/audience-research
+  active_owner: scrapecreators/social-media-research-skills/skills/audience-research
+  content_hash: sha256:37a2301a00eef329530cc65ddb9f1c1085a2fbfb1bb748adb9eb6fa05bde4f9b
+- kind: project-relative
+  target: agent-skills
   value: .agents/skills/audience-research/SKILL.md
   runtime: null
   scope: project
@@ -5252,6 +5501,15 @@ deployments:
   content_hash: sha256:52b52e75655a27aea59c6966b410bac82448968ad46ef1ebb9f07c274e3ae010
 - kind: project-relative
   target: agent-skills
+  value: .agents/skills/codebase-design/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - mattpocock/skills/skills/engineering/codebase-design
+  active_owner: mattpocock/skills/skills/engineering/codebase-design
+  content_hash: sha256:0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5
+- kind: project-relative
+  target: agent-skills
   value: .agents/skills/codebase-design/SKILL.md
   runtime: null
   scope: project
@@ -5279,6 +5537,15 @@ deployments:
   content_hash: null
 - kind: project-relative
   target: agent-skills
+  value: .agents/skills/comment-mining/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - scrapecreators/social-media-research-skills/skills/comment-mining
+  active_owner: scrapecreators/social-media-research-skills/skills/comment-mining
+  content_hash: sha256:37a2301a00eef329530cc65ddb9f1c1085a2fbfb1bb748adb9eb6fa05bde4f9b
+- kind: project-relative
+  target: agent-skills
   value: .agents/skills/comment-mining/SKILL.md
   runtime: null
   scope: project
@@ -5295,6 +5562,15 @@ deployments:
   - scrapecreators/social-media-research-skills/skills/competitor-social-research
   active_owner: scrapecreators/social-media-research-skills/skills/competitor-social-research
   content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/competitor-social-research/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - scrapecreators/social-media-research-skills/skills/competitor-social-research
+  active_owner: scrapecreators/social-media-research-skills/skills/competitor-social-research
+  content_hash: sha256:37a2301a00eef329530cc65ddb9f1c1085a2fbfb1bb748adb9eb6fa05bde4f9b
 - kind: project-relative
   target: agent-skills
   value: .agents/skills/competitor-social-research/SKILL.md
@@ -5315,6 +5591,15 @@ deployments:
   content_hash: null
 - kind: project-relative
   target: agent-skills
+  value: .agents/skills/content-repurposing/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - scrapecreators/social-media-research-skills/skills/content-repurposing
+  active_owner: scrapecreators/social-media-research-skills/skills/content-repurposing
+  content_hash: sha256:37a2301a00eef329530cc65ddb9f1c1085a2fbfb1bb748adb9eb6fa05bde4f9b
+- kind: project-relative
+  target: agent-skills
   value: .agents/skills/content-repurposing/SKILL.md
   runtime: null
   scope: project
@@ -5333,6 +5618,15 @@ deployments:
   content_hash: null
 - kind: project-relative
   target: agent-skills
+  value: .agents/skills/creator-profile-teardown/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - scrapecreators/social-media-research-skills/skills/creator-profile-teardown
+  active_owner: scrapecreators/social-media-research-skills/skills/creator-profile-teardown
+  content_hash: sha256:37a2301a00eef329530cc65ddb9f1c1085a2fbfb1bb748adb9eb6fa05bde4f9b
+- kind: project-relative
+  target: agent-skills
   value: .agents/skills/creator-profile-teardown/SKILL.md
   runtime: null
   scope: project
@@ -5349,6 +5643,15 @@ deployments:
   - leonxlnx/taste-skill/skills/taste-skill
   active_owner: leonxlnx/taste-skill/skills/taste-skill
   content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/design-taste-frontend/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - leonxlnx/taste-skill/skills/taste-skill
+  active_owner: leonxlnx/taste-skill/skills/taste-skill
+  content_hash: sha256:4575a543ab88dad12ccea7d97e563d0bce5b448b06072e65d3264497dad326df
 - kind: project-relative
   target: agent-skills
   value: .agents/skills/design-taste-frontend/README.md
@@ -5711,6 +6014,15 @@ deployments:
   content_hash: null
 - kind: project-relative
   target: agent-skills
+  value: .agents/skills/diagnosing-bugs/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - mattpocock/skills/skills/engineering/diagnosing-bugs
+  active_owner: mattpocock/skills/skills/engineering/diagnosing-bugs
+  content_hash: sha256:0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5
+- kind: project-relative
+  target: agent-skills
   value: .agents/skills/diagnosing-bugs/SKILL.md
   runtime: null
   scope: project
@@ -5747,6 +6059,15 @@ deployments:
   content_hash: null
 - kind: project-relative
   target: agent-skills
+  value: .agents/skills/documentation/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - anthropics/knowledge-work-plugins/engineering/skills/documentation
+  active_owner: anthropics/knowledge-work-plugins/engineering/skills/documentation
+  content_hash: sha256:a6946284993aeec75c7d75906064b66210c46051e562077efb30eb6dcfe72e26
+- kind: project-relative
+  target: agent-skills
   value: .agents/skills/documentation/SKILL.md
   runtime: null
   scope: project
@@ -5763,6 +6084,15 @@ deployments:
   - vercel-labs/skills/skills/find-skills
   active_owner: vercel-labs/skills/skills/find-skills
   content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/find-skills/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - vercel-labs/skills/skills/find-skills
+  active_owner: vercel-labs/skills/skills/find-skills
+  content_hash: sha256:661142e53c313d2bb5e1b055f5c0a39001450ff1b5e27b89dc4bc7de9a6352ca
 - kind: project-relative
   target: agent-skills
   value: .agents/skills/find-skills/SKILL.md
@@ -5936,6 +6266,15 @@ deployments:
   content_hash: null
 - kind: project-relative
   target: agent-skills
+  value: .agents/skills/git-commit/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - github/awesome-copilot/skills/git-commit
+  active_owner: github/awesome-copilot/skills/git-commit
+  content_hash: sha256:e32449d23085399adc1222f7a17408b730550258e51627c153cb108ca9955823
+- kind: project-relative
+  target: agent-skills
   value: .agents/skills/git-commit/SKILL.md
   runtime: null
   scope: project
@@ -5952,6 +6291,15 @@ deployments:
   - wshobson/agents/plugins/kubernetes-operations/skills/helm-chart-scaffolding
   active_owner: wshobson/agents/plugins/kubernetes-operations/skills/helm-chart-scaffolding
   content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/helm-chart-scaffolding/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - wshobson/agents/plugins/kubernetes-operations/skills/helm-chart-scaffolding
+  active_owner: wshobson/agents/plugins/kubernetes-operations/skills/helm-chart-scaffolding
+  content_hash: sha256:f89abb55d9f073f38f1703e4518f0613c788c6174be7f13b8dfe48a1c076c746
 - kind: project-relative
   target: agent-skills
   value: .agents/skills/helm-chart-scaffolding/SKILL.md
@@ -6161,6 +6509,15 @@ deployments:
   content_hash: null
 - kind: project-relative
   target: agent-skills
+  value: .agents/skills/incident-response/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - anthropics/knowledge-work-plugins/engineering/skills/incident-response
+  active_owner: anthropics/knowledge-work-plugins/engineering/skills/incident-response
+  content_hash: sha256:a6946284993aeec75c7d75906064b66210c46051e562077efb30eb6dcfe72e26
+- kind: project-relative
+  target: agent-skills
   value: .agents/skills/incident-response/SKILL.md
   runtime: null
   scope: project
@@ -6177,6 +6534,15 @@ deployments:
   - scrapecreators/social-media-research-skills/skills/influencer-prospecting
   active_owner: scrapecreators/social-media-research-skills/skills/influencer-prospecting
   content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/influencer-prospecting/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - scrapecreators/social-media-research-skills/skills/influencer-prospecting
+  active_owner: scrapecreators/social-media-research-skills/skills/influencer-prospecting
+  content_hash: sha256:37a2301a00eef329530cc65ddb9f1c1085a2fbfb1bb748adb9eb6fa05bde4f9b
 - kind: project-relative
   target: agent-skills
   value: .agents/skills/influencer-prospecting/SKILL.md
@@ -6197,6 +6563,15 @@ deployments:
   content_hash: null
 - kind: project-relative
   target: agent-skills
+  value: .agents/skills/inspiration-scouting/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - owl-listener/designpowers/skills/inspiration-scouting
+  active_owner: owl-listener/designpowers/skills/inspiration-scouting
+  content_hash: sha256:1400d572fb60897f7970a763fb73d1aa7804b71bad41bf6e45061de7b7a09ac1
+- kind: project-relative
+  target: agent-skills
   value: .agents/skills/inspiration-scouting/SKILL.md
   runtime: null
   scope: project
@@ -6213,6 +6588,15 @@ deployments:
   - chrisryugj/kordoc/plugins/kordoc/skills/kordoc
   active_owner: chrisryugj/kordoc/plugins/kordoc/skills/kordoc
   content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/kordoc/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - chrisryugj/kordoc/plugins/kordoc/skills/kordoc
+  active_owner: chrisryugj/kordoc/plugins/kordoc/skills/kordoc
+  content_hash: sha256:af5f2aced9ce13fa964a5ec9f7ab3271b139f10a1950f5c5408b7b3012369571
 - kind: project-relative
   target: agent-skills
   value: .agents/skills/kordoc/SKILL.md
@@ -6330,6 +6714,15 @@ deployments:
   - planetscale/database-skills/skills/mysql
   active_owner: planetscale/database-skills/skills/mysql
   content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/mysql/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - planetscale/database-skills/skills/mysql
+  active_owner: planetscale/database-skills/skills/mysql
+  content_hash: sha256:13990a7ef816ecccad065c66f3ecd66cff7ec9da3b7aa49124dd78bacd3fee66
 - kind: project-relative
   target: agent-skills
   value: .agents/skills/mysql/SKILL.md
@@ -6728,6 +7121,15 @@ deployments:
   content_hash: null
 - kind: project-relative
   target: agent-skills
+  value: .agents/skills/outlier-post-finder/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - scrapecreators/social-media-research-skills/skills/outlier-post-finder
+  active_owner: scrapecreators/social-media-research-skills/skills/outlier-post-finder
+  content_hash: sha256:37a2301a00eef329530cc65ddb9f1c1085a2fbfb1bb748adb9eb6fa05bde4f9b
+- kind: project-relative
+  target: agent-skills
   value: .agents/skills/outlier-post-finder/SKILL.md
   runtime: null
   scope: project
@@ -6744,6 +7146,15 @@ deployments:
   - cursor/plugins/pstack/skills/principle-type-system-discipline
   active_owner: cursor/plugins/pstack/skills/principle-type-system-discipline
   content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/principle-type-system-discipline/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - cursor/plugins/pstack/skills/principle-type-system-discipline
+  active_owner: cursor/plugins/pstack/skills/principle-type-system-discipline
+  content_hash: sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e
 - kind: project-relative
   target: agent-skills
   value: .agents/skills/principle-type-system-discipline/SKILL.md
@@ -6764,6 +7175,15 @@ deployments:
   content_hash: null
 - kind: project-relative
   target: agent-skills
+  value: .agents/skills/product-demand-research/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - scrapecreators/social-media-research-skills/skills/product-demand-research
+  active_owner: scrapecreators/social-media-research-skills/skills/product-demand-research
+  content_hash: sha256:37a2301a00eef329530cc65ddb9f1c1085a2fbfb1bb748adb9eb6fa05bde4f9b
+- kind: project-relative
+  target: agent-skills
   value: .agents/skills/product-demand-research/SKILL.md
   runtime: null
   scope: project
@@ -6780,6 +7200,15 @@ deployments:
   - trailofbits/skills/plugins/property-based-testing/skills/property-based-testing
   active_owner: trailofbits/skills/plugins/property-based-testing/skills/property-based-testing
   content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/property-based-testing/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - trailofbits/skills/plugins/property-based-testing/skills/property-based-testing
+  active_owner: trailofbits/skills/plugins/property-based-testing/skills/property-based-testing
+  content_hash: sha256:7abe19ec9bb73b36141b999b861d24ad855e808bafe0f81e84cce28556f6c297
 - kind: project-relative
   target: agent-skills
   value: .agents/skills/property-based-testing/README.md
@@ -6872,6 +7301,15 @@ deployments:
   content_hash: null
 - kind: project-relative
   target: agent-skills
+  value: .agents/skills/scrapecreators-api/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - scrapecreators/social-media-research-skills/skills/scrapecreators-api
+  active_owner: scrapecreators/social-media-research-skills/skills/scrapecreators-api
+  content_hash: sha256:37a2301a00eef329530cc65ddb9f1c1085a2fbfb1bb748adb9eb6fa05bde4f9b
+- kind: project-relative
+  target: agent-skills
   value: .agents/skills/scrapecreators-api/SKILL.md
   runtime: null
   scope: project
@@ -6951,6 +7389,15 @@ deployments:
   - cloudflare/security-audit-skill/skills/security-audit
   active_owner: cloudflare/security-audit-skill/skills/security-audit
   content_hash: sha256:71c121decea1322c47c718f6e110f1a892980bb4266bd7ac55ef043a213ade09
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/security-audit/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - cloudflare/security-audit-skill/skills/security-audit
+  active_owner: cloudflare/security-audit-skill/skills/security-audit
+  content_hash: sha256:e598e694aa506650c7192d5ea3be0e50aca0d356ea00551c53429f0b01eb6391
 - kind: project-relative
   target: agent-skills
   value: .agents/skills/security-audit/MEMORY-SAFETY-AND-BINARY.md
@@ -7376,6 +7823,15 @@ deployments:
   content_hash: null
 - kind: project-relative
   target: agent-skills
+  value: .agents/skills/skill-inspector/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - nvidia/skillspector/skills/skill-inspector
+  active_owner: nvidia/skillspector/skills/skill-inspector
+  content_hash: sha256:9f8785b47596b2993a17a3fa8d747ae63126a2c5e80a9e77195a907273d71839
+- kind: project-relative
+  target: agent-skills
   value: .agents/skills/skill-inspector/SKILL.md
   runtime: null
   scope: project
@@ -7394,6 +7850,15 @@ deployments:
   content_hash: null
 - kind: project-relative
   target: agent-skills
+  value: .agents/skills/slack-messaging/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - slackapi/slack-skills-plugin/skills/slack-messaging
+  active_owner: slackapi/slack-skills-plugin/skills/slack-messaging
+  content_hash: sha256:ccbd532eabd9c4a87884b19caa6738bd6541e047460a736aca3bf1ac4fd91300
+- kind: project-relative
+  target: agent-skills
   value: .agents/skills/slack-messaging/SKILL.md
   runtime: null
   scope: project
@@ -7410,6 +7875,15 @@ deployments:
   - scrapecreators/social-media-research-skills/skills/social-listening-brief
   active_owner: scrapecreators/social-media-research-skills/skills/social-listening-brief
   content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/social-listening-brief/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - scrapecreators/social-media-research-skills/skills/social-listening-brief
+  active_owner: scrapecreators/social-media-research-skills/skills/social-listening-brief
+  content_hash: sha256:37a2301a00eef329530cc65ddb9f1c1085a2fbfb1bb748adb9eb6fa05bde4f9b
 - kind: project-relative
   target: agent-skills
   value: .agents/skills/social-listening-brief/SKILL.md
@@ -7437,6 +7911,15 @@ deployments:
   - supabase/agent-skills/skills/supabase-postgres-best-practices
   active_owner: supabase/agent-skills/skills/supabase-postgres-best-practices
   content_hash: sha256:751ad110037c85d400018c9894716a04fa46357ff55c22b1169b280752e19e88
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/supabase-postgres-best-practices/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - supabase/agent-skills/skills/supabase-postgres-best-practices
+  active_owner: supabase/agent-skills/skills/supabase-postgres-best-practices
+  content_hash: sha256:b65e575eb4f04a13c187d64e958321298e2ab84d67aa8428819f362056ba292c
 - kind: project-relative
   target: agent-skills
   value: .agents/skills/supabase-postgres-best-practices/SKILL.md
@@ -7763,6 +8246,15 @@ deployments:
   content_hash: null
 - kind: project-relative
   target: agent-skills
+  value: .agents/skills/tdd/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - mattpocock/skills/skills/engineering/tdd
+  active_owner: mattpocock/skills/skills/engineering/tdd
+  content_hash: sha256:0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5
+- kind: project-relative
+  target: agent-skills
   value: .agents/skills/tdd/SKILL.md
   runtime: null
   scope: project
@@ -7806,6 +8298,15 @@ deployments:
   - scrapecreators/social-media-research-skills/skills/transcript-intelligence
   active_owner: scrapecreators/social-media-research-skills/skills/transcript-intelligence
   content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/transcript-intelligence/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - scrapecreators/social-media-research-skills/skills/transcript-intelligence
+  active_owner: scrapecreators/social-media-research-skills/skills/transcript-intelligence
+  content_hash: sha256:37a2301a00eef329530cc65ddb9f1c1085a2fbfb1bb748adb9eb6fa05bde4f9b
 - kind: project-relative
   target: agent-skills
   value: .agents/skills/transcript-intelligence/SKILL.md
@@ -8177,6 +8678,15 @@ deployments:
   content_hash: null
 - kind: project-relative
   target: agent-skills
+  value: .agents/skills/trend-discovery/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - scrapecreators/social-media-research-skills/skills/trend-discovery
+  active_owner: scrapecreators/social-media-research-skills/skills/trend-discovery
+  content_hash: sha256:37a2301a00eef329530cc65ddb9f1c1085a2fbfb1bb748adb9eb6fa05bde4f9b
+- kind: project-relative
+  target: agent-skills
   value: .agents/skills/trend-discovery/SKILL.md
   runtime: null
   scope: project
@@ -8193,6 +8703,15 @@ deployments:
   - cursor/plugins/pstack/skills/typescript-best-practices
   active_owner: cursor/plugins/pstack/skills/typescript-best-practices
   content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/typescript-best-practices/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - cursor/plugins/pstack/skills/typescript-best-practices
+  active_owner: cursor/plugins/pstack/skills/typescript-best-practices
+  content_hash: sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e
 - kind: project-relative
   target: agent-skills
   value: .agents/skills/typescript-best-practices/SKILL.md
@@ -8220,6 +8739,15 @@ deployments:
   - nextlevelbuilder/ui-ux-pro-max-skill/.claude/skills/ui-ux-pro-max
   active_owner: nextlevelbuilder/ui-ux-pro-max-skill/.claude/skills/ui-ux-pro-max
   content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/ui-ux-pro-max/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - nextlevelbuilder/ui-ux-pro-max-skill/.claude/skills/ui-ux-pro-max
+  active_owner: nextlevelbuilder/ui-ux-pro-max-skill/.claude/skills/ui-ux-pro-max
+  content_hash: sha256:738f69dfa83db5c347c678fb9d90e560877059f0de93a327c39001bff92dc014
 - kind: project-relative
   target: agent-skills
   value: .agents/skills/ui-ux-pro-max/SKILL.md
@@ -8888,6 +9416,15 @@ deployments:
   content_hash: null
 - kind: project-relative
   target: agent-skills
+  value: .agents/skills/unslop/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - heydamir/unslop/skills/unslop
+  active_owner: heydamir/unslop/skills/unslop
+  content_hash: sha256:9ba9550ad48438d0836ddab3da480b3b69ffa0aac7b7878b5a0039e7ab429411
+- kind: project-relative
+  target: agent-skills
   value: .agents/skills/unslop/SKILL.md
   runtime: null
   scope: project
@@ -9012,6 +9549,15 @@ deployments:
   - jetbrains/go-modern-guidelines/plugin/skills/use-modern-go
   active_owner: jetbrains/go-modern-guidelines/plugin/skills/use-modern-go
   content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/use-modern-go/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - jetbrains/go-modern-guidelines/plugin/skills/use-modern-go
+  active_owner: jetbrains/go-modern-guidelines/plugin/skills/use-modern-go
+  content_hash: sha256:304264c63c5fb4cf3bc22746f1fd8958fc34f69cf1a389f7c7b2182985691bfd
 - kind: project-relative
   target: agent-skills
   value: .agents/skills/use-modern-go/SKILL.md
@@ -9903,6 +10449,15 @@ deployments:
   - anthropics/knowledge-work-plugins/product-management/skills/write-spec
   active_owner: anthropics/knowledge-work-plugins/product-management/skills/write-spec
   content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/write-spec/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - anthropics/knowledge-work-plugins/product-management/skills/write-spec
+  active_owner: anthropics/knowledge-work-plugins/product-management/skills/write-spec
+  content_hash: sha256:cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30
 - kind: project-relative
   target: agent-skills
   value: .agents/skills/write-spec/SKILL.md

@@ -3,16 +3,25 @@
 import hashlib
 import json
 import os
-from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
+from pathlib import Path
 
 import yaml
 
 
 def load_lock(path):
     return yaml.safe_load(path.read_text())
+
+
+def apm_version(apm):
+    result = subprocess.run([apm, "--version"], check=True, capture_output=True, text=True)
+    output = result.stdout + result.stderr
+    match = re.search(r"\bversion\s+(\d+)\.(\d+)\.(\d+)\b", output)
+    assert match, f"Could not parse APM version from {output!r}"
+    return tuple(map(int, match.groups()))
 
 
 def check_deployment(repository, home, overrides=None):
@@ -128,6 +137,7 @@ def main():
     repository, home, apm = Path(sys.argv[1]), Path(sys.argv[2]), sys.argv[3]
     environment = dict(os.environ, HOME=str(home))
     command = ["bash", str(repository / "scripts/apm/setup-apm.sh"), str(repository), apm]
+    frozen_checks_hashes = apm_version(apm) >= (0, 36, 0)
     # An old machine lock must never override reviewed repository resolutions.
     (home / ".apm").mkdir(exist_ok=True)
     (home / ".apm/apm.lock.yaml").write_text("lockfile_version: '1'\ndependencies: []\n")
@@ -137,21 +147,43 @@ def main():
     subprocess.run(command, env=environment, check=True)
     check_deployment(repository, home)
     skill = home / ".agents/skills/documentation/SKILL.md"
-    edited = skill.read_bytes() + b"\nLocal user note.\n"
+    relative = ".agents/skills/documentation/SKILL.md"
+    original_skill = skill.read_bytes()
+    edited = original_skill + b"\nLocal user note.\n"
     skill.write_bytes(edited)
     unrelated = home / ".agents/skills/local-only/SKILL.md"
     unrelated.parent.mkdir()
     unrelated.write_text("User-owned skill.\n")
     simulate_remount(home)
-    subprocess.run(command, env=environment, check=True)
+    lock_before_edit_check = (home / ".apm/apm.lock.yaml").read_bytes()
+    result = subprocess.run(command, env=environment, capture_output=True, text=True)
+    output = result.stdout + result.stderr
+    if frozen_checks_hashes:
+        assert result.returncode != 0, "APM 0.36+ accepted an edited file in a frozen install"
+        assert "--frozen" in output and relative in output, (
+            f"APM 0.36+ failed for a reason other than the edited locked file:\n{output}"
+        )
+        assert (home / ".apm/apm.lock.yaml").read_bytes() == lock_before_edit_check, (
+            "Rejected frozen install changed the user lock"
+        )
+    else:
+        assert result.returncode == 0, output
     assert skill.read_bytes() == edited, "Reinstall overwrote a user-edited skill"
     assert unrelated.read_text() == "User-owned skill.\n", "Reinstall removed a user-owned skill"
-    relative = ".agents/skills/documentation/SKILL.md"
     check_deployment(
         repository, home, {relative: "sha256:" + hashlib.sha256(edited).hexdigest()}
     )
+    if frozen_checks_hashes:
+        # APM 0.36+ correctly refuses the edited file; restore the committed bytes
+        # before proving a valid frozen install and testing receipt rejection.
+        skill.write_bytes(original_skill)
+        subprocess.run(command, env=environment, check=True)
+        check_deployment(repository, home)
+        protected_skill = skill.read_bytes()
+    else:
+        protected_skill = edited
     # Device changes are recoverable, but a different installation or directory
-    # must still fail closed without rewriting evidence or deployed user edits.
+    # must still fail closed without rewriting evidence or deployed skill content.
     receipt = simulate_remount(home)
     valid = json.loads(receipt.read_text())
     for field, value in (
@@ -165,15 +197,22 @@ def main():
         result = subprocess.run(command, env=environment, capture_output=True, text=True)
         assert result.returncode != 0, f"Accepted mismatched {field}"
         assert receipt.read_text() == contents, f"Rewrote mismatched {field}"
-        assert skill.read_bytes() == edited, f"Changed local edits with mismatched {field}"
+        assert skill.read_bytes() == protected_skill, "Changed deployed skill with mismatched receipt"
     receipt.write_text(json.dumps(valid))
     subprocess.run(command, env=environment, check=True)
-    check_deployment(repository, home, {relative: "sha256:" + hashlib.sha256(edited).hexdigest()})
+    if frozen_checks_hashes:
+        check_deployment(repository, home)
+        edit_policy = "edited frozen hashes refused without writes"
+    else:
+        check_deployment(
+            repository, home, {relative: "sha256:" + hashlib.sha256(edited).hexdigest()}
+        )
+        edit_policy = "edited skills preserved"
     check_rejected_inputs(repository, home, apm, environment)
     check_project_scope(repository, home, apm, environment)
     assert not (home / ".agents/skills/officecli").exists(), "Common setup deployed a host-only skill"
     print("Global frozen deployment verified: tracked lock, authored skill, repeat install, "
-          "remount recovery, edits preserved, invalid bindings and inputs refused, project scope isolated.")
+          f"remount recovery, {edit_policy}, invalid bindings and inputs refused, project scope isolated.")
 
 
 if __name__ == "__main__":
