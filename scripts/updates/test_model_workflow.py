@@ -151,8 +151,10 @@ class ModelUpdateWorkflowTests(unittest.TestCase):
 
         write(MODEL_PATHS[0], "modelRoles:\n  default: openai-codex/gpt-6-sol:high\n")
         write(MODEL_PATHS[1], '{"daemon":{"agentProfiles":[{"id":"main","provider":"omp","model":"openai-codex/gpt-6-sol:low"}]}}')
-        write(MODEL_PATHS[2], "")
-        write(MODEL_PATHS[3], "")
+        aside = 'model = modelId: thinkingLevel: { provider = "openai-codex"; };\n default = model "gpt-6-sol" "high";\n'
+        hermes = 'backends.model_map = { options = [ { name = "native"; provider = "openai-codex"; model = "gpt-6-sol"; } ]; };\n'
+        write(MODEL_PATHS[2], aside)
+        write(MODEL_PATHS[3], hermes)
         pins = '{"omp":{"version":"18.22.1","hash":"preserve"}}'
         write("release-pins.json", pins)
         write("flake.lock", json.dumps({"nodes": {"hermes-agent": {"locked": {
@@ -200,11 +202,17 @@ class ModelUpdateWorkflowTests(unittest.TestCase):
             remote = self.git(self.root, f"--git-dir={self.origin}", "show", f"{BRANCH}:{path}")
             self.assertIn(f"openai-codex/gpt-6.2-sol:{effort}", remote)
             self.assertNotIn("gpt-6-sol:", remote)
+        for path, original in ((MODEL_PATHS[2], aside), (MODEL_PATHS[3], hermes)):
+            self.assertEqual(self.git(self.root, f"--git-dir={self.origin}", "show", f"{BRANCH}:{path}"), original.strip())
         self.assertEqual(self.git(self.root, f"--git-dir={self.origin}", "show",
                                  f"{BRANCH}:release-pins.json"), pins)
         calls = self.gh_log.read_text()
         self.assertIn("pr create --base main --head " + BRANCH, calls)
         self.assertIn("NOT VERIFIED", calls)
+        self.assertIn("`omp`: `gpt-6-sol` → `gpt-6.2-sol`", calls)
+        self.assertIn("`paseo`: `gpt-6-sol` → `gpt-6.2-sol`", calls)
+        self.assertIn("hermes: gpt-6-sol → gpt-6.2-sol: blocked by hermes", calls)
+        self.assertIn("aside: gpt-6-sol → gpt-6.2-sol: blocked by aside", calls)
         self.assertNotIn("auto-merge", calls.lower())
 
     def test_existing_open_pr_is_updated_instead_of_duplicated(self):

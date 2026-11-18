@@ -254,11 +254,10 @@ def _collect_paseo_json(path, text):
             continue
         model_id, prefix, suffix = parts
         _decoded, start, end = token
-        for client in ("omp", "paseo"):
-            references.append(ModelReference(
-                path, location, start, end, value, model_id, prefix, suffix, client,
-                lambda replacement: json.dumps(replacement, ensure_ascii=False),
-            ))
+        references.append(ModelReference(
+            path, location, start, end, value, model_id, prefix, suffix, "paseo",
+            lambda replacement: json.dumps(replacement, ensure_ascii=False),
+        ))
     return references
 
 
@@ -691,18 +690,21 @@ def _status_for(model_id, client, support, support_gaps):
 
 
 def _updates_for(references, support, support_gaps, discovery, discovery_gaps):
-    consumers_by_model = {}
+    # A consumer owns its roles, not every other client using the same model ID.
+    # Paseo's external OMP transport still requires both pinned support sources.
+    groups = {}
     for reference in references:
-        consumers_by_model.setdefault(reference.model_id, set()).add(reference.client)
+        base, _version, suffix = model_family(reference.model_id)
+        groups.setdefault((reference.client, base, suffix), set()).add(reference.model_id)
 
     replacements = {}
     blocked = []
-    for current in sorted(consumers_by_model):
-        family = model_family(current)
-        clients = consumers_by_model[current]
-        found_discovery = set.union(*(discovery[client] for client in clients if client in discovery)) if any(
-            client in discovery for client in clients
-        ) else set()
+    for (consumer, base, suffix), current_ids in sorted(groups.items()):
+        current = ", ".join(sorted(current_ids))
+        label = f"{consumer}: {current}"
+        family = (base, max(model_family(model)[1] for model in current_ids), suffix)
+        clients = {"omp", "paseo"} if consumer == "paseo" else {consumer}
+        found_discovery = set.union(*(discovery.get(client, set()) for client in clients))
         family_candidates = []
         for candidate in found_discovery:
             candidate_family = model_family(candidate)
@@ -721,19 +723,27 @@ def _updates_for(references, support, support_gaps, discovery, discovery_gaps):
             )
         ]
         if not common_supported:
+            # Other catalogs may discover a successor, but cannot authorize it
+            # for this consumer. Keep that distinction visible in the report.
+            if not family_candidates:
+                for candidate in set.union(set(), *discovery.values()):
+                    candidate_family = model_family(candidate)
+                    if candidate_family and (candidate_family[0], candidate_family[2]) == (base, suffix):
+                        if candidate_family[1] > family[1]:
+                            family_candidates.append((candidate_family[1], candidate))
             missing_discovery = [
                 discovery_gaps.get(client, "no static discovery source")
                 for client in sorted(clients) if client not in discovery
             ]
             if not family_candidates:
                 if missing_discovery:
-                    blocked.append(f"{current}: successors blocked: {'; '.join(missing_discovery)}")
+                    blocked.append(f"{label}: successors blocked: {'; '.join(missing_discovery)}")
                 continue
 
             newest_version = max(version for version, _candidate in family_candidates)
             newest = sorted(candidate for version, candidate in family_candidates if version == newest_version)
             if len(newest) != 1:
-                blocked.append(f"{current}: ambiguous same-family successors at numeric version {newest_version}")
+                blocked.append(f"{label}: ambiguous same-family successors at numeric version {newest_version}")
                 continue
             candidate = newest[0]
             unsupported = []
@@ -750,24 +760,25 @@ def _updates_for(references, support, support_gaps, discovery, discovery_gaps):
                 if status:
                     unsupported.append(f"{client}: {status}")
             if unsupported:
-                blocked.append(f"{current} → {candidate}: blocked by " + "; ".join(unsupported))
+                blocked.append(f"{label} → {candidate}: blocked by " + "; ".join(unsupported))
             else:
-                blocked.append(f"{current}: no common supported same-family successor")
+                blocked.append(f"{label}: no common supported same-family successor")
             continue
 
         newest_version = max(version for version, _candidate in common_supported)
         newest = sorted(candidate for version, candidate in family_candidates if version == newest_version)
         if len(newest) != 1:
-            blocked.append(f"{current}: ambiguous same-family successors at numeric version {newest_version}")
+            blocked.append(f"{label}: ambiguous same-family successors at numeric version {newest_version}")
             continue
-        replacements[current] = newest[0]
+        for model_id in current_ids:
+            replacements[(consumer, model_id)] = newest[0]
     return replacements, blocked
 
 
 def _render_text(original, references, replacements):
     edits = set()
     for reference in references:
-        replacement = replacements.get(reference.model_id)
+        replacement = replacements.get((reference.client, reference.model_id))
         if replacement is not None:
             edits.add((reference.start, reference.end, reference.replacement(replacement)))
     result = original
@@ -788,9 +799,11 @@ def _unsupported_current(references, support, support_gaps):
         if key in seen:
             continue
         seen.add(key)
-        status = _status_for(reference.model_id, reference.client, support, support_gaps)
-        if status:
-            gaps.append(f"{reference.model_id} ({reference.client}): {status}")
+        clients = ("paseo", "omp") if reference.client == "paseo" else (reference.client,)
+        for client in clients:
+            status = _status_for(reference.model_id, client, support, support_gaps)
+            if status:
+                gaps.append(f"{reference.model_id} ({reference.client}, requires {client}): {status}")
     return gaps
 
 
@@ -801,7 +814,7 @@ def _report(root, sources, errors, references, support, support_gaps, replacemen
         report.extend([f"Check mode validated {scope}; no configuration files were changed.", ""])
     elif replacements:
         report.extend(["Configured model updates:", ""])
-        report.extend(f"- `{old}` → `{new}`" for old, new in sorted(replacements.items()))
+        report.extend(f"- `{client}`: `{old}` → `{new}`" for (client, old), new in sorted(replacements.items()))
         report.append("")
     else:
         report.extend(["No supported same-family successor updates were applied.", ""])
@@ -829,6 +842,8 @@ def _report(root, sources, errors, references, support, support_gaps, replacemen
 
     report.extend(["Static support evidence sources:", ""])
     relevant_clients = {reference.client for reference in references}
+    if "paseo" in relevant_clients:
+        relevant_clients.add("omp")
     relevant_sources = [
         source for source in sources
         if source["provider"] == OPENAI_PROVIDER and source["client"] in relevant_clients
@@ -899,15 +914,19 @@ def update(root, evidence_path, body_file, check=False, base_ref=None, now=None,
     if check and base_ref:
         relevant_references = _changed_references(root, references, base_references)
     required_clients = {reference.client for reference in references}
+    if "paseo" in required_clients:
+        required_clients.add("omp")
     support, support_gaps = _support_sets(sources, source_errors, required_clients)
     discovery, discovery_gaps = _discovery_sets(sources, source_errors, required_clients)
 
     if check:
         failures = []
         for reference in relevant_references:
-            status = _status_for(reference.model_id, reference.client, support, support_gaps)
-            if status:
-                failures.append(f"{reference.model_id} ({reference.client}): {status}")
+            clients = ("paseo", "omp") if reference.client == "paseo" else (reference.client,)
+            for client in clients:
+                status = _status_for(reference.model_id, client, support, support_gaps)
+                if status:
+                    failures.append(f"{reference.model_id} ({reference.client}, requires {client}): {status}")
         if failures:
             raise ValueError("changed configured model IDs lack exact static support: " + "; ".join(failures))
         replacements, blocked = {}, []
