@@ -1,4 +1,5 @@
 import os
+import re
 import shutil
 import subprocess
 import tempfile
@@ -35,10 +36,20 @@ def _assert_same_dependencies(before, after):
             raise ValueError(f"APM lock resolution changed dependency commit for {identity[0]}")
 
 
-def _assert_apm_version(lock, expected_version):
-    if expected_version is not None and lock.get("apm_version") != expected_version:
+def _assert_apm_version(apm, expected_version, *, cwd, env):
+    if expected_version is None:
+        return
+    result = subprocess.run(
+        [apm, "--version"], cwd=cwd, env=env, check=True,
+        capture_output=True, text=True,
+    )
+    match = re.fullmatch(
+        r"Agent Package Manager \(APM\) CLI version (\S+)(?: \([^)]+\))?",
+        result.stdout.strip(),
+    )
+    if match is None or match[1] != expected_version:
         raise ValueError(
-            f"APM lock reports version {lock.get('apm_version')!r}, expected {expected_version}"
+            f"APM executable reports {result.stdout.strip()!r}, expected {expected_version}"
         )
 
 
@@ -65,12 +76,14 @@ def regenerate_lock(
             shutil.copy2(root / name, staging / name)
         shutil.copytree(root / "skills", staging / "skills")
         environment = dict(os.environ, HOME=str(home))
+        # apm_version records the last lock producer, not necessarily this CLI:
+        # upstream preserves it when resolution/deployment is a semantic no-op.
+        _assert_apm_version(apm, expected_apm_version, cwd=staging, env=environment)
         lock_command = [apm, "lock"]
         if update_dependencies:
             lock_command.append("--update")
         subprocess.run(lock_command, cwd=staging, env=environment, check=True)
         resolved = yaml.safe_load((staging / "apm.lock.yaml").read_text())
-        _assert_apm_version(resolved, expected_apm_version)
         if not update_dependencies:
             _assert_same_dependencies(original, resolved)
 
@@ -84,7 +97,6 @@ def regenerate_lock(
         )
         subprocess.run(install_command, cwd=staging, env=environment, check=True)
         materialized = yaml.safe_load((staging / "apm.lock.yaml").read_text())
-        _assert_apm_version(materialized, expected_apm_version)
         if not update_dependencies:
             _assert_same_dependencies(original, materialized)
 

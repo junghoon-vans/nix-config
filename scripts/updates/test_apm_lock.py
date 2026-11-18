@@ -59,15 +59,29 @@ class APMReleaseLockTests(unittest.TestCase):
     def write_lock(self, lock):
         (self.root / "apm.lock.yaml").write_text(yaml.safe_dump(lock, sort_keys=False))
 
-    def fake_apm(self, *, changed_commit=False, installed_version="0.36.0", global_install=True):
+    def fake_apm(
+        self, *, changed_commit=False, installed_version="0.36.0",
+        global_install=True, preserve_producer=False, version_output=None,
+        drift_on_install=False,
+    ):
         commands = []
 
-        def run(command, *, cwd, env, check):
+        def run(command, *, cwd, env, check, capture_output=False, text=False):
             commands.append((command, cwd, env, check))
+            if command[1] == "--version":
+                self.assertTrue(capture_output)
+                self.assertTrue(text)
+                return SimpleNamespace(
+                    returncode=0,
+                    stdout=version_output if version_output is not None else (
+                        f"Agent Package Manager (APM) CLI version {installed_version} (123abcd)\n"
+                    ),
+                )
             lock_path = Path(cwd) / "apm.lock.yaml"
             lock = yaml.safe_load(lock_path.read_text())
             if command[1] == "lock":
-                lock["apm_version"] = installed_version
+                if not preserve_producer:
+                    lock["apm_version"] = installed_version
                 if changed_commit:
                     lock["dependencies"][0]["resolved_commit"] = "b" * 40
             else:
@@ -77,6 +91,8 @@ class APMReleaseLockTests(unittest.TestCase):
                 expected.extend(["--target", "agent-skills", "--only", "apm", "--trust-bin"])
                 self.assertEqual(command, expected)
                 lock["dependencies"][0]["exec_status"] = {"approved": False}
+                if drift_on_install:
+                    lock["dependencies"][0]["resolved_commit"] = "b" * 40
                 lock["dependencies"][0]["deployed_file_hashes"][
                     ".agents/skills/remote-skill/LICENSE"
                 ] = "sha256:new-license"
@@ -104,6 +120,7 @@ class APMReleaseLockTests(unittest.TestCase):
             )
 
         self.assertEqual([command for command, *_ in commands], [
+            ["/selected/apm", "--version"],
             ["/selected/apm", "lock"],
             ["/selected/apm", "install", "--global", "--target", "agent-skills",
              "--only", "apm", "--trust-bin"],
@@ -157,7 +174,7 @@ class APMReleaseLockTests(unittest.TestCase):
                     update_dependencies=False,
                     expected_apm_version="0.36.0",
                 )
-        self.assertEqual(len(commands), 1)
+        self.assertEqual(len(commands), 2)
         self.assertEqual((self.root / "apm.lock.yaml").read_bytes(), before)
 
     def test_cli_only_refresh_requires_the_selected_apm_version(self):
@@ -172,6 +189,49 @@ class APMReleaseLockTests(unittest.TestCase):
                     expected_apm_version="0.36.0",
                 )
         self.assertEqual(len(commands), 1)
+        self.assertEqual((self.root / "apm.lock.yaml").read_bytes(), before)
+
+    def test_cli_upgrade_preserves_older_lock_producer_and_refreshes_hashes(self):
+        _, fake_run = self.fake_apm(
+            installed_version="0.36.1", preserve_producer=True,
+        )
+        with patch.object(apm_lock.subprocess, "run", side_effect=fake_run):
+            apm_lock.regenerate_lock(
+                self.root, "/selected/apm",
+                update_dependencies=False, expected_apm_version="0.36.1",
+            )
+        lock = yaml.safe_load((self.root / "apm.lock.yaml").read_text())
+        self.assertEqual(lock["apm_version"], self.original_lock["apm_version"])
+        self.assertEqual(lock["dependencies"][0]["resolved_commit"], "a" * 40)
+        self.assertEqual(lock["dependencies"][0]["exec_status"], {"approved": True})
+        self.assertIn(
+            self.remote_row | {"content_hash": "sha256:new-remote"},
+            lock["deployments"],
+        )
+        self.assertEqual(lock["dependencies"][1], self.local)
+        self.assertIn(self.local_row, lock["deployments"])
+
+    def test_cli_only_refresh_rejects_unrecognized_version_output(self):
+        before = (self.root / "apm.lock.yaml").read_bytes()
+        commands, fake_run = self.fake_apm(version_output="0.36.0\n")
+        with patch.object(apm_lock.subprocess, "run", side_effect=fake_run):
+            with self.assertRaisesRegex(ValueError, "APM executable reports"):
+                apm_lock.regenerate_lock(
+                    self.root, "/selected/apm",
+                    update_dependencies=False, expected_apm_version="0.36.0",
+                )
+        self.assertEqual(len(commands), 1)
+        self.assertEqual((self.root / "apm.lock.yaml").read_bytes(), before)
+
+    def test_cli_only_refresh_rejects_install_commit_drift_without_publishing(self):
+        before = (self.root / "apm.lock.yaml").read_bytes()
+        _, fake_run = self.fake_apm(preserve_producer=True, drift_on_install=True)
+        with patch.object(apm_lock.subprocess, "run", side_effect=fake_run):
+            with self.assertRaisesRegex(ValueError, "changed dependency commit"):
+                apm_lock.regenerate_lock(
+                    self.root, "/selected/apm",
+                    update_dependencies=False, expected_apm_version="0.36.0",
+                )
         self.assertEqual((self.root / "apm.lock.yaml").read_bytes(), before)
 
 
