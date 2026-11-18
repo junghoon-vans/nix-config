@@ -63,11 +63,31 @@ class ModelSelectionTests(unittest.TestCase):
         changed, _ = self.run_update()
         self.assertEqual(changed, {})
 
-    def test_same_model_consumer_without_support_blocks_atomic_update(self):
-        self.write("modules/aside.nix", self.before["modules/aside.nix"].replace("gpt-6-sol", "gpt-6.9-terra"))
+    def test_shared_sol_promotes_verified_clients_not_native_hermes_or_aside(self):
+        for path in updater.TARGETS.values():
+            self.write(path, self.before[path].replace("gpt-6.9-terra", "gpt-6.1-sol").replace("gpt-6-sol", "gpt-6.1-sol"))
+        hermes = self.root / "modules/hermes.nix"
+        hermes.write_text(hermes.read_text().replace(
+            ']; };', '{ name = "worker"; provider = "omp-acp"; model = "openai-codex/gpt-6.1-sol:high"; } ]; };',
+        ))
+        original_hermes = hermes.read_text()
+        for row in self.data["sources"]:
+            row["models"] = ["gpt-6.1-sol"] + (["gpt-6.2-sol"] if row["client"] != "hermes" else [])
         changed, report = self.run_update()
-        self.assertEqual(changed, {})
-        self.assertIn("blocked by aside", "\n".join(report))
+        self.assertEqual(set(p.relative_to(self.root).as_posix() for p in changed), {
+            "home/.omp/agent/config.yml", "home/.paseo/config.json", "modules/hermes.nix",
+        })
+        self.assertEqual(hermes.read_text(), original_hermes.replace(
+            "openai-codex/gpt-6.1-sol:high", "openai-codex/gpt-6.2-sol:high",
+        ))
+        self.assertIn("openai-codex/gpt-6.2-sol:low", (self.root / "home/.paseo/config.json").read_text())
+        self.assertIn('model "gpt-6.1-sol"', (self.root / "modules/aside.nix").read_text())
+        report_text = "\n".join(report)
+        self.assertIn("`omp`: `gpt-6.1-sol` → `gpt-6.2-sol`", report_text)
+        self.assertIn("`paseo`: `gpt-6.1-sol` → `gpt-6.2-sol`", report_text)
+        self.assertIn("hermes: gpt-6.1-sol → gpt-6.2-sol: blocked by hermes", report_text)
+        self.assertIn("aside: gpt-6.1-sol → gpt-6.2-sol: blocked by aside", report_text)
+        self.assertEqual(self.run_update()[0], {})
 
     def test_invalid_evidence_never_changes_configuration(self):
         mutations = (
@@ -86,12 +106,14 @@ class ModelSelectionTests(unittest.TestCase):
             for path, text in self.before.items():
                 self.assertEqual((self.root / path).read_text(), text)
 
-    def test_missing_support_keeps_same_model_consumers_unchanged(self):
+    def test_missing_hermes_support_does_not_block_other_consumers(self):
         self.data["sources"] = [source for source in self.data["sources"] if source["client"] != "hermes"]
-        changed, _ = self.run_update()
-        self.assertEqual(changed, {})
-        for path in updater.TARGETS.values():
-            self.assertEqual((self.root / path).read_text(), self.before[path])
+        changed, report = self.run_update()
+        self.assertEqual(set(p.relative_to(self.root).as_posix() for p in changed), {
+            "home/.omp/agent/config.yml", "home/.paseo/config.json",
+        })
+        self.assertEqual((self.root / "modules/hermes.nix").read_text(), self.before["modules/hermes.nix"])
+        self.assertIn("blocked by hermes", "\n".join(report))
 
     def test_ambiguous_numeric_alias_is_not_selected(self):
         for row in self.data["sources"]:
@@ -100,14 +122,14 @@ class ModelSelectionTests(unittest.TestCase):
         self.assertEqual(changed, {})
         self.assertIn("ambiguous same-family", "\n".join(report))
 
-    def test_aliases_in_union_remain_ambiguous_at_common_numeric_version(self):
+    def test_aliases_in_transport_union_remain_ambiguous(self):
         for row in self.data["sources"]:
             row["models"] = ["gpt-6.9-terra", "gpt-7-terra", "gpt-7.0-terra"]
-            if row["client"] == "hermes":
+            if row["client"] == "paseo":
                 row["models"].remove("gpt-7.0-terra")
         changed, report = self.run_update()
         self.assertEqual(changed, {})
-        self.assertIn("ambiguous same-family", "\n".join(report))
+        self.assertIn("paseo: gpt-6.9-terra: ambiguous same-family", "\n".join(report))
 
     def test_wm_family_and_effort_option_are_preserved(self):
         path = "home/.omp/agent/config.yml"
@@ -126,37 +148,53 @@ class ModelSelectionTests(unittest.TestCase):
             self.before[path] + "  wm: 'openai-codex/gpt-6.10-terra-wm:medium'\n",
         )
 
-    def test_successor_selection_uses_highest_cross_client_intersection(self):
-        omp_models = ["gpt-6.9-terra", "gpt-6.10-terra", "gpt-6.11-terra"]
+    def test_consumers_select_independent_highest_successors_atomically(self):
+        omp_path = "home/.omp/agent/config.yml"
+        self.write(omp_path, self.before[omp_path] + "  deep: openai-codex/gpt-6.8-terra:medium\n")
         for row in self.data["sources"]:
-            row["models"] = omp_models if row["client"] in {"omp", "paseo"} else ["gpt-6.9-terra", "gpt-6.10-terra"]
+            row["models"] = ["gpt-6.9-terra", "gpt-6.10-terra"]
+            if row["client"] == "omp":
+                row["models"] += ["gpt-6.11-terra"]
         changed, _ = self.run_update()
         self.assertEqual(set(p.relative_to(self.root).as_posix() for p in changed), {
-            "home/.omp/agent/config.yml", "home/.paseo/config.json", "modules/hermes.nix",
+            omp_path, "home/.paseo/config.json", "modules/hermes.nix",
         })
-        self.assertEqual(
-            (self.root / "modules/hermes.nix").read_text(),
-            self.before["modules/hermes.nix"].replace("gpt-6.9-terra", "gpt-6.10-terra"),
-        )
+        self.assertEqual((self.root / omp_path).read_text(),
+                         "# preserve comment\nmodelRoles:\n  default: 'openai-codex/gpt-6.11-terra:high'\n"
+                         "  other: openai/gpt-6.9-terra\n  deep: openai-codex/gpt-6.11-terra:medium\n")
+        self.assertIn("openai-codex/gpt-6.10-terra:low", (self.root / "home/.paseo/config.json").read_text())
+        self.assertEqual((self.root / "modules/hermes.nix").read_text(),
+                         self.before["modules/hermes.nix"].replace("gpt-6.9-terra", "gpt-6.10-terra"))
 
-    def test_no_common_successor_leaves_all_consumers_unchanged(self):
+    def test_no_common_transport_successor_leaves_only_paseo_unchanged(self):
         for row in self.data["sources"]:
-            row["models"] = ["gpt-6.9-terra", "gpt-6.10-terra"] if row["client"] in {"omp", "paseo"} else [
-                "gpt-6.9-terra", "gpt-6.11-terra",
-            ]
+            row["models"] = {
+                "omp": ["gpt-6.9-terra", "gpt-6.10-terra"],
+                "paseo": ["gpt-6.9-terra"],
+                "hermes": ["gpt-6.9-terra", "gpt-6.11-terra"],
+            }[row["client"]]
         changed, report = self.run_update()
-        self.assertEqual(changed, {})
-        self.assertIn("blocked by", "\n".join(report))
-        for path in updater.TARGETS.values():
-            self.assertEqual((self.root / path).read_text(), self.before[path])
+        self.assertEqual(set(p.relative_to(self.root).as_posix() for p in changed), {
+            "home/.omp/agent/config.yml", "modules/hermes.nix",
+        })
+        self.assertIn("paseo: gpt-6.9-terra → gpt-6.10-terra: blocked by paseo", "\n".join(report))
+        self.assertEqual((self.root / "home/.paseo/config.json").read_text(), self.before["home/.paseo/config.json"])
 
-    def test_missing_paseo_transport_proof_blocks_all_same_model_consumers(self):
+    def test_missing_paseo_transport_proof_blocks_only_paseo(self):
         self.data["sources"] = [source for source in self.data["sources"] if source["client"] != "paseo"]
         changed, report = self.run_update()
-        self.assertEqual(changed, {})
+        self.assertEqual(set(p.relative_to(self.root).as_posix() for p in changed), {
+            "home/.omp/agent/config.yml", "modules/hermes.nix",
+        })
         self.assertIn("blocked by paseo", "\n".join(report))
-        for path in updater.TARGETS.values():
-            self.assertEqual((self.root / path).read_text(), self.before[path])
+        self.assertEqual((self.root / "home/.paseo/config.json").read_text(), self.before["home/.paseo/config.json"])
+
+    def test_paseo_only_reference_still_requires_omp_during_validation(self):
+        self.write("home/.omp/agent/config.yml", "modelRoles: {}\n")
+        self.write("modules/hermes.nix", "")
+        self.data["errors"].append("omp: pinned source unavailable")
+        with self.assertRaisesRegex(ValueError, r"paseo, requires omp"):
+            self.run_update(check=True)
 
     def test_paseo_omp_revision_mismatch_fails_closed_before_edits(self):
         paseo = next(source for source in self.data["sources"] if source["client"] == "paseo")
