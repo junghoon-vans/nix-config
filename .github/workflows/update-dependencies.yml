@@ -72,18 +72,46 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
       - name: Resolve latest release and hash
+        id: resolve
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: python3 -B scripts/updates/update-fixed-release.py '${{ matrix.package }}'
+        run: |
+          version="$(python3 -B scripts/updates/update-fixed-release.py '${{ matrix.package }}')"
+          printf 'version=%s\n' "$version" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        if: matrix.package == 'apm'
+        with:
+          python-version: "3.12"
+      - name: Install lockfile parser
+        if: matrix.package == 'apm'
+        run: python -m pip install --disable-pip-version-check -r scripts/security/requirements.txt
+      - name: Test APM lock refresh safeguards
+        if: matrix.package == 'apm'
+        run: python3 -B -m unittest discover -s scripts/updates -p 'test_apm_lock.py'
+      - name: Regenerate APM lock with selected release and verify frozen deployment
+        if: matrix.package == 'apm'
+        env:
+          APM_VERSION: ${{ steps.resolve.outputs.version }}
+        run: |
+          apm_store="$(nix build --no-link --print-out-paths .#apm)"
+          python3 -B scripts/updates/update-apm-lock.py \
+            --apm "$apm_store/bin/apm" \
+            --version "$APM_VERSION"
+          nix develop --no-write-lock-file --command bash scripts/apm/check.sh "$apm_store/bin/apm"
       - name: Open focused update pull request
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           GH_APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+          PACKAGE: ${{ matrix.package }}
         run: |
+          paths=(release-pins.json)
+          if [[ "$PACKAGE" == apm ]]; then
+            paths+=(apm.lock.yaml)
+          fi
           scripts/updates/open-update-pr.sh \
             "automation/update-${{ matrix.package }}" \
             "Automated fixed-release update. PR validation checks release pin structure and hashes, runs repository checks and an isolated frozen APM deployment, and builds both Darwin hosts. Activation remains manual." \
-            release-pins.json
+            "${paths[@]}"
 
   gno:
     runs-on: macos-15

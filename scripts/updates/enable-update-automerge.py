@@ -13,9 +13,10 @@ BOT = "nix-config-dependabot[bot]"
 MANUAL_REVIEW_LABEL = "ci-repair/manual-review"
 UPDATE_PATHS = {
     "automation/update-homebrew": {"flake.lock"},
+    "automation/update-apm": {"release-pins.json", "apm.lock.yaml"},
     **{
         f"automation/update-{package}": {"release-pins.json"}
-        for package in ("apm", "bun", "gnomcp", "omp", "paseo")
+        for package in ("bun", "gnomcp", "omp", "paseo")
     },
     "automation/update-gno": {"modules/languages/gno.nix"},
     "automation/update-hermes": {"flake.nix", "flake.lock"},
