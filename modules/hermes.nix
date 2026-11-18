@@ -41,13 +41,18 @@ let
           };
         }
         // lib.optionalAttrs (baseNameOf path == "lib.nix") {
-          # Correct the workspace dependency hash for the pinned Hermes v0.23.1 source.
+          # Scope workspace hash corrections to exact sources; future inputs use upstream's hash.
           fetchPnpmDeps =
             fetchArgs:
             (upstream.callPackage ({ fetchPnpmDeps }: { inherit fetchPnpmDeps; }) { }).fetchPnpmDeps (
               fetchArgs
               // {
-                hash = "sha256-c5SncErlf7IRWYj+b8MsAle7aplRt6Ip7rHWS037wzo=";
+                hash =
+                  {
+                    "3b421578588243f920886e6fe79a6faa87ea026e" = "sha256-c5SncErlf7IRWYj+b8MsAle7aplRt6Ip7rHWS037wzo=";
+                    "ae2a81ccc00e9b7c06301523e5bb09608397149c" = "sha256-0DFhYHo5HDps1hz6Haqv3cQfA1ug10LL/ohxKZGSDlw=";
+                  }
+                  .${inputs.hermes-agent.rev} or fetchArgs.hash;
               }
             );
         }
