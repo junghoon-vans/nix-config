@@ -1,12 +1,12 @@
 modelRoles:
-  default: openai-codex/gpt-6.1-sol:medium
-  plan: openai-codex/gpt-6.1-sol:high
-  review: openai-codex/gpt-6.1-sol:high
-  security: openai-codex/gpt-6.1-sol:xhigh
+  default: openai-codex/gpt-6.2-sol:medium
+  plan: openai-codex/gpt-6.2-sol:high
+  review: openai-codex/gpt-6.2-sol:high
+  security: openai-codex/gpt-6.2-sol:xhigh
   task: openai-codex/gpt-6-luna:max
   smol: openai-codex/gpt-6-luna:medium
   tiny: openai-codex/gpt-6-luna:low
-  slow: openai-codex/gpt-6-astra:low
+  slow: openai-codex/gpt-6.2-astra:low
   frontend: anthropic/claude-sonnet-5-5:high
   frontend_deep: anthropic/claude-opus-5-5:medium
 task:
