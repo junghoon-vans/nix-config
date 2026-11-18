@@ -16,8 +16,8 @@
     "hash": "sha256-qBNIMFxO3D+c3ajEQIuYt850A2W49O/Jkx3Q5/VVXro="
   },
   "gnomcp": {
-    "version": "0.12.3",
-    "hash": "sha256-EGI/U19OYb1RzEcZy3+ZWGDfrzcWPR9PqTaVLTu1Azw="
+    "version": "0.13.0",
+    "hash": "sha256-MaoN7JtzUl1JFwGHdxedGqu9GcRvmMtprwqWtn6AWfg="
   },
   "kiri": {
     "version": "0.2.1",
