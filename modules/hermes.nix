@@ -235,7 +235,7 @@ let
             name = "omp";
             description = "Current web search with linked sources, repository inspection, implementation and verification through OMP and its native tools.";
             provider = "omp-acp";
-            model = "openai-codex/gpt-6.1-sol";
+            model = "openai-codex/gpt-6.2-sol";
             fallback_providers = [ ];
           }
         ];
