@@ -53,6 +53,14 @@ jobs:
           --root .
           --evidence "$RUNNER_TEMP/openai-model-support.json"
           --body-file "$RUNNER_TEMP/openai-model-update.md"
+      - name: Validate generated references before publishing
+        run: >-
+          python3 -B scripts/updates/update-models.py
+          --root .
+          --evidence "$RUNNER_TEMP/openai-model-support.json"
+          --body-file "$RUNNER_TEMP/openai-model-check.md"
+          --check
+          --base-ref HEAD
       - name: Publish model-only update pull request
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}

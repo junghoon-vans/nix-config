@@ -49,6 +49,36 @@ class CollectorTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             collector.parse_omp(json.dumps(value))
 
+    def test_compat_exact_provider_ids_without_catalog_or_wildcard_synthesis(self):
+        source = '''
+// models "gpt-99-sol" { }
+provider "openai-codex" {
+    models "gpt-6.2-sol" "gpt-6.2-sol-wm" { max-context-window 922000; }
+    models "gpt-6.2-sol" { priority 0; }
+    models "gpt-88-*" { priority 0; }
+    class "other" { models "gpt-77-sol" { priority 0; } }
+    env "gpt-66-sol"
+}
+on-api "other" { models "gpt-55-sol" { priority 0; } }
+'''
+        self.assertEqual(collector.parse_omp_compat(source),
+                         ["gpt-6.2-sol", "gpt-6.2-sol-wm"])
+        self.assertNotIn("gpt-6.2-sol", collector.parse_omp(json.dumps(catalog())))
+        self.assertEqual(collector.parse_omp_compat(
+            'provider "openai-codex" { models "gpt-*" { priority 0; } }'), [])
+
+    def test_compat_wrong_provider_dynamic_or_malformed_selectors_fail_closed(self):
+        for source in (
+            'provider "openai" { models "gpt-6.2-sol" {} }',
+            'provider "openai-codex" {}\\nprovider "openai-codex" {}',
+            'provider "openai-codex" { models MODEL {} }',
+            'provider "openai-codex" { models "gpt-6.2-sol" }',
+            'provider "openai-codex" { models "gpt-6.2-sol" {',
+            'provider "openai-codex" { models "openai/gpt-6.2-sol" {} }',
+        ):
+            with self.subTest(source=source), self.assertRaises(ValueError):
+                collector.parse_omp_compat(source)
+
     def test_hermes_literal_list_without_execution_or_synthesis(self):
         source = '''raise RuntimeError("must not execute")
 OTHER_PROVIDER = ["gpt-99-terra"]
@@ -81,6 +111,9 @@ _FORWARD_COMPAT_TEMPLATE_MODELS = [("gpt-99-sol", ("gpt-6-sol",))]
             fixture.parent.mkdir(parents=True)
             fixture.write_text(json.dumps(catalog()))
             output = root / "evidence.json"
+            compat = root / "fixtures" / "omp" / collector.OMP_COMPAT_PATH
+            compat.parent.mkdir(parents=True)
+            compat.write_text('provider "openai-codex" { models "gpt-6.2-sol" {} }')
             result = subprocess.run([sys.executable, "-B", str(SCRIPT), "--root", str(root),
                                      "--fixture-dir", str(root / "fixtures"), "--output", str(output)],
                                     capture_output=True, text=True, timeout=5)
@@ -90,9 +123,12 @@ _FORWARD_COMPAT_TEMPLATE_MODELS = [("gpt-99-sol", ("gpt-6-sol",))]
             self.assertTrue(any(e.startswith("NONPRODUCTION:") for e in evidence["errors"]))
             self.assertTrue(any(e.startswith("hermes:") for e in evidence["errors"]))
             self.assertTrue(any(e.startswith("aside:") for e in evidence["errors"]))
-            self.assertEqual(len(evidence["sources"]), 2)
-            omp, hermes = evidence["sources"]
-            self.assertEqual(omp["models"], ["gpt-6-sol", "gpt-6.1-terra"])
+            self.assertEqual(len(evidence["sources"]), 3)
+            omp, hermes, paseo = evidence["sources"]
+            self.assertEqual(omp["models"], ["gpt-6-sol", "gpt-6.1-terra", "gpt-6.2-sol"])
+            self.assertEqual(omp["compatibility_models"], ["gpt-6.2-sol"])
+            self.assertEqual(paseo["models"], omp["models"])
+            self.assertEqual(paseo["kind"], "nonproduction-fixture")
             self.assertEqual(omp["provider"], "openai-codex")
             self.assertEqual(omp["role"], "support")
             self.assertTrue(omp["url"].startswith("file:"))

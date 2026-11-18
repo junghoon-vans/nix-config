@@ -35,6 +35,11 @@ class ModelSelectionTests(unittest.TestCase):
             ("hermes", "NousResearch/hermes-agent", "hermes_cli/codex_models.py", "a" * 40),
         ):
             self.data["sources"].append({"client": client, "provider": "openai-codex", "kind": "static-catalog", "role": "support", "pin_revision": pin, "revision": "a" * 40, "url": f"https://raw.githubusercontent.com/{repo}/{'a' * 40}/{path}", "models": self.models})
+        self.data["sources"].append({
+            "client": "paseo", "provider": "openai-codex", "kind": "nonproduction-fixture",
+            "role": "support", "pin_revision": "NONPRODUCTION", "revision": "NONPRODUCTION",
+            "url": "file:///fixtures/paseo.json", "omp_revision": "a" * 40, "models": self.models,
+        })
 
     def write(self, path, text):
         target = self.root / path
@@ -43,6 +48,7 @@ class ModelSelectionTests(unittest.TestCase):
 
     def run_update(self, **kwargs):
         self.evidence.write_text(json.dumps(self.data))
+        kwargs.setdefault("test_only_fixtures", True)
         return updater.update(self.root, self.evidence, self.body, **kwargs)
 
     def test_dynamic_terra_numeric_successor_preserves_provider_options_and_unrelated_pins(self):
@@ -81,10 +87,11 @@ class ModelSelectionTests(unittest.TestCase):
                 self.assertEqual((self.root / path).read_text(), text)
 
     def test_missing_support_keeps_same_model_consumers_unchanged(self):
-        self.data["sources"].pop()
-        changed, report = self.run_update()
+        self.data["sources"] = [source for source in self.data["sources"] if source["client"] != "hermes"]
+        changed, _ = self.run_update()
         self.assertEqual(changed, {})
-        self.assertIn("hermes: no pinned static support source", "\n".join(report))
+        for path in updater.TARGETS.values():
+            self.assertEqual((self.root / path).read_text(), self.before[path])
 
     def test_ambiguous_numeric_alias_is_not_selected(self):
         for row in self.data["sources"]:
@@ -93,8 +100,102 @@ class ModelSelectionTests(unittest.TestCase):
         self.assertEqual(changed, {})
         self.assertIn("ambiguous same-family", "\n".join(report))
 
+    def test_aliases_in_union_remain_ambiguous_at_common_numeric_version(self):
+        for row in self.data["sources"]:
+            row["models"] = ["gpt-6.9-terra", "gpt-7-terra", "gpt-7.0-terra"]
+            if row["client"] == "hermes":
+                row["models"].remove("gpt-7.0-terra")
+        changed, report = self.run_update()
+        self.assertEqual(changed, {})
+        self.assertIn("ambiguous same-family", "\n".join(report))
+
+    def test_wm_family_and_effort_option_are_preserved(self):
+        path = "home/.omp/agent/config.yml"
+        self.write(
+            path,
+            self.before[path] + "  wm: 'openai-codex/gpt-6.9-terra-wm:medium'\n",
+        )
+        for source in self.data["sources"]:
+            source["models"] = [
+                model for model in source["models"] if model != "gpt-6.10-terra"
+            ] + ["gpt-6.10-terra-wm"]
+        changed, _ = self.run_update()
+        self.assertEqual(set(changed), {self.root / path})
+        self.assertEqual(
+            (self.root / path).read_text(),
+            self.before[path] + "  wm: 'openai-codex/gpt-6.10-terra-wm:medium'\n",
+        )
+
+    def test_successor_selection_uses_highest_cross_client_intersection(self):
+        omp_models = ["gpt-6.9-terra", "gpt-6.10-terra", "gpt-6.11-terra"]
+        for row in self.data["sources"]:
+            row["models"] = omp_models if row["client"] in {"omp", "paseo"} else ["gpt-6.9-terra", "gpt-6.10-terra"]
+        changed, _ = self.run_update()
+        self.assertEqual(set(p.relative_to(self.root).as_posix() for p in changed), {
+            "home/.omp/agent/config.yml", "home/.paseo/config.json", "modules/hermes.nix",
+        })
+        self.assertEqual(
+            (self.root / "modules/hermes.nix").read_text(),
+            self.before["modules/hermes.nix"].replace("gpt-6.9-terra", "gpt-6.10-terra"),
+        )
+
+    def test_no_common_successor_leaves_all_consumers_unchanged(self):
+        for row in self.data["sources"]:
+            row["models"] = ["gpt-6.9-terra", "gpt-6.10-terra"] if row["client"] in {"omp", "paseo"} else [
+                "gpt-6.9-terra", "gpt-6.11-terra",
+            ]
+        changed, report = self.run_update()
+        self.assertEqual(changed, {})
+        self.assertIn("blocked by", "\n".join(report))
+        for path in updater.TARGETS.values():
+            self.assertEqual((self.root / path).read_text(), self.before[path])
+
+    def test_missing_paseo_transport_proof_blocks_all_same_model_consumers(self):
+        self.data["sources"] = [source for source in self.data["sources"] if source["client"] != "paseo"]
+        changed, report = self.run_update()
+        self.assertEqual(changed, {})
+        self.assertIn("blocked by paseo", "\n".join(report))
+        for path in updater.TARGETS.values():
+            self.assertEqual((self.root / path).read_text(), self.before[path])
+
+    def test_paseo_omp_revision_mismatch_fails_closed_before_edits(self):
+        paseo = next(source for source in self.data["sources"] if source["client"] == "paseo")
+        paseo["omp_revision"] = "b" * 40
+        with self.assertRaisesRegex(ValueError, "does not match OMP revision"):
+            self.run_update()
+        for path in updater.TARGETS.values():
+            self.assertEqual((self.root / path).read_text(), self.before[path])
+
+    def test_omp_compatibility_aggregate_requires_matching_provenance_and_reports_tier(self):
+        omp = next(source for source in self.data["sources"] if source["client"] == "omp")
+        omp.update(
+            kind="static-catalog+compat",
+            catalog_models=["gpt-6.9-terra", "gpt-6.11-sol", "gpt-7-terra-preview"],
+            compatibility_models=["gpt-6.10-terra"],
+            compat_revision="a" * 40,
+            compat_url="https://raw.githubusercontent.com/can1357/oh-my-pi/"
+            + "a" * 40 + "/packages/catalog/src/compat/rules/providers/openai-codex.kdl",
+        )
+        changed, report = self.run_update()
+        self.assertTrue(changed)
+        report_text = "\n".join(report)
+        self.assertIn("compatibility tier (static provider rules)", report_text)
+        self.assertIn(omp["compat_url"], report_text)
+
+        omp["compat_revision"] = "b" * 40
+        with self.assertRaisesRegex(ValueError, "invalid compatibility catalog provenance"):
+            self.run_update()
+        omp["compat_revision"] = "a" * 40
+        omp["compatibility_models"] = ["gpt-6.99-terra"]
+        with self.assertRaisesRegex(ValueError, "invalid compatibility catalog provenance"):
+            self.run_update()
+
     def test_offline_collector_to_updater_cli_requires_explicit_test_mode(self):
         compact = {"version": 1, "keys": [], "booleanShapes": [[]], "nodes": [[0, [], 0, []]], "providers": [["openai-codex", [0], [[model, [0]] for model in self.models]]]}
+        self.write(
+            "fixtures/omp/packages/catalog/src/compat/rules/providers/openai-codex.kdl",
+            'provider "openai-codex" { models "gpt-6.10-terra" {} }\n',
+        )
         self.write("fixtures/omp/packages/catalog/src/models.json", json.dumps(compact))
         self.write("fixtures/hermes/hermes_cli/codex_models.py", "DEFAULT_CODEX_MODELS = " + repr(self.models))
         collect = subprocess.run([sys.executable, "-B", str(SCRIPTS / "collect-model-support.py"), "--root", str(self.root), "--fixture-dir", str(self.root / "fixtures"), "--output", str(self.evidence)], capture_output=True, text=True, timeout=10)
