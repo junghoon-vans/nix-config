@@ -178,21 +178,39 @@ def _skill_aliases(skill_dir, root):
     return aliases
 
 
+def _resolve_skill_source_path(path, source, skill_root):
+    try:
+        resolved = path.resolve(strict=True)
+    except (OSError, RuntimeError) as error:
+        raise RuntimeError(f"External skill source contains an invalid path: {path}") from error
+    # Home Manager exposes immutable payload files through Nix Store links.
+    if resolved.is_relative_to(Path(NIX_STORE_ROOT).resolve()):
+        return resolved
+    if not resolved.is_relative_to(source):
+        raise RuntimeError(f"External skill source path escapes its root: {path}")
+    if skill_root is not None and not resolved.is_relative_to(skill_root):
+        raise RuntimeError(f"External skill source path escapes its skill directory: {path}")
+    return resolved
+
+
 def _skill_projection_entries(source, managed_names):
     active = set()
 
-    def resolve_source_path(path, skill_root):
-        try:
-            resolved = path.resolve(strict=True)
-        except (OSError, RuntimeError) as error:
-            raise RuntimeError(f"External skill source contains an invalid path: {path}") from error
-        if not resolved.is_relative_to(source):
-            raise RuntimeError(f"External skill source path escapes its root: {path}")
-        if skill_root is not None and not resolved.is_relative_to(skill_root):
-            raise RuntimeError(f"External skill source path escapes its skill directory: {path}")
-        return resolved
-
     def inspect(directory, relative, owning_skill=None):
+        # Directory/path collisions exclude the whole skill before following
+        # links, including installer-owned links outside the shared root.
+        if ({directory.name, relative.as_posix()} & managed_names
+                and (directory / "SKILL.md").is_file()):
+            return {
+                "relative": relative,
+                "resolved": None,
+                "is_skill": True,
+                "skill_root": owning_skill,
+                "shadowed": True,
+                "collision": True,
+                "files": [],
+                "children": [],
+            }
         try:
             resolved = directory.resolve(strict=True)
         except (OSError, RuntimeError) as error:
@@ -203,10 +221,10 @@ def _skill_projection_entries(source, managed_names):
         is_skill = (directory / "SKILL.md").is_file()
         skill_root = resolved if is_skill else owning_skill
         if directory.is_symlink():
-            resolve_source_path(directory, skill_root)
+            _resolve_skill_source_path(directory, source, skill_root)
         metadata_path = directory / "SKILL.md"
         if is_skill and metadata_path.is_symlink():
-            resolve_source_path(metadata_path, skill_root)
+            _resolve_skill_source_path(metadata_path, source, skill_root)
         if resolved in active:
             return {
                 "relative": relative,
@@ -232,11 +250,11 @@ def _skill_projection_entries(source, managed_names):
                 children.append(child_node)
                 collision = collision or child_node["collision"]
             elif child.is_file():
-                source_path = resolve_source_path(child, skill_root)
+                source_path = _resolve_skill_source_path(child, source, skill_root)
                 files.append((child, child_relative, source_path, skill_root))
             else:
                 if child.is_symlink():
-                    resolve_source_path(child, skill_root)
+                    _resolve_skill_source_path(child, source, skill_root)
                 raise RuntimeError(f"External skill source contains an unsupported entry: {child}")
         active.remove(resolved)
         return {
@@ -261,7 +279,7 @@ def _skill_projection_entries(source, managed_names):
         entries = [["dir", relative.as_posix()]] if relative.parts else []
         for source_path, child_relative, resolved, skill_root in node["files"]:
             try:
-                current = resolve_source_path(source_path, skill_root)
+                current = _resolve_skill_source_path(source_path, source, skill_root)
                 mode = stat.S_IMODE(current.stat().st_mode) & 0o777
                 digest = _file_sha256(current)
             except OSError as error:
@@ -387,6 +405,8 @@ def _remove_owned_projection(path_value, home):
 
 
 def _project_external_root(value, home, managed_names):
+    if not managed_names:
+        return value, None
     source = _external_path(value, home)
     if not source.is_dir():
         return value, None
@@ -449,13 +469,7 @@ def _project_external_root(value, home, managed_names):
             else:
                 destination.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
                 source_file = source / relative
-                try:
-                    current = source_file.resolve(strict=True)
-                except (OSError, RuntimeError) as error:
-                    raise RuntimeError(f"Unable to read external skill source file: {source_file}") from error
-                skill_root = Path(target[3])
-                if not current.is_relative_to(source) or not current.is_relative_to(skill_root):
-                    raise RuntimeError(f"External skill source path escapes its allowed directory: {source_file}")
+                current = _resolve_skill_source_path(source_file, source, Path(target[3]))
                 if current != Path(target[2]):
                     raise RuntimeError(f"External skill source changed while being projected: {source_file}")
                 try:

@@ -222,7 +222,13 @@ class HermesRuntimeConfig(unittest.TestCase):
             skill.write_text(f"---\nname: {name}\n---\n\n{body}\n")
 
         add_skill(current_root, "ego-browser", "canonical declared Ego skill")
-        add_skill(shared_root, "ego-browser", "stale shared Ego copy")
+        installed_root = self.root / "ego-installation"
+        add_skill(installed_root, "ego-browser", "stale shared Ego copy")
+        installed_alias = self.root / "ego-skills"
+        installed_alias.symlink_to(installed_root / "ego-browser", target_is_directory=True)
+        shared_root.mkdir(parents=True)
+        (shared_root / "ego-browser").symlink_to(installed_alias, target_is_directory=True)
+        (installed_root / "ego-browser/unused.md").symlink_to(self.root / "missing-reference.md")
         add_skill(shared_root, "review-notes", "unrelated shared skill")
         add_skill(local_root, "local-only", "unrelated external skill")
 
@@ -481,6 +487,68 @@ class HermesRuntimeConfig(unittest.TestCase):
                 with self.assertRaisesRegex(RuntimeError, "escapes its (root|skill directory)"):
                     self.check()
                 self.assertFalse(self.runtime.exists())
+
+    def test_unmanaged_external_skill_directory_symlink_is_refused(self):
+        source_root = self.root / "shared-skills"
+        source_root.mkdir()
+        installed_skill = self.root / "external-installation" / "local-reader"
+        installed_skill.mkdir(parents=True)
+        (installed_skill / "SKILL.md").write_text("---\nname: local-reader\n---\n\nLocal.\n")
+        (source_root / "local-reader").symlink_to(installed_skill, target_is_directory=True)
+        managed_root = self.store / "managed-skills"
+        managed_root.mkdir()
+        self.write_defaults(self.defaults_path, {
+            "skills": {"external_dirs": [str(source_root)]},
+            "nix_managed_skill_dirs": [str(managed_root)],
+            "nix_managed_skill_names": ["ego-browser"],
+        })
+
+        with self.assertRaisesRegex(RuntimeError, "symlink escapes its root"):
+            self.check()
+        self.assertFalse(self.runtime.exists())
+
+    def test_projection_preserves_nix_store_linked_payload_files(self):
+        for partial in (False, True):
+            with self.subTest(partial=partial):
+                source_root = self.root / f"store-linked-skills-{partial}"
+                skill = source_root / "officecli"
+                skill.mkdir(parents=True)
+                payload = self.store / f"officecli-payload-{partial}"
+                payload.mkdir()
+                (payload / "SKILL.md").write_text("---\nname: officecli\n---\n\nOffice tools.\n")
+                (payload / "guide.md").write_text("Immutable reference.\n")
+                (skill / "SKILL.md").symlink_to(payload / "SKILL.md")
+                (skill / "guide.md").symlink_to(payload / "guide.md")
+                hidden = (skill if partial else source_root) / "hidden-child"
+                hidden.mkdir()
+                (hidden / "SKILL.md").write_text("---\nname: hidden-child\n---\n\nHidden.\n")
+                managed_root = self.store / f"managed-store-links-{partial}"
+                managed_root.mkdir()
+                self.write_defaults(self.defaults_path, {
+                    "skills": {"external_dirs": [str(source_root)]},
+                    "nix_managed_skill_dirs": [str(managed_root)],
+                    "nix_managed_skill_names": ["hidden-child"],
+                })
+
+                profile_home = self.root / f"store-linked-profile-{partial}"
+                profile_home.mkdir(mode=0o700)
+                with patch.object(MODULE, "NIX_STORE_ROOT", self.store):
+                    config_path = MODULE.prepare_runtime_config(profile_home, self.defaults_path)
+                result = yaml.safe_load(config_path.read_text())
+                projection = Path(next(iter(result[MODULE.SKILL_PROJECTIONS_KEY])))
+                self.assertEqual(
+                    (projection / "officecli/SKILL.md").read_text(),
+                    (payload / "SKILL.md").read_text(),
+                )
+                self.assertEqual(
+                    (projection / "officecli/guide.md").read_text(),
+                    "Immutable reference.\n",
+                )
+                self.assertFalse((projection / ("officecli/hidden-child" if partial else "hidden-child")).exists())
+                if partial:
+                    self.assertFalse((projection / "officecli/SKILL.md").is_symlink())
+                else:
+                    self.assertTrue((projection / "officecli").is_symlink())
 
     def test_managed_server_generations_replace_remove_and_preserve_local_state(self):
         local = {"command": "local-mcp", "env": {"LOCAL_SETTING": "keep"}}
