@@ -9,12 +9,13 @@ import subprocess
 from pathlib import Path
 
 import aside_dmg
+import paseo_support
 import yaml
 
 MAX_EVIDENCE_AGE = timedelta(hours=48)
 MAX_FUTURE_SKEW = timedelta(minutes=5)
 OPENAI_PROVIDER = "openai-codex"
-CLIENTS = {"omp", "hermes", "aside"}
+CLIENTS = {"omp", "hermes", "aside", "paseo"}
 UNSTABLE_SUFFIXES = {
     "alpha", "beta", "experimental", "exp", "latest", "premium", "preview", "unstable",
 }
@@ -253,10 +254,11 @@ def _collect_paseo_json(path, text):
             continue
         model_id, prefix, suffix = parts
         _decoded, start, end = token
-        references.append(ModelReference(
-            path, location, start, end, value, model_id, prefix, suffix, "omp",
-            lambda replacement: json.dumps(replacement, ensure_ascii=False),
-        ))
+        for client in ("omp", "paseo"):
+            references.append(ModelReference(
+                path, location, start, end, value, model_id, prefix, suffix, client,
+                lambda replacement: json.dumps(replacement, ensure_ascii=False),
+            ))
     return references
 
 
@@ -513,12 +515,15 @@ def validate_evidence(evidence, now=None):
         error = source.get("error")
         if error:
             source_errors.setdefault((source["client"], source["role"]), []).append(str(error))
-        normalized.append({**source, "models": set(models)})
+        normalized_source = {**source, "models": set(models)}
+        if source["client"] == "paseo":
+            normalized_source["_source_models"] = models
+        normalized.append(normalized_source)
     return timestamp, normalized, source_errors
 
 
 def bind_pinned_sources(root, sources, test_only_fixtures=False):
-    """Accept exact catalogs only when their identity matches this checkout's pins."""
+    """Accept source records only when their identities match this checkout's pins."""
     pins = json.loads((root / "release-pins.json").read_text(), object_pairs_hook=_unique_object)
     lock = json.loads((root / "flake.lock").read_text(), object_pairs_hook=_unique_object)
     hermes = lock["nodes"]["hermes-agent"]["locked"]
@@ -529,6 +534,7 @@ def bind_pinned_sources(root, sources, test_only_fixtures=False):
     if (hermes["type"], hermes["owner"], hermes["repo"]) != ("github", "NousResearch", "hermes-agent"):
         raise ValueError("unsupported Hermes source pin")
     seen = set()
+    bound_sources = {}
     for source in sources:
         client = source["client"]
         if source.get("error"):
@@ -542,9 +548,17 @@ def bind_pinned_sources(root, sources, test_only_fixtures=False):
         if fixture:
             if not source["url"].startswith("file:"):
                 raise ValueError("fixture catalog requires a file URL")
+            bound_sources[client] = source
             continue
         if client == "aside":
             aside_dmg.validate_source(root, source)
+            bound_sources[client] = source
+            continue
+        if client == "paseo":
+            paseo_source = {key: value for key, value in source.items() if key != "_source_models"}
+            paseo_source["models"] = source["_source_models"]
+            paseo_support.validate_source(root, paseo_source)
+            bound_sources[client] = source
             continue
         if client not in expected:
             raise ValueError("unsupported static catalog identity")
@@ -552,10 +566,33 @@ def bind_pinned_sources(root, sources, test_only_fixtures=False):
         if source.get("pin_revision") != pin:
             raise ValueError(f"{client}: catalog does not match repository pin")
         revision = source["revision"]
-        if (source["kind"] != "static-catalog" or not re.fullmatch(r"[0-9a-f]{40}", revision)
+        allowed_kinds = {"static-catalog", "static-catalog+compat"} if client == "omp" else {"static-catalog"}
+        if (source["kind"] not in allowed_kinds or not re.fullmatch(r"[0-9a-f]{40}", revision)
                 or (client == "hermes" and revision != pin)
                 or source["url"] != f"https://raw.githubusercontent.com/{repo}/{revision}/{path}"):
             raise ValueError(f"{client}: invalid pinned catalog provenance")
+        if source["kind"] == "static-catalog+compat":
+            compat_path = "packages/catalog/src/compat/rules/providers/openai-codex.kdl"
+            catalog_models = source.get("catalog_models")
+            compatibility_models = source.get("compatibility_models")
+            for field, models in (("catalog_models", catalog_models), ("compatibility_models", compatibility_models)):
+                if not isinstance(models, list) or any(not isinstance(model, str) or not model for model in models):
+                    raise ValueError(f"omp: invalid {field} in compatibility catalog")
+            if (source.get("compat_revision") != revision
+                    or source.get("compat_url") != f"https://raw.githubusercontent.com/{repo}/{revision}/{compat_path}"
+                    or set(catalog_models) | set(compatibility_models) != source["models"]):
+                raise ValueError("omp: invalid compatibility catalog provenance")
+        bound_sources[client] = source
+
+    paseo = bound_sources.get("paseo")
+    if paseo:
+        omp = bound_sources.get("omp")
+        if omp is None:
+            raise ValueError("paseo: no matching pinned OMP source")
+        if paseo.get("omp_revision") != omp["revision"]:
+            raise ValueError("paseo: transport evidence does not match OMP revision")
+        if not paseo["models"] <= omp["models"]:
+            raise ValueError("paseo: transport models are not a subset of OMP support")
 
 def _sources_for(sources, client, role):
     return [
@@ -666,43 +703,73 @@ def _updates_for(references, support, support_gaps, discovery, discovery_gaps):
         found_discovery = set.union(*(discovery[client] for client in clients if client in discovery)) if any(
             client in discovery for client in clients
         ) else set()
-        eligible = []
+        family_candidates = []
         for candidate in found_discovery:
             candidate_family = model_family(candidate)
             if not candidate_family or (candidate_family[0], candidate_family[2]) != (family[0], family[2]):
                 continue
             if candidate_family[1] > family[1]:
-                eligible.append((candidate_family[1], candidate))
-        if not eligible:
-            missing_discovery = [discovery_gaps[client] for client in sorted(clients) if client in discovery_gaps]
-            if missing_discovery:
-                blocked.append(f"{current}: successors blocked: {'; '.join(missing_discovery)}")
+                family_candidates.append((candidate_family[1], candidate))
+
+        common_supported = [
+            (version, candidate)
+            for version, candidate in family_candidates
+            if all(
+                client in discovery and candidate in discovery[client]
+                and _status_for(candidate, client, support, support_gaps) is None
+                for client in clients
+            )
+        ]
+        if not common_supported:
+            missing_discovery = [
+                discovery_gaps.get(client, "no static discovery source")
+                for client in sorted(clients) if client not in discovery
+            ]
+            if not family_candidates:
+                if missing_discovery:
+                    blocked.append(f"{current}: successors blocked: {'; '.join(missing_discovery)}")
+                continue
+
+            newest_version = max(version for version, _candidate in family_candidates)
+            newest = sorted(candidate for version, candidate in family_candidates if version == newest_version)
+            if len(newest) != 1:
+                blocked.append(f"{current}: ambiguous same-family successors at numeric version {newest_version}")
+                continue
+            candidate = newest[0]
+            unsupported = []
+            for client in sorted(clients):
+                if client not in discovery:
+                    unsupported.append(
+                        f"{client}: {discovery_gaps.get(client, 'no static discovery source')}"
+                    )
+                    continue
+                if candidate not in discovery[client]:
+                    unsupported.append(f"{client}: not listed by static discovery source")
+                    continue
+                status = _status_for(candidate, client, support, support_gaps)
+                if status:
+                    unsupported.append(f"{client}: {status}")
+            if unsupported:
+                blocked.append(f"{current} → {candidate}: blocked by " + "; ".join(unsupported))
+            else:
+                blocked.append(f"{current}: no common supported same-family successor")
             continue
 
-        newest_version = max(version for version, _candidate in eligible)
-        newest = sorted(candidate for version, candidate in eligible if version == newest_version)
+        newest_version = max(version for version, _candidate in common_supported)
+        newest = sorted(candidate for version, candidate in family_candidates if version == newest_version)
         if len(newest) != 1:
             blocked.append(f"{current}: ambiguous same-family successors at numeric version {newest_version}")
             continue
-        candidate = newest[0]
-        unsupported = []
-        for client in sorted(clients):
-            status = _status_for(candidate, client, support, support_gaps)
-            if status:
-                unsupported.append(f"{client}: {status}")
-        if unsupported:
-            blocked.append(f"{current} → {candidate}: blocked by " + "; ".join(unsupported))
-            continue
-        replacements[current] = candidate
+        replacements[current] = newest[0]
     return replacements, blocked
 
 
 def _render_text(original, references, replacements):
-    edits = []
+    edits = set()
     for reference in references:
         replacement = replacements.get(reference.model_id)
         if replacement is not None:
-            edits.append((reference.start, reference.end, reference.replacement(replacement)))
+            edits.add((reference.start, reference.end, reference.replacement(replacement)))
     result = original
     previous_start = len(original) + 1
     for start, end, replacement in sorted(edits, reverse=True):
@@ -769,12 +836,30 @@ def _report(root, sources, errors, references, support, support_gaps, replacemen
     for source in sorted(relevant_sources, key=lambda row: (row["client"], row["role"], row["url"], row["revision"])):
         suffix = f"; error: {source['error']}" if source.get("error") else ""
         details = ""
+        if source["client"] == "omp" and source["kind"] == "static-catalog+compat":
+            details = (
+                f"; compatibility tier (static provider rules): {source['compat_url']} "
+                f"(pinned revision `{source['compat_revision']}`)"
+            )
         if source["client"] == "aside" and source["kind"] == "static-dmg-catalog":
             details = (
                 f"; DMG version `{source['browser_version']}` sha256 `{source['artifact_sha256']}`; "
                 f"Homebrew cask `{source['cask_url']}`; daemon `{source['daemon_version']}` "
                 f"(binary sha256 `{source['daemon_sha256']}`)"
             )
+        if source["client"] == "paseo" and source["kind"] == "static-transport":
+            provenance = source["provenance"]
+            details = (
+                f"; release `{source['pin_revision']}`; DMG {provenance['artifact_url']} "
+                f"(Nix hash `{provenance['nix_hash']}`); "
+                f"release metadata {provenance['release_metadata_url']}"
+            )
+        if source["client"] == "paseo" and source.get("limitations"):
+            limitations = source["limitations"]
+            if isinstance(limitations, list) and all(isinstance(item, str) for item in limitations):
+                limitations = "; ".join(limitations)
+            if isinstance(limitations, str):
+                details += f"; limitations: {limitations}"
         report.append(
             f"- STATIC `{source['client']}` {source['role']} ({source['kind']}): {source['url']} "
             f"(pinned revision `{source['revision']}`){details}{suffix}"
@@ -788,6 +873,7 @@ def _report(root, sources, errors, references, support, support_gaps, replacemen
     report.extend([
         "",
         "This is static client-support evidence only. Live account availability and inference behavior were NOT VERIFIED.",
+        "Compatibility-tier support is not account availability or inference verification.",
         "Review the configuration diff and manually merge after validation.",
     ])
     return report

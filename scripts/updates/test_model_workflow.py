@@ -1,3 +1,5 @@
+import json
+import sys
 import os
 from pathlib import Path
 import subprocess
@@ -138,6 +140,72 @@ class ModelUpdateWorkflowTests(unittest.TestCase):
             self.git(self.root, f"--git-dir={self.origin}", "show", f"{BRANCH}:{MODEL_PATHS[0]}"),
             "model pin: updated",
         )
+
+    def test_collector_successor_validation_report_and_manual_publication_pipeline(self):
+        scripts = HELPER.parent
+
+        def write(relative, content):
+            path = self.repo / relative
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(content)
+
+        write(MODEL_PATHS[0], "modelRoles:\n  default: openai-codex/gpt-6-sol:high\n")
+        write(MODEL_PATHS[1], '{"daemon":{"agentProfiles":[{"id":"main","provider":"omp","model":"openai-codex/gpt-6-sol:low"}]}}')
+        write(MODEL_PATHS[2], "")
+        write(MODEL_PATHS[3], "")
+        pins = '{"omp":{"version":"18.22.1","hash":"preserve"}}'
+        write("release-pins.json", pins)
+        write("flake.lock", json.dumps({"nodes": {"hermes-agent": {"locked": {
+            "type": "github", "owner": "NousResearch", "repo": "hermes-agent", "rev": "a" * 40,
+        }}}}))
+        compact = {
+            "version": 1, "keys": [], "booleanShapes": [[]],
+            "nodes": [[0, [], 0, []]],
+            "providers": [["openai-codex", [0], [["gpt-6-sol", [0]]]]],
+        }
+        write("fixtures/omp/packages/catalog/src/models.json", json.dumps(compact))
+        write("fixtures/omp/packages/catalog/src/compat/rules/providers/openai-codex.kdl",
+              'provider "openai-codex" { models "gpt-6.2-sol" {} }')
+        write("fixtures/hermes/hermes_cli/codex_models.py",
+              'DEFAULT_CODEX_MODELS = ["gpt-6-sol"]')
+        self.git(self.repo, "add", "--all")
+        self.git(self.repo, "commit", "-m", "structured model fixture")
+        evidence = self.root / "evidence.json"
+        collect = subprocess.run([
+            sys.executable, "-B", str(scripts / "collect-model-support.py"),
+            "--root", str(self.repo), "--fixture-dir", str(self.repo / "fixtures"),
+            "--output", str(evidence),
+        ], capture_output=True, text=True, timeout=10)
+        self.assertEqual(collect.returncode, 0, collect.stderr)
+        command = [
+            sys.executable, "-B", str(scripts / "update-models.py"),
+            "--root", str(self.repo), "--evidence", str(evidence),
+            "--body-file", str(self.body_file),
+        ]
+        refused = subprocess.run(command, capture_output=True, text=True, timeout=10)
+        self.assertNotEqual(refused.returncode, 0)
+        self.assertIn("NONPRODUCTION", refused.stderr)
+        selected = subprocess.run(command + ["--test-only-fixtures"],
+                                  capture_output=True, text=True, timeout=10)
+        self.assertEqual(selected.returncode, 0, selected.stderr)
+        check = subprocess.run(
+            command + ["--test-only-fixtures", "--check", "--base-ref", "HEAD",
+                       "--body-file", str(self.root / "check.md")],
+            capture_output=True, text=True, timeout=10,
+        )
+        self.assertEqual(check.returncode, 0, check.stderr)
+        published = self.run_helper(self.helper_env())
+        self.assertEqual(published.returncode, 0, published.stderr)
+        for path, effort in ((MODEL_PATHS[0], "high"), (MODEL_PATHS[1], "low")):
+            remote = self.git(self.root, f"--git-dir={self.origin}", "show", f"{BRANCH}:{path}")
+            self.assertIn(f"openai-codex/gpt-6.2-sol:{effort}", remote)
+            self.assertNotIn("gpt-6-sol:", remote)
+        self.assertEqual(self.git(self.root, f"--git-dir={self.origin}", "show",
+                                 f"{BRANCH}:release-pins.json"), pins)
+        calls = self.gh_log.read_text()
+        self.assertIn("pr create --base main --head " + BRANCH, calls)
+        self.assertIn("NOT VERIFIED", calls)
+        self.assertNotIn("auto-merge", calls.lower())
 
     def test_existing_open_pr_is_updated_instead_of_duplicated(self):
         target = self.repo / MODEL_PATHS[0]

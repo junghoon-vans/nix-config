@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Collect explicit openai-codex catalog entries, never runtime/account discovery.
+"""Collect explicit openai-codex catalog and compatibility declarations.
 
 --fixture-dir reads CLIENT/SOURCE_PATH instead of the network. Its output carries
 an unconditional NONPRODUCTION error so update-models.py cannot consume it.
@@ -14,11 +14,13 @@ import json
 from pathlib import Path
 import re
 import aside_dmg
+import paseo_support
 import urllib.error
 import urllib.request
 
 
 OMP_PATH = "packages/catalog/src/models.json"
+OMP_COMPAT_PATH = "packages/catalog/src/compat/rules/providers/openai-codex.kdl"
 HERMES_PATH = "hermes_cli/codex_models.py"
 PROVIDER = "openai-codex"
 TIMEOUT = 15
@@ -118,6 +120,87 @@ def parse_omp(text):
     return model_ids(ids)
 
 
+def parse_omp_compat(text):
+    """Read exact direct provider selectors, never expand globs or class rules.
+
+    This deliberately limited KDL reader accepts the packaged rule syntax only.
+    Comments, nested selectors and property strings are not discovery evidence.
+    Unknown lexical syntax fails closed instead of falling back to ID scanning.
+    """
+    token = re.compile(
+        r'(?P<space>[ \t\r]+)|(?P<comment>//[^\n]*)|'
+        r'(?P<block>/\*.*?\*/)|(?P<string>"(?:[^"\\]|\\.)*")|'
+        r'(?P<symbol>[{};=\n])|(?P<bare>[A-Za-z0-9_#.+<>!*-][A-Za-z0-9_#.+<>!*/:-]*)',
+        re.DOTALL,
+    )
+    tokens = []
+    position = 0
+    while position < len(text):
+        match = token.match(text, position)
+        if not match:
+            raise ValueError("unsupported OMP compatibility rule syntax")
+        position = match.end()
+        kind, value = match.lastgroup, match.group()
+        if kind in {"space", "comment", "block"}:
+            if kind == "block" and "/*" in value[2:-2]:
+                raise ValueError("nested KDL comments are unsupported")
+            continue
+        tokens.append((kind, value))
+
+    position = 0
+
+    def nodes(nested=False):
+        nonlocal position
+        result = []
+        while position < len(tokens):
+            kind, value = tokens[position]
+            if value in {"\n", ";"}:
+                position += 1
+                continue
+            if value == "}":
+                if not nested:
+                    raise ValueError("unbalanced OMP compatibility rules")
+                position += 1
+                return result
+            if kind != "bare":
+                raise ValueError("expected KDL node name")
+            header = []
+            while position < len(tokens) and tokens[position][1] not in {"{", "}", "\n", ";"}:
+                header.append(tokens[position])
+                position += 1
+            children = None
+            if position < len(tokens) and tokens[position][1] == "{":
+                position += 1
+                children = nodes(True)
+            elif position < len(tokens) and tokens[position][1] == "}":
+                raise ValueError("unterminated KDL node")
+            result.append((header, children))
+        if nested:
+            raise ValueError("unclosed OMP compatibility rules")
+        return result
+
+    document = nodes()
+    providers = [(header, children) for header, children in document if header[0][1] == "provider"]
+    if len(providers) != 1:
+        raise ValueError("expected one OMP compatibility provider")
+    header, children = providers[0]
+    if header != [("bare", "provider"), ("string", json.dumps(PROVIDER))] or children is None:
+        raise ValueError("unexpected OMP compatibility provider")
+    ids = set()
+    for header, body in children:
+        if header[0][1] != "models":
+            continue
+        if len(header) < 2 or body is None or any(kind != "string" for kind, _ in header[1:]):
+            raise ValueError("unsupported OMP model selector")
+        for _, literal in header[1:]:
+            model = json.loads(literal)
+            if "*" in model or "?" in model:
+                continue
+            model_ids([model])
+            ids.add(model)
+    return sorted(ids)
+
+
 def parse_hermes(text):
     """Read only the literal DEFAULT_CODEX_MODELS assignment; never execute Python."""
     tree = ast.parse(text)
@@ -202,11 +285,39 @@ def collect(root, fixture_dir=None):
             evidence["sources"].append(row)
             text = local.read_text() if fixture_dir is not None else fetch(url)
             row["models"] = parse(text)
+            if client == "omp":
+                compat_url = f"https://raw.githubusercontent.com/{repo}/{revision}/{OMP_COMPAT_PATH}"
+                compat_local = fixture_dir / client / OMP_COMPAT_PATH if fixture_dir is not None else None
+                compat_text = compat_local.read_text() if compat_local is not None else fetch(compat_url)
+                row["catalog_models"] = row["models"]
+                row["compatibility_models"] = parse_omp_compat(compat_text)
+                row["compat_revision"] = revision
+                row["compat_url"] = compat_local.resolve().as_uri() if compat_local is not None else compat_url
+                row["models"] = sorted(set(row["catalog_models"]) | set(row["compatibility_models"]))
+                if fixture_dir is None:
+                    row["kind"] = "static-catalog+compat"
         except (OSError, ValueError, KeyError, TypeError, SyntaxError, RecursionError) as error:
             message = f"{client}: static source unavailable or ambiguous: {error}"
             evidence["errors"].append(message)
             if row is not None:
                 row["error"] = message
+    omp = next((row for row in evidence["sources"] if row["client"] == "omp"), None)
+    try:
+        if omp is None or omp.get("error"):
+            raise ValueError("pinned external OMP support evidence unavailable")
+        if fixture_dir is None:
+            paseo = paseo_support.collect(root, fetch)
+        else:
+            paseo = {
+                "provider": PROVIDER, "client": "paseo", "revision": "NONPRODUCTION",
+                "pin_revision": "NONPRODUCTION", "kind": "nonproduction-fixture",
+                "role": "support", "url": fixture_dir.resolve().as_uri(),
+            }
+        paseo["omp_revision"] = omp["revision"]
+        paseo["models"] = list(omp["models"])
+        evidence["sources"].append(paseo)
+    except (OSError, ValueError, KeyError, TypeError) as error:
+        evidence["errors"].append(f"paseo: static transport unavailable or ambiguous: {error}")
     if fixture_dir is None:
         try:
             evidence["sources"].append(aside_dmg.collect(root))
