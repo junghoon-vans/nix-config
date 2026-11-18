@@ -6,10 +6,10 @@
 }:
 
 let
-  gnoRev = "83431a7f0261882541a8a8dcf1643e6f246bbbe5";
+  gnoRev = "fc79041f4cd1a7b3ed4b316dc5ac14162eb78730";
   gnoplsRev = "c06cbb3d2dc5dc986647340b97478ff176ab25e5";
-  gnoHash = "sha256-IlpJepk07XI10CP6z2PejmZ0qaFNWFGF0MjKfIBDUfM=";
-  gnoVendorHash = "sha256-e1g2y3igU88Z6wkBC7+ab/cxj2Wx2Q2izz8ZDJWzuOQ=";
+  gnoHash = "sha256-ZVE987RY2t/BWK6dQn/cqS+wqO1LKXrtsb4G+JwxsWs=";
+  gnoVendorHash = "sha256-SVNVLF7xTIeLzwOxNK6DaN23ccp36CoYY3w137PGIaQ=";
   gnoplsHash = "sha256-x8xEgj6YNnEpviw2vG5fQMh6wZw/JZKVNnkGI0XsAMg=";
   gnoplsVendorHash = "sha256-BD5lx+iTrj4GInH1gIyjj6B+DLPv3VGs5OpnvM0jFok=";
 
