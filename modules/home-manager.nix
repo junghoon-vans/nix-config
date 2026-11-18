@@ -54,6 +54,7 @@ let
   dockStackAliases = {
     "${dockStackRoot}/Development/DataGrip.app" = "/Applications/DataGrip.app";
     "${dockStackRoot}/Development/Headlamp.app" = "/Applications/Headlamp.app";
+    "${dockStackRoot}/Development/Kiri.app" = "/Applications/Nix Apps/Kiri.app";
     "${dockStackRoot}/Development/OrbStack.app" = "/Applications/OrbStack.app";
     "${dockStackRoot}/Development/Terminal.app" = "/System/Applications/Utilities/Terminal.app";
     "${dockStackRoot}/Workspace/ChatGPT.app" = "/Applications/ChatGPT.app";
