@@ -32,7 +32,8 @@ TARGETS = {
 
 
 class ModelReference:
-    def __init__(self, path, location, start, end, value, model_id, prefix, suffix, client, encode):
+    def __init__(self, path, location, start, end, value, model_id, prefix, suffix,
+                 client, encode, display_token=None):
         self.path = path
         self.location = location
         self.start = start
@@ -43,6 +44,7 @@ class ModelReference:
         self.suffix = suffix
         self.client = client
         self.encode = encode
+        self.display_token = display_token
 
     def replacement(self, model_id):
         return self.encode(self.prefix + model_id + self.suffix)
@@ -208,6 +210,12 @@ def _json_tokens(text):
     return tokens
 
 
+def _paseo_model_label(model_id):
+    family, _, suffix = model_id.removeprefix("gpt-").partition("-")
+    generation = f"GPT-{family}" if model_id.startswith("gpt-") else family
+    return f"{generation} {suffix.replace('-', ' ').upper()}" if suffix else generation
+
+
 def _collect_paseo_json(path, text):
     try:
         config = json.loads(text, object_pairs_hook=_unique_object)
@@ -228,6 +236,7 @@ def _collect_paseo_json(path, text):
                     ("daemon", "agentProfiles", index, "model"),
                     ("agentProfiles", str(profile_id), "model"),
                     profile.get("model"),
+                    "name",
                 ))
 
     agents = config.get("agents", {})
@@ -237,15 +246,15 @@ def _collect_paseo_json(path, text):
     if isinstance(additional_models, list):
         for index, model in enumerate(additional_models):
             if isinstance(model, dict):
-                identity = model.get("label", index)
                 paths.append((
                     ("agents", "providers", "omp", "additionalModels", index, "id"),
-                    ("additionalModels", str(identity), "id"),
+                    ("additionalModels", str(index), "id"),
                     model.get("id"),
+                    "label",
                 ))
 
     references = []
-    for token_path, location, value in paths:
+    for token_path, location, value, display_key in paths:
         if not isinstance(value, str):
             continue
         parts = _reference_parts(value, "omp")
@@ -257,6 +266,7 @@ def _collect_paseo_json(path, text):
         references.append(ModelReference(
             path, location, start, end, value, model_id, prefix, suffix, "paseo",
             lambda replacement: json.dumps(replacement, ensure_ascii=False),
+            display_token=tokens.get(token_path[:-1] + (display_key,)),
         ))
     return references
 
@@ -781,6 +791,14 @@ def _render_text(original, references, replacements):
         replacement = replacements.get((reference.client, reference.model_id))
         if replacement is not None:
             edits.add((reference.start, reference.end, reference.replacement(replacement)))
+            if reference.display_token is not None:
+                label, start, end = reference.display_token
+                parts = label.split(" · ")
+                old_label = _paseo_model_label(reference.model_id)
+                if old_label in parts:
+                    new_label = _paseo_model_label(replacement)
+                    label = " · ".join(new_label if part == old_label else part for part in parts)
+                    edits.add((start, end, reference.encode(label)))
     result = original
     previous_start = len(original) + 1
     for start, end, replacement in sorted(edits, reverse=True):
