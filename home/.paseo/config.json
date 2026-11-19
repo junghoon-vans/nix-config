@@ -25,7 +25,7 @@
     "agentProfiles": [
       {
         "id": "agent_profile_mtrzdrhx_u53wbn92zos",
-        "name": "Deep · GPT-6 ASTRA · low",
+        "name": "Deep · GPT-6.2 ASTRA · low",
         "provider": "omp",
         "model": "openai-codex/gpt-6.2-astra",
         "modeId": "full",
@@ -33,7 +33,7 @@
       },
       {
         "id": "agent_profile_mtrzieoe_hm7824jl2p4",
-        "name": "Daily · GPT-6.1 SOL · medium",
+        "name": "Daily · GPT-6.2 SOL · medium",
         "provider": "omp",
         "model": "openai-codex/gpt-6.2-sol",
         "modeId": "full",
@@ -49,7 +49,7 @@
       },
       {
         "id": "agent_profile_omp_review",
-        "name": "Review · GPT-6.1 SOL · high",
+        "name": "Review · GPT-6.2 SOL · high",
         "provider": "omp",
         "model": "openai-codex/gpt-6.2-sol",
         "modeId": "full",
@@ -106,7 +106,7 @@
         "additionalModels": [
           {
             "id": "openai-codex/gpt-6.2-sol",
-            "label": "GPT-6.1 SOL",
+            "label": "GPT-6.2 SOL",
             "isDefault": true
           }
         ]

@@ -63,6 +63,28 @@ class ModelSelectionTests(unittest.TestCase):
         changed, _ = self.run_update()
         self.assertEqual(changed, {})
 
+    def test_paseo_promotion_updates_model_names_but_preserves_custom_text(self):
+        old = "openai-codex/gpt-6.9-terra"
+        new = "openai-codex/gpt-6.10-terra"
+        profiles = [
+            {"id": "daily", "provider": "omp", "model": old + ":low",
+             "name": "Daily · GPT-6.9 TERRA · low", "thinkingOptionId": "low"},
+            {"id": "custom", "provider": "omp", "model": old, "name": "Compare with GPT-6.9 TERRA"},
+            {"id": "other", "provider": "codex", "model": old, "name": "GPT-6.9 TERRA"},
+        ]
+        models = [{"id": old, "label": "GPT-6.9 TERRA", "isDefault": True}]
+        config = {"daemon": {"agentProfiles": profiles},
+                  "agents": {"providers": {"omp": {"additionalModels": models}}}}
+        path = "home/.paseo/config.json"
+        self.write(path, json.dumps(config, indent=2, ensure_ascii=False) + "\n")
+
+        self.run_update()
+
+        profiles[0].update(model=new + ":low", name="Daily · GPT-6.10 TERRA · low")
+        profiles[1]["model"] = new
+        models[0].update(id=new, label="GPT-6.10 TERRA")
+        self.assertEqual((self.root / path).read_text(), json.dumps(config, indent=2, ensure_ascii=False) + "\n")
+
     def test_shared_sol_promotes_verified_clients_not_native_hermes_or_aside(self):
         for path in updater.TARGETS.values():
             self.write(path, self.before[path].replace("gpt-6.9-terra", "gpt-6.1-sol").replace("gpt-6-sol", "gpt-6.1-sol"))
