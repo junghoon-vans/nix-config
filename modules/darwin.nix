@@ -84,7 +84,6 @@ in
       "brave-browser"
       "chatgpt"
       "session-manager-plugin"
-      "orbstack"
       "tailscale-app"
       "karabiner-elements"
       "fif7y/tap/dimble" # Requires macOS 27 or later.
