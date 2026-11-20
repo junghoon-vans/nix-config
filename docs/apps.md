@@ -35,7 +35,6 @@ Managed by: Homebrew cask.
 | `logi-options+` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `notion` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `obsidian` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
-| `orbstack` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `session-manager-plugin` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `slack` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `tailscale-app` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
