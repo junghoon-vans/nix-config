@@ -20,8 +20,8 @@
     "hash": "sha256-rlZdEbT0Bi7usO9tQYQbI0mMHmpHgpjgTvyt6MdJAdg="
   },
   "kiri": {
-    "version": "0.2.1",
-    "hash": "sha256-xCxRjrak78uZW1K5h7g+hIAooCDu9YcuCsFqHHgn//o="
+    "version": "0.2.2",
+    "hash": "sha256-Dw7Tn8CPlxwz6tYDccnVh2jZk6hTQH4Tb2P2Kn7cmGQ="
   },
   "officecli": {
     "version": "1.0.155",
