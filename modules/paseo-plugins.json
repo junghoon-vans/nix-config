@@ -27,8 +27,8 @@
     "source": "github",
     "repository": "ZedObaia/paseo-plugins",
     "directory": "plugins/resources",
-    "revision": "bbb7ca1069e86ea83bb2a4b3148bc2710f79a37a",
-    "hash": "sha256-12qDzk7cVJdMJ4dqhQ0RgyS5+tuh5U/XLEzglssS1aU=",
+    "revision": "5be9530ec98b3157285c73d89370809580ce5eb9",
+    "hash": "sha256-0VV1byTQtD4EERuE31WJcPi6Y/Mk5WLIvFhAXJvKOKk=",
     "enabled": true
   },
   "keep-awake": {
@@ -51,8 +51,8 @@
     "source": "github",
     "repository": "Drenalol/paseo-turn-speed",
     "directory": "",
-    "revision": "66b34d24265a1d3a4b1df3bbd7902037b8dbe027",
-    "hash": "sha256-SVWX5085MachPTA5mhILGo3egCaEp4xTuy5dEAT2SUI=",
+    "revision": "9c3269e13619baff0f971dd6e47b5aaccaeddb93",
+    "hash": "sha256-7eF9q1uBlC10XLICLZ6V4LGgoa7XEgPptf6Qvr346oU=",
     "enabled": true
   }
 }
