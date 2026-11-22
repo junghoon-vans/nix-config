@@ -80,7 +80,6 @@ in
     ];
 
     casks = [
-      "aside"
       "brave-browser"
       "chatgpt"
       "session-manager-plugin"
@@ -153,7 +152,6 @@ in
         launchanim = false;
         show-recents = false;
         persistent-apps = [
-          "/Applications/Aside.app"
           "/Applications/Nix Apps/Paseo.app"
           "/Applications/Zed.app"
           "/Applications/Slack.app"

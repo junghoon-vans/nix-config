@@ -31,6 +31,10 @@ worktree:
 symbolPreset: nerd
 browser:
   relay: false
+skills:
+  ignoredSkills:
+    - aside-browser
+    - aside-browser-automation
 bashInterceptor:
   enabled: true
 astGrep:

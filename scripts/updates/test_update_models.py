@@ -26,10 +26,9 @@ class ModelSelectionTests(unittest.TestCase):
         self.write("home/.omp/agent/config.yml", "# preserve comment\nmodelRoles:\n  default: 'openai-codex/gpt-6.9-terra:high'\n  other: openai/gpt-6.9-terra\n")
         self.write("home/.paseo/config.json", '{"daemon":{"agentProfiles":[{"id":"main","provider":"omp","model":"openai-codex/gpt-6.9-terra:low"}]}}\n')
         self.write("modules/hermes.nix", 'backends.model_map = { options = [ { name = "native"; provider = "openai-codex"; model = "gpt-6.9-terra"; } ]; };\n')
-        self.write("modules/aside.nix", 'model = modelId: thinkingLevel: { provider = "openai-codex"; };\n default = model "gpt-6-sol" "high";\n')
         self.before = {p: (self.root / p).read_text() for p in (*updater.TARGETS.values(), "release-pins.json", "flake.lock")}
         self.models = ["gpt-6.9-terra", "gpt-6.10-terra", "gpt-6.11-sol", "gpt-7-terra-preview"]
-        self.data = {"schema_version": 1, "observed_at": datetime.now(timezone.utc).isoformat(), "errors": ["aside: no adapter"], "sources": []}
+        self.data = {"schema_version": 1, "observed_at": datetime.now(timezone.utc).isoformat(), "errors": [], "sources": []}
         for client, repo, path, pin in (
             ("omp", "can1357/oh-my-pi", "packages/catalog/src/models.json", "v18.16.0"),
             ("hermes", "NousResearch/hermes-agent", "hermes_cli/codex_models.py", "a" * 40),
@@ -53,9 +52,9 @@ class ModelSelectionTests(unittest.TestCase):
 
     def test_dynamic_terra_numeric_successor_preserves_provider_options_and_unrelated_pins(self):
         changed, report = self.run_update()
-        self.assertEqual(set(p.relative_to(self.root).as_posix() for p in changed), set(updater.TARGETS.values()) - {"modules/aside.nix"})
+        self.assertEqual(set(p.relative_to(self.root).as_posix() for p in changed), set(updater.TARGETS.values()))
         for path, original in self.before.items():
-            expected = original if path == "modules/aside.nix" else original.replace("gpt-6.9-terra", "gpt-6.10-terra")
+            expected = original.replace("gpt-6.9-terra", "gpt-6.10-terra")
             if path.endswith("config.yml"):
                 expected = expected.replace("other: openai/gpt-6.10-terra", "other: openai/gpt-6.9-terra")
             self.assertEqual((self.root / path).read_text(), expected)
@@ -85,7 +84,7 @@ class ModelSelectionTests(unittest.TestCase):
         models[0].update(id=new, label="GPT-6.10 TERRA")
         self.assertEqual((self.root / path).read_text(), json.dumps(config, indent=2, ensure_ascii=False) + "\n")
 
-    def test_shared_sol_promotes_verified_clients_not_native_hermes_or_aside(self):
+    def test_shared_sol_promotes_supported_consumers_and_blocks_unsupported_hermes(self):
         for path in updater.TARGETS.values():
             self.write(path, self.before[path].replace("gpt-6.9-terra", "gpt-6.1-sol").replace("gpt-6-sol", "gpt-6.1-sol"))
         hermes = self.root / "modules/hermes.nix"
@@ -103,12 +102,10 @@ class ModelSelectionTests(unittest.TestCase):
             "openai-codex/gpt-6.1-sol:high", "openai-codex/gpt-6.2-sol:high",
         ))
         self.assertIn("openai-codex/gpt-6.2-sol:low", (self.root / "home/.paseo/config.json").read_text())
-        self.assertIn('model "gpt-6.1-sol"', (self.root / "modules/aside.nix").read_text())
         report_text = "\n".join(report)
         self.assertIn("`omp`: `gpt-6.1-sol` → `gpt-6.2-sol`", report_text)
         self.assertIn("`paseo`: `gpt-6.1-sol` → `gpt-6.2-sol`", report_text)
         self.assertIn("hermes: gpt-6.1-sol → gpt-6.2-sol: blocked by hermes", report_text)
-        self.assertIn("aside: gpt-6.1-sol → gpt-6.2-sol: blocked by aside", report_text)
         self.assertEqual(self.run_update()[0], {})
 
     def test_invalid_evidence_never_changes_configuration(self):

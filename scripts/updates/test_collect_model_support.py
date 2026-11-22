@@ -122,9 +122,10 @@ _FORWARD_COMPAT_TEMPLATE_MODELS = [("gpt-99-sol", ("gpt-6-sol",))]
             self.assertEqual(evidence["schema_version"], 1)
             self.assertTrue(any(e.startswith("NONPRODUCTION:") for e in evidence["errors"]))
             self.assertTrue(any(e.startswith("hermes:") for e in evidence["errors"]))
-            self.assertTrue(any(e.startswith("aside:") for e in evidence["errors"]))
-            self.assertEqual(len(evidence["sources"]), 3)
-            omp, hermes, paseo = evidence["sources"]
+            sources = {row["client"]: row for row in evidence["sources"]}
+            self.assertEqual(set(sources), {"omp", "hermes", "paseo"})
+            self.assertTrue(sources["hermes"]["error"].startswith("hermes:"))
+            omp, paseo = sources["omp"], sources["paseo"]
             self.assertEqual(omp["models"], ["gpt-6-sol", "gpt-6.1-terra", "gpt-6.2-sol"])
             self.assertEqual(omp["compatibility_models"], ["gpt-6.2-sol"])
             self.assertEqual(paseo["models"], omp["models"])
@@ -132,8 +133,6 @@ _FORWARD_COMPAT_TEMPLATE_MODELS = [("gpt-99-sol", ("gpt-6-sol",))]
             self.assertEqual(omp["provider"], "openai-codex")
             self.assertEqual(omp["role"], "support")
             self.assertTrue(omp["url"].startswith("file:"))
-            self.assertEqual(hermes["models"], [])
-            self.assertIn("error", hermes)
 
 
 if __name__ == "__main__":
