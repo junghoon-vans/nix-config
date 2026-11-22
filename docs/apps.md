@@ -20,7 +20,6 @@ Managed by: Homebrew cask.
 
 | Name | Description | Hosts | Declaration |
 | --- | --- | --- | --- |
-| `aside` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `brave-browser` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `chatgpt` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `datagrip` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
@@ -145,7 +144,5 @@ Managed by: Home Manager.
 
 | Name | Description | Hosts | Declaration |
 | --- | --- | --- | --- |
-| `apply-aside-settings` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/aside.nix`](../modules/aside.nix) |
-| `aside` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/aside.nix`](../modules/aside.nix) |
 | `hermes-agent` | AI agent with advanced tool-calling capabilities | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/hermes.nix`](../modules/hermes.nix) |
 | `mise` | Front-end to your dev env | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`hosts/common.nix`](../hosts/common.nix) |

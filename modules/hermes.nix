@@ -9,10 +9,16 @@
 let
   cfg = config.workstation.hermes;
   egoPackage = config.workstation.ego.package;
-  asideCli = import ./mcp/aside-cli.nix { inherit pkgs; };
-  mcpRegistry = import ./mcp/registry.nix {
-    asideCommand = lib.getExe asideCli;
-  };
+  mcpRegistry = import ./mcp/registry.nix;
+  browserPolicy = ''
+    Use the direct ego_browser tool and official ego-browser skill for browser
+    work, including logged-in reads and UI verification. Use web search, static
+    reads, or APIs when those fit the task without a browser. Never copy cookies or
+    credentials between browsers. Stop on login, authentication or permission
+    prompts and hand off to the user. Preserve confirmation requirements for
+    submissions, destructive actions, purchases, and messages. Never navigate
+    unrelated user tabs or substitute Agent Desktop for browser work.
+  '';
   user = config.system.primaryUser;
   home = config.users.users.${user}.home;
   profileName = "omp-worker";
@@ -148,21 +154,7 @@ let
         Never retry unknown delivery automatically. Permission changes require
         explicit user approval and are not exposed by this tool. Do not use
         computer_use or CUA. Preserve the private short TMPDIR unchanged.
-        Browser-based UI testing, verification, screenshots, reproduction, and
-        read-only QA of local or staging applications default to the direct
-        ego_browser tool and official ego-browser skill. Use Aside MCP for general
-        web search, research, logged-in data exploration, and data collection;
-        use APIs for API-oriented tasks. An explicit user browser choice overrides
-        these defaults when safe and available.
-        For mixed research and QA, gather with Aside, then verify with Ego using
-        traceable URLs and the reproduction scenario. Never transfer cookies or
-        credentials between browsers. Do not automatically fail over after
-        authentication, permission, or other errors; stop and hand off to the user.
-        Preserve confirmation requirements for submissions, destructive actions,
-        purchases, and messages. Never navigate unrelated user tabs. Browser
-        permission prompts and device choosers require user action; hand off and
-        stop. Do not install or update browsers, CLIs, or extensions to bypass an
-        unavailable browser or error. Never substitute Agent Desktop for browser work.
+        ${browserPolicy}
 
         ${mcpRegistry.awareness}
       '';
@@ -179,7 +171,6 @@ let
         "github"
         "context7"
         "atlassian"
-        "aside"
         "ego_browser"
       ];
       # Expose only the narrow plugin, never a general terminal.
@@ -194,7 +185,6 @@ let
         "github"
         "context7"
         "atlassian"
-        "aside"
         "ego_browser"
       ];
     };

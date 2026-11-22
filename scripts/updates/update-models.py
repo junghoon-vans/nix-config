@@ -8,14 +8,13 @@ import re
 import subprocess
 from pathlib import Path
 
-import aside_dmg
 import paseo_support
 import yaml
 
 MAX_EVIDENCE_AGE = timedelta(hours=48)
 MAX_FUTURE_SKEW = timedelta(minutes=5)
 OPENAI_PROVIDER = "openai-codex"
-CLIENTS = {"omp", "hermes", "aside", "paseo"}
+CLIENTS = {"omp", "hermes", "paseo"}
 UNSTABLE_SUFFIXES = {
     "alpha", "beta", "experimental", "exp", "latest", "premium", "preview", "unstable",
 }
@@ -27,7 +26,6 @@ TARGETS = {
     "omp": "home/.omp/agent/config.yml",
     "paseo": "home/.paseo/config.json",
     "hermes": "modules/hermes.nix",
-    "aside": "modules/aside.nix",
 }
 
 
@@ -420,29 +418,6 @@ def _collect_hermes_nix(path, text):
     return references
 
 
-def _collect_aside_nix(path, text):
-    helper = re.search(r"\bmodel\s*=\s*modelId\s*:\s*thinkingLevel\s*:\s*\{", text)
-    if not helper:
-        return []
-    opening = text.find("{", helper.start(), helper.end())
-    end = _matching_nix_delimiter(text, opening, "{", "}")
-    body = text[opening + 1:end]
-    provider = re.search(r'\bprovider\s*=\s*"([^"\\]*)"\s*;', body)
-    if not provider or provider.group(1) != OPENAI_PROVIDER:
-        return []
-    references = []
-    for match in re.finditer(
-        r'\b([A-Za-z][A-Za-z0-9_-]*)\s*=\s*model\s+"([^"\\]+)"\s+"[^"\\]*"', text
-    ):
-        model_id = match.group(2)
-        if model_family(model_id) is None:
-            continue
-        references.append(ModelReference(
-            path, ("aside-model", match.group(1)), match.start(2), match.end(2),
-            model_id, model_id, "", "", "aside", lambda replacement: replacement,
-        ))
-    return references
-
 
 def _collect_references(root, text_overrides=None):
     paths = {name: root / relative for name, relative in TARGETS.items()}
@@ -456,7 +431,6 @@ def _collect_references(root, text_overrides=None):
     references.extend(_collect_omp_yaml(paths["omp"], texts["omp"]))
     references.extend(_collect_paseo_json(paths["paseo"], texts["paseo"]))
     references.extend(_collect_hermes_nix(paths["hermes"], texts["hermes"]))
-    references.extend(_collect_aside_nix(paths["aside"], texts["aside"]))
     return paths, texts, references
 
 
@@ -557,10 +531,6 @@ def bind_pinned_sources(root, sources, test_only_fixtures=False):
         if fixture:
             if not source["url"].startswith("file:"):
                 raise ValueError("fixture catalog requires a file URL")
-            bound_sources[client] = source
-            continue
-        if client == "aside":
-            aside_dmg.validate_source(root, source)
             bound_sources[client] = source
             continue
         if client == "paseo":
@@ -873,12 +843,6 @@ def _report(root, sources, errors, references, support, support_gaps, replacemen
             details = (
                 f"; compatibility tier (static provider rules): {source['compat_url']} "
                 f"(pinned revision `{source['compat_revision']}`)"
-            )
-        if source["client"] == "aside" and source["kind"] == "static-dmg-catalog":
-            details = (
-                f"; DMG version `{source['browser_version']}` sha256 `{source['artifact_sha256']}`; "
-                f"Homebrew cask `{source['cask_url']}`; daemon `{source['daemon_version']}` "
-                f"(binary sha256 `{source['daemon_sha256']}`)"
             )
         if source["client"] == "paseo" and source["kind"] == "static-transport":
             provenance = source["provenance"]

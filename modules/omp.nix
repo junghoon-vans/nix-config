@@ -39,6 +39,9 @@ in
 
   config = lib.mkIf cfg.enable {
     environment.systemPackages = [ cfg.package ];
-    home-manager.users.${user}.home.file.".omp/agent/skills/ego-browser".source = egoSkill;
+    home-manager.users.${user}.home.file = {
+      ".omp/agent/skills/ego-browser".source = egoSkill;
+      ".omp/agent/mcp.json".source = ../home/.omp/agent/mcp.json;
+    };
   };
 }

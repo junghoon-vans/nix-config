@@ -897,7 +897,6 @@ atexit.register(_record_runtime)
         from hermes_cli.tools_config import _get_platform_tools
         from tools import mcp_tool
         from tools.mcp_tool_config import _interpolate_env_vars
-        from tools.mcp_tool_handlers import _trust_gate_check
         from tools.mcp_tool_registration import _register_server_tools
         from tools.mcp_tool_scope import _server_key
 
@@ -933,7 +932,6 @@ atexit.register(_record_runtime)
                 "getConfluenceContent",
                 "searchConfluence",
             ),
-            "aside": ("browser_profiles", "exec", "repl", "memory_search"),
         }
         expected_registered_tools = {
             "notion": {
@@ -969,12 +967,6 @@ atexit.register(_record_runtime)
                 "mcp__atlassian__searchJiraIssuesUsingJql",
                 "mcp__atlassian__getConfluenceContent",
                 "mcp__atlassian__searchConfluence",
-            },
-            "aside": {
-                "mcp__aside__browser_profiles",
-                "mcp__aside__exec",
-                "mcp__aside__repl",
-                "mcp__aside__memory_search",
             },
         }
         # Fixed vendor-discovery fixtures, deliberately separate from both
@@ -1020,7 +1012,6 @@ atexit.register(_record_runtime)
                 "executeWrite",
                 "executeDestructive",
             ),
-            "aside": ("browser_profiles", "exec", "repl", "memory_search"),
         }
         excluded_mutation_tools = {
             "notion": {
@@ -1054,10 +1045,6 @@ atexit.register(_record_runtime)
             "create_issue",
             "executeWrite",
             "executeDestructive",
-            "browser_profiles",
-            "exec",
-            "repl",
-            "memory_search",
         }
         for name, excluded in excluded_registered_tools.items():
             self.assertTrue(excluded.isdisjoint(set(expected_registered_tools[name])))
@@ -1068,14 +1055,12 @@ atexit.register(_record_runtime)
         github = servers["github"]
         context7 = servers["context7"]
         atlassian = servers["atlassian"]
-        aside = servers["aside"]
         self.assertEqual(notion["url"], "https://mcp.notion.com/mcp")
         self.assertEqual(notion["auth"], "oauth")
         self.assertEqual(github["url"], "https://api.githubcopilot.com/mcp/")
         self.assertEqual(github.get("protocol"), "stateless")
         self.assertEqual(context7["url"], "https://mcp.context7.com/mcp")
         self.assertEqual(atlassian["auth"], "oauth")
-        self.assertFalse(aside["sampling"]["enabled"])
         for name, server_config in servers.items():
             self.assertCountEqual(
                 server_config["tools"]["include"], expected_native_tools[name]
@@ -1138,18 +1123,6 @@ atexit.register(_record_runtime)
                     excluded_registered_tools[name].isdisjoint(registered),
                     f"{name} exposed a mutation tool",
                 )
-
-        # Aside marks even profile discovery write-capable. A noninteractive
-        # worker must not request MCP consent before any allowlisted call;
-        # action-specific user confirmation remains coordinator policy.
-        with patch(
-            "tools.approval_prompt.request_elicitation_consent",
-            side_effect=AssertionError("Aside unexpectedly requested MCP consent"),
-        ) as consent:
-            for tool in expected_native_tools["aside"]:
-                with self.subTest(aside_tool=tool):
-                    self.assertIsNone(_trust_gate_check("aside", tool))
-            consent.assert_not_called()
 
         selection_config = {
             **self.config,
@@ -1265,6 +1238,7 @@ atexit.register(_record_runtime)
         self.assertTrue(os.access(command, os.X_OK))
         self.assertLessEqual(settings["timeout"], 120)
 
+        from cron.scheduler import _resolve_cron_enabled_toolsets
         from hermes_cli.plugins import get_plugin_toolsets
         from tools.registry import registry
 
@@ -1281,12 +1255,15 @@ atexit.register(_record_runtime)
         self.assertIn("ego_browser", {toolset for toolset, _, _ in get_plugin_toolsets()})
         import model_tools
 
+        cron_toolsets = _resolve_cron_enabled_toolsets({}, self.config)
+        self.assertIn("ego_browser", cron_toolsets)
+
         with patch.dict(os.environ, {"EGO_LITE_APP": str(self.ego_fixture_app)}):
             result = model_tools.handle_function_call(
                 "ego_browser",
                 {"operation": "skill"},
                 task_id="isolated-ego-browser-skill",
-                enabled_toolsets=["ego_browser"],
+                enabled_toolsets=cron_toolsets,
             )
         envelope = json.loads(result)
         self.assertTrue(envelope["ok"], envelope)

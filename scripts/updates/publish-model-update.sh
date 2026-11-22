@@ -12,7 +12,6 @@ body_file="$2"
 model_paths=(
   home/.omp/agent/config.yml
   home/.paseo/config.json
-  modules/aside.nix
   modules/hermes.nix
 )
 

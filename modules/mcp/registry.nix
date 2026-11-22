@@ -1,6 +1,3 @@
-{
-  asideCommand,
-}:
 let
   ompTransport = builtins.fromJSON (builtins.readFile ../../home/.omp/agent/mcp.json);
   capabilities = {
@@ -10,18 +7,9 @@ let
     notion = "workspace documents and databases";
     gnomcp = "Gno chain and realm tools";
     ux-ui-gates = "design doctrine, tokens and UI gates";
-    aside = "logged-in browser automation";
   };
 in
 rec {
-  omp = ompTransport // {
-    mcpServers = ompTransport.mcpServers // {
-      aside = ompTransport.mcpServers.aside // {
-        command = asideCommand;
-      };
-    };
-  };
-
   hermes = {
     context7 = {
       url = ompTransport.mcpServers.context7.url;
@@ -93,24 +81,6 @@ rec {
         prompts = false;
       };
     };
-    aside = {
-      command = asideCommand;
-      args = [ "mcp" ];
-      # The worker cannot answer per-call MCP consent; browser actions still
-      # require the explicit user confirmation described in awareness below.
-      trust = "full";
-      sampling.enabled = false;
-      tools = {
-        include = [
-          "browser_profiles"
-          "exec"
-          "repl"
-          "memory_search"
-        ];
-        resources = false;
-        prompts = false;
-      };
-    };
   };
 
   managedHermesServers = builtins.attrNames hermes;
@@ -125,9 +95,9 @@ rec {
     Check notion-get-async-task for the status of asynchronous writes.
     Native Hermes Atlassian tools are allowlisted for identity/site discovery and Jira/
     Confluence read/search only; no write or destructive tools are enabled.
-    Native Hermes Aside exposes browser profiles, browser control, and memory search.
+    Use Ego Lite for browser work, not an MCP browser server.
     Before browser submissions, destructive actions, purchases, or messages, obtain the
-    user's explicit confirmation. Preserve the logged-in session and existing tabs; do not
+    user's explicit confirmation. Preserve logged-in sessions and existing tabs; do not
     log out, clear browser data, switch profiles, or close unrelated tabs.
     OMP is configured with these MCP capabilities:
     ${builtins.concatStringsSep "\n" (

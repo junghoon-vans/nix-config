@@ -31,12 +31,6 @@
         "ux-ui-mcp"
       ],
       "instructions": false
-    },
-    "aside": {
-      "command": "aside",
-      "args": [
-        "mcp"
-      ]
     }
   }
 }

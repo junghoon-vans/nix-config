@@ -35,7 +35,6 @@ zsh -n home/.zshrc
 
 python3 -B -m unittest discover -s scripts/validation -p 'test_*.py'
 python3 -B -m unittest discover -s scripts/nix -p 'test_*.py'
-python3 -B -m unittest discover -s scripts/aside -p 'test_*.py'
 python3 -B -m unittest discover -s scripts/dock -p 'test_*.py'
 python3 -B -m unittest discover -s scripts/maintenance -p 'test_*.py'
 homebrew_store="$(nix build --no-link --print-out-paths .#homebrew)"
@@ -54,7 +53,9 @@ python3 -B scripts/updates/update-mcp-versions.py --help >/dev/null
 
 nix_files=()
 while IFS= read -r file; do
-  nix_files+=("$file")
+  if [[ -f "$file" ]]; then
+    nix_files+=("$file")
+  fi
 done < <(git ls-files -- '*.nix')
 if [ "${#nix_files[@]}" -gt 0 ]; then
   nixfmt --check "${nix_files[@]}"
