@@ -270,6 +270,7 @@ class EnableUpdateAutomergeTests(unittest.TestCase):
             branch = "dependabot/github_actions/github-actions-d87422eef0"
             paths = [".github/workflows/mcp-security.yml",
                      ".github/workflows/update-dependencies.yml",
+                     ".github/workflows/update-models.yml",
                      ".github/workflows/validate.yml",
                      ".github/workflows/dependabot-automerge.yml"]
         self.fixture["pr"]["head"]["ref"] = branch
