@@ -24,6 +24,7 @@ MIXED_NIX_PATHS = {"flake.lock", "release-pins.json"}
 ACTION_PATHS = {
     ".github/workflows/validate.yml",
     ".github/workflows/update-dependencies.yml",
+    ".github/workflows/update-models.yml",
     ".github/workflows/mcp-security.yml",
     ".github/workflows/dependabot-automerge.yml",
 }
