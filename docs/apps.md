@@ -85,7 +85,7 @@ Managed by: Homebrew formula.
 | `ripgrep` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `shellcheck` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `shfmt` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
-| `tldr` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
+| `tlrc` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `tmux` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `yamlfmt` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
 | `zoxide` | — | `junghoonui-MacBookAir`, `junghoonui-MacBookPro` | [`modules/darwin.nix`](../modules/darwin.nix) |
