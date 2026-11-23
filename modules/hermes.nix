@@ -116,6 +116,10 @@ let
       "${egoPackage}/share"
       "${home}/.agents/skills"
     ];
+    skills.disabled = [
+      "aside-browser"
+      "aside-browser-automation"
+    ];
     nix_managed_skill_dirs = [
       "${providerResources}/skills"
       "${egoPackage}/share"

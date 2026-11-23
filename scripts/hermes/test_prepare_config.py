@@ -237,7 +237,7 @@ class HermesRuntimeConfig(unittest.TestCase):
                 "external_dirs": [
                     str(old_root), str(stale_untracked_root), str(shared_root), str(local_root),
                 ],
-                "disabled": ["local"],
+                "disabled": ["local", "aside-browser"],
             },
             "nix_managed_skill_dirs": [str(old_root)],
             "nix_managed_skill_names": ["ego-browser"],
@@ -245,7 +245,10 @@ class HermesRuntimeConfig(unittest.TestCase):
         }, sort_keys=False))
         self.runtime.chmod(0o600)
         self.write_defaults(self.defaults_path, {
-            "skills": {"external_dirs": [str(current_root), str(shared_root)]},
+            "skills": {
+                "external_dirs": [str(current_root), str(shared_root)],
+                "disabled": ["aside-browser", "aside-browser-automation"],
+            },
             "nix_managed_skill_dirs": [str(current_root)],
             "nix_managed_skill_names": ["ego-browser"],
         })
@@ -261,7 +264,7 @@ class HermesRuntimeConfig(unittest.TestCase):
         self.assertNotIn(str(shared_root), external_dirs)
         self.assertIn(str(current_root), external_dirs)
         self.assertIn(str(local_root), external_dirs)
-        self.assertEqual(result["skills"]["disabled"], ["local"])
+        self.assertEqual(result["skills"]["disabled"], ["local", "aside-browser", "aside-browser-automation"])
         self.assertEqual(result["command_allowlist"], ["git status"])
         self.assertEqual(result["nix_managed_skill_dirs"], [str(current_root)])
         self.assertEqual(shared_root.joinpath("ego-browser", "SKILL.md").read_text().splitlines()[-1],
