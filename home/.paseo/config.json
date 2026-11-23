@@ -41,11 +41,12 @@
       },
       {
         "id": "agent_profile_mtmtxlv9_37mq53frt34",
-        "name": "Worker · GPT-6 LUNA · max",
+        "name": "Worker · GPT-6.1 TERRA · medium",
         "provider": "omp",
-        "model": "openai-codex/gpt-6-luna",
+        "model": "openai-codex/gpt-6.1-terra",
         "modeId": "full",
-        "thinkingOptionId": "max"
+        "thinkingOptionId": "medium",
+        "notes": "Use for scoped implementation with clear acceptance criteria, including running the relevant tests. Use Daily or Deep when the problem itself is still unclear."
       },
       {
         "id": "agent_profile_omp_review",
@@ -54,6 +55,15 @@
         "model": "openai-codex/gpt-6.2-sol",
         "modeId": "full",
         "thinkingOptionId": "high"
+      },
+      {
+        "id": "agent_profile_omp_cross_review",
+        "name": "Cross-Review · Claude Sonnet 5.5 · high",
+        "provider": "omp",
+        "model": "anthropic/claude-sonnet-5-5",
+        "modeId": "write",
+        "thinkingOptionId": "high",
+        "notes": "Use for a second opinion on consequential changes authored by Codex. Ask for a read-only review with file and line references; use Review for routine checks."
       },
       {
         "id": "agent_profile_omp_ui",
