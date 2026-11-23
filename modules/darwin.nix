@@ -74,7 +74,7 @@ in
       "fd"
       "htop"
       "jq"
-      "tldr"
+      "tlrc"
       "fzf"
       "zoxide"
     ];
