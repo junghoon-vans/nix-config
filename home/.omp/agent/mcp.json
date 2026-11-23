@@ -17,6 +17,10 @@
       "url": "https://mcp.context7.com/mcp"
     },
     "notion": {
+      "enabled": true,
+      "auth": {
+        "type": "oauth"
+      },
       "type": "http",
       "url": "https://mcp.notion.com/mcp"
     },
