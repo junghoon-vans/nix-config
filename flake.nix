@@ -8,7 +8,7 @@
     home-manager.url = "github:nix-community/home-manager/master";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     nix-homebrew.url = "github:zhaofengli/nix-homebrew";
-    nix-homebrew.inputs.brew-src.url = "github:Homebrew/brew/7.0.11";
+    nix-homebrew.inputs.brew-src.url = "github:Homebrew/brew/7.0.15";
     hermes-agent.url = "github:NousResearch/hermes-agent/v0.23.3";
     hermes-omp-acp = {
       url = "github:junghoon-vans/hermes-omp-acp/bbd9997925ce9dcb3ee5f7e47791c48e8a1eeabe";
