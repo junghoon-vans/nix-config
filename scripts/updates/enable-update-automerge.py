@@ -7,6 +7,8 @@ import re
 import subprocess
 import sys
 
+from dependabot_policy import DEPENDABOT_ACTION_PATHS
+
 
 REPOSITORY = "junghoon-vans/nix-config"
 BOT = "nix-config-dependabot[bot]"
@@ -25,12 +27,6 @@ UPDATE_PATHS = {
     "automation/update-paseo-plugins": {"modules/paseo-plugins.json"},
 }
 DEPENDABOT_ID = 49699333
-DEPENDABOT_ACTION_PATHS = {
-    ".github/workflows/validate.yml",
-    ".github/workflows/update-dependencies.yml",
-    ".github/workflows/mcp-security.yml",
-    ".github/workflows/dependabot-automerge.yml",
-}
 SCHEMA_QUERY = """query {
   __type(name: "EnablePullRequestAutoMergeInput") {
     inputFields { name type { kind name } }

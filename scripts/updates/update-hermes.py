@@ -39,6 +39,17 @@ def main() -> None:
     pin = pins[0]
     flake.write_text(content[:pin.start(2)] + tag + content[pin.end(2):])
     subprocess.run(["nix", "flake", "update", "hermes-agent"], cwd=root, check=True)
+    # Build the dependency store from our configured package, including any
+    # exact-revision hash correction, before the workflow publishes the pin.
+    subprocess.run(
+        [
+            "nix", "build", "--no-link", "--no-write-lock-file",
+            ".#darwinConfigurations.junghoonui-MacBookAir.config"
+            ".workstation.hermes.package.hermesNpmLib.pnpmDeps",
+        ],
+        cwd=root,
+        check=True,
+    )
     print(tag)
 
 

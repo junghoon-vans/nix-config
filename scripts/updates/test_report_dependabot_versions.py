@@ -2,6 +2,7 @@ import copy
 import json
 import os
 from pathlib import Path
+import re
 import subprocess
 import sys
 import tempfile
@@ -265,6 +266,72 @@ class DependabotVersionReportTests(unittest.TestCase):
         self.assertIn("Action reference removed", body)
         self.assertIn(added_revision, body)
         self.assertIn(removed_revision, body)
+
+    def test_grouped_action_update_reports_both_release_workflows(self):
+        paths = (
+            ".github/workflows/update-dependencies.yml",
+            ".github/workflows/update-models.yml",
+        )
+        pr = pull_request()
+        pr["changed_files"] = len(paths)
+        self.fixture(
+            pr,
+            [{"filename": path, "status": "modified"} for path in paths],
+            {
+                BASE_SHA: dict.fromkeys(paths, workflow(
+                    f"      - uses: actions/create-github-app-token@{'a' * 40} # v3.3.0\n"
+                )),
+                HEAD_SHA: dict.fromkeys(paths, workflow(
+                    f"      - uses: actions/create-github-app-token@{'b' * 40} # v3.4.0\n"
+                )),
+            },
+        )
+
+        result = self.run_report()
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.output().strip(), "auto_merge_eligible=true")
+        body = self.patches()[0]["body"]
+        for path in paths:
+            self.assertIn(f"{path} — actions/create-github-app-token", body)
+
+    def test_every_workflow_with_external_actions_is_reportable(self):
+        root = SCRIPT.resolve().parents[2]
+        workflows = sorted((root / ".github/workflows").glob("*.y*ml"))
+        for path in workflows:
+            with self.subTest(workflow=path.name):
+                original = path.read_text()
+                updated, count = re.subn(
+                    r"""(?m)^([ \t]*(?:-[ \t]+)?uses:[ \t]+['"]?[\w.-]+/[\w./-]+@)([^ \t\r\n'"]+)""",
+                    lambda match: match[1] + ("b" if match[2] == "a" * 40 else "a") * 40,
+                    original,
+                    count=1,
+                )
+                if not count:
+                    continue
+                name = path.relative_to(root).as_posix()
+                self.fixture(
+                    pull_request(),
+                    [{"filename": name, "status": "modified"}],
+                    {BASE_SHA: {name: original}, HEAD_SHA: {name: updated}},
+                )
+                result = self.run_report()
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(self.output().strip(), "auto_merge_eligible=true")
+                self.assertIn(f"{name} — ", self.patches()[-1]["body"])
+
+    def test_action_update_rejects_unreviewed_workflow_before_reading_content(self):
+        self.fixture(
+            pull_request(),
+            [{"filename": ".github/workflows/unreviewed.yml", "status": "modified"}],
+            {},
+        )
+
+        result = self.run_report()
+
+        self.assertEqual(result.returncode, 1, result.stderr)
+        self.assert_no_true_output()
+        self.assert_no_content_reads_or_patches()
 
     def test_action_mixed_report_keeps_real_pin_changes_and_omits_unchanged(self):
         old_revision, new_revision = "a" * 40, "b" * 40
