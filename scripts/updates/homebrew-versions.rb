@@ -6,7 +6,7 @@ require "cask/cask_loader"
 versions = JSON.parse($stdin.read).to_h do |name, entry|
   path = Pathname(entry.fetch("path"))
   version = if entry.fetch("tap") == "homebrew-cask"
-    Cask::CaskLoader.load(path).version.to_s
+    Cask::CaskLoader.from_path(path).version.to_s
   else
     # An explicit tap avoids Formula's implicit CoreTap lookup/auto-install.
     tap = Tap.fetch(entry.fetch("tap") == "hashicorp-tap" ? "hashicorp/tap" : "homebrew/core")
