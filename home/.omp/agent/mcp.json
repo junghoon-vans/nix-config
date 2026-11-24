@@ -24,6 +24,15 @@
       "type": "http",
       "url": "https://mcp.notion.com/mcp"
     },
+    "slack": {
+      "type": "http",
+      "url": "https://mcp.slack.com/mcp",
+      "oauth": {
+        "clientId": "${SLACK_MCP_CLIENT_ID}",
+        "clientSecret": "${SLACK_MCP_CLIENT_SECRET}",
+        "redirectUri": "http://localhost:3118/callback"
+      }
+    },
     "gnomcp": {
       "command": "/run/current-system/sw/bin/gnomcp"
     },

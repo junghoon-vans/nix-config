@@ -5,6 +5,7 @@ let
     github = "repository, issue, PR and CI workflows";
     context7 = "library and framework documentation";
     notion = "workspace documents and databases";
+    slack = "Slack tools with user OAuth; ask for explicit confirmation before sending or scheduling messages";
     gnomcp = "Gno chain and realm tools";
     ux-ui-gates = "design doctrine, tokens and UI gates";
   };
