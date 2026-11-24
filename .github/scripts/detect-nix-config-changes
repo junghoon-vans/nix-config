@@ -12,23 +12,27 @@ fi
 
 # Disable rename detection so both sides of moves must satisfy the allowlist.
 # Unknown paths, mixed changes and empty diffs take the full validation path.
-skills_only=false
+profile=
+paseo_config_changed=false
 changed_paths=$(mktemp)
 trap 'rm -f "$changed_paths"' EXIT
 git diff --name-only --no-renames -z "$base_sha" "$head_sha" > "$changed_paths"
-if [ -s "$changed_paths" ]; then
-  skills_only=true
-  while IFS= read -r -d '' path; do
-    case "$path" in
-      apm.yml|apm.lock.yaml|docs/skills.md|skills/*) ;;
-      *) skills_only=false; break ;;
-    esac
-  done < "$changed_paths"
-fi
+while IFS= read -r -d '' path; do
+  if [ "$path" = home/.paseo/config.json ]; then
+    paseo_config_changed=true
+  fi
+  case "$path" in
+    apm.yml|apm.lock.yaml|docs/skills.md|skills/*) path_profile=apm ;;
+    docs/apps.md) path_profile=darwin ;; # Generated from evaluated Darwin packages.
+    README.md|docs/*.md|home/.paseo/config.json) path_profile=static ;;
+    *) path_profile=darwin ;;
+  esac
+  if [ -z "$profile" ]; then
+    profile=$path_profile
+  elif [ "$profile" != "$path_profile" ]; then
+    profile=darwin
+  fi
+done < "$changed_paths"
 
-printf 'skills_only=%s\n' "$skills_only" >> "$GITHUB_OUTPUT"
-if [ "$skills_only" = true ]; then
-  printf 'configuration_changed=false\n' >> "$GITHUB_OUTPUT"
-else
-  printf 'configuration_changed=true\n' >> "$GITHUB_OUTPUT"
-fi
+printf 'profile=%s\n' "${profile:-darwin}" >> "$GITHUB_OUTPUT"
+printf 'paseo_config_changed=%s\n' "$paseo_config_changed" >> "$GITHUB_OUTPUT"

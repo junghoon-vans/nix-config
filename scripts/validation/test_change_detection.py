@@ -15,34 +15,43 @@ GATE = REPOSITORY / ".github/scripts/require-nix-validation"
 class ConfigurationChangeDetection(unittest.TestCase):
     def test_classification(self):
         cases = [
-            (["apm.yml"], True),
-            (["apm.lock.yaml"], True),
-            (["skills/local/SKILL.md"], True),
-            (["apm.yml", "apm.lock.yaml", "docs/skills.md"], True),
-            (["skills/local/SKILL.md", "modules/hermes.nix"], False),
-            (["skills/local/SKILL.md", "README.md"], False),
-            (["release-pins.json"], False),
-            (["tests/hermes/test_packaged_runtime.py"], False),
-            ([".github/workflows/validate.yml"], False),
-            ([".github/scripts/require-nix-validation"], False),
-            (["scripts/validation/check.sh"], False),
-            (["unknown-source"], False),
-            ([], False),
+            (["apm.yml"], "apm"),
+            (["apm.lock.yaml"], "apm"),
+            (["skills/local/SKILL.md"], "apm"),
+            (["apm.yml", "apm.lock.yaml", "docs/skills.md"], "apm"),
+            (["README.md", "docs/activation.md"], "static"),
+            (["home/.paseo/config.json"], "static"),
+            (["README.md", "home/.paseo/config.json"], "static"),
+            (["home/.paseo/config.json", "flake.lock"], "darwin"),
+            (["docs/apps.md"], "darwin"),
+            (["docs/skills.md", "README.md"], "darwin"),
+            (["skills/local/SKILL.md", "modules/hermes.nix"], "darwin"),
+            (["skills/local/SKILL.md", "README.md"], "darwin"),
+            (["release-pins.json"], "darwin"),
+            (["tests/hermes/test_packaged_runtime.py"], "darwin"),
+            ([".github/workflows/validate.yml"], "darwin"),
+            ([".github/scripts/require-nix-validation"], "darwin"),
+            (["scripts/validation/check.sh"], "darwin"),
+            (["unknown-source"], "darwin"),
+            ([], "darwin"),
         ]
-        for paths, skills_only in cases:
+        for paths, profile in cases:
             with self.subTest(paths=paths):
-                self.check_paths(paths, skills_only)
+                self.check_paths(paths, profile)
 
     def test_deleted_skill_qualifies(self):
-        self.check_paths(["skills/local/SKILL.md"], True, delete=True)
+        self.check_paths(["skills/local/SKILL.md"], "apm", delete=True)
 
     def test_deleted_configuration_does_not_qualify(self):
-        self.check_paths(["modules/hermes.nix"], False, delete=True)
+        self.check_paths(["modules/hermes.nix"], "darwin", delete=True)
 
     def test_configuration_moved_into_skills_does_not_qualify(self):
-        self.check_paths(["modules/hermes.nix", "skills/local/SKILL.md"], False, rename=True)
+        self.check_paths(["modules/hermes.nix", "skills/local/SKILL.md"], "darwin", rename=True)
 
-    def check_paths(self, paths, skills_only, delete=False, rename=False):
+    def test_configuration_moved_into_docs_does_not_take_static_path(self):
+        self.check_paths(["modules/hermes.nix", "docs/moved.md"], "darwin", rename=True)
+
+    def check_paths(self, paths, profile, delete=False, rename=False):
         with tempfile.TemporaryDirectory(prefix="configuration-ci-") as directory:
             root = Path(directory)
             environment = {key: value for key, value in os.environ.items() if not key.startswith("GIT_")}
@@ -100,8 +109,8 @@ class ConfigurationChangeDetection(unittest.TestCase):
             )
             outputs = dict(line.split("=", 1) for line in (root / "workflow-output").read_text().splitlines())
             self.assertEqual(outputs, {
-                "skills_only": str(skills_only).lower(),
-                "configuration_changed": str(not skills_only).lower(),
+                "profile": profile,
+                "paseo_config_changed": str("home/.paseo/config.json" in paths).lower(),
             })
 
 
@@ -111,27 +120,26 @@ class RequiredValidationGate(unittest.TestCase):
             with self.subTest(result=result):
                 self.check_gate(result == "success", APM_RESULT=result)
 
-    def test_full_validation_requires_both_jobs(self):
-        for checks in ("success", "failure", "cancelled", "skipped"):
-            for evaluate in ("success", "failure", "cancelled", "skipped"):
-                with self.subTest(checks=checks, evaluate=evaluate):
-                    self.check_gate(checks == evaluate == "success", SKILLS_ONLY="false",
-                                    CONFIGURATION_CHANGED="true", CHECKS_RESULT=checks,
-                                    EVALUATE_RESULT=evaluate)
+    def test_static_validation_does_not_require_a_mac_job(self):
+        self.check_gate(True, VALIDATION_PROFILE="static", APM_RESULT="skipped")
+
+    def test_full_validation_requires_successful_darwin_job(self):
+        for result in ("success", "failure", "cancelled", "skipped"):
+            with self.subTest(result=result):
+                self.check_gate(result == "success", VALIDATION_PROFILE="darwin",
+                                APM_RESULT="skipped", DARWIN_RESULT=result)
 
     def test_failed_change_detection_cannot_pass(self):
         for result in ("failure", "cancelled", "skipped"):
             self.check_gate(False, CHANGES_RESULT=result)
 
-    def test_inconsistent_or_missing_classification_cannot_pass(self):
-        self.check_gate(False, CONFIGURATION_CHANGED="true")
-        self.check_gate(False, SKILLS_ONLY="")
-        self.check_gate(False, SKILLS_ONLY="unexpected")
+    def test_missing_or_unknown_classification_cannot_pass(self):
+        self.check_gate(False, VALIDATION_PROFILE="")
+        self.check_gate(False, VALIDATION_PROFILE="unexpected")
 
     def check_gate(self, expected, **overrides):
-        environment = dict(os.environ, CHANGES_RESULT="success", SKILLS_ONLY="true",
-                           CONFIGURATION_CHANGED="false", APM_RESULT="success",
-                           CHECKS_RESULT="skipped", EVALUATE_RESULT="skipped")
+        environment = dict(os.environ, CHANGES_RESULT="success", VALIDATION_PROFILE="apm",
+                           APM_RESULT="success", DARWIN_RESULT="skipped")
         environment.update(overrides)
         result = subprocess.run(["bash", str(GATE)], env=environment, capture_output=True, text=True)
         self.assertEqual(result.returncode == 0, expected, result.stdout + result.stderr)
