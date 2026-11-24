@@ -72,6 +72,34 @@ class HermesRuntimeConfig(unittest.TestCase):
         )
         self.assertEqual(self.defaults_path.read_bytes(), source_content)
 
+    def test_retired_adapter_settings_are_removed_without_discarding_other_entries(self):
+        self.runtime.write_text(yaml.safe_dump({
+            "plugins": {
+                "enabled": ["ego-browser", "agent-desktop", "omp-acp-provider", "advanced-delegation"],
+                "entries": {
+                    "ego-browser": {"settings": {"command": "/old/ego-browser", "timeout": 120}},
+                    "agent-desktop": {"settings": {"command": "/old/agent-desktop", "timeout": 30}},
+                    "omp-acp-provider": {"settings": {"local_value": True}},
+                },
+            },
+            "platform_toolsets": {
+                "cli": ["ego_browser", "agent_desktop"],
+                "slack": ["ego_browser", "agent_desktop"],
+            },
+        }))
+        self.runtime.chmod(0o600)
+        self.defaults["platform_toolsets"] = {"cli": ["terminal"], "slack": ["terminal"]}
+        self.write_defaults(self.defaults_path, self.defaults)
+
+        self.check()
+
+        config = yaml.safe_load(self.runtime.read_text())
+        self.assertEqual(config["platform_toolsets"], self.defaults["platform_toolsets"])
+        self.assertEqual(config["plugins"], {
+            "enabled": ["omp-acp-provider", "advanced-delegation"],
+            "entries": {"omp-acp-provider": {"settings": {"local_value": True}}},
+        })
+
     def test_hermes_edits_survive_repeated_activation_and_changed_nix_values(self):
         self.runtime.write_text("command_allowlist:\n  - 'git status'\n")
         self.runtime.chmod(0o600)

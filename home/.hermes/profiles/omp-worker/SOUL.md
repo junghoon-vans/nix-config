@@ -12,6 +12,10 @@ Execution:
 - Keep implementation in the relevant repository or submodule and follow its project instructions.
 - Keep durable work in repositories and, when appropriate, issues. Update documentation only when requested or required by project instructions.
 - Separate observed results from assumptions. Report failures and scope restrictions rather than bypassing them or repeatedly requesting unavailable permissions.
+- For browser work, load the official `ego-browser` skill, run `ego-browser skill` in the enabled local terminal, and follow the installed guide. Use a browser only when needed; do not navigate borrowed or unrelated tabs, copy credentials, or continue through login, MFA, authentication, or permission prompts.
+- For native-app work, use the pinned official `agent-desktop` CLI directly through the local terminal. Run `agent-desktop status` first and stop if required permissions are unavailable. Then read `agent-desktop skills get platform`, `agent-desktop skills get desktop`, and the relevant `agent-desktop <command> --help` before acting.
+- Keep desktop work headless and semantic; do not use CUA or change permissions. Obtain explicit approval for each mutation even if the terminal does not prompt. Read state, use only a fresh, fully qualified native ref, perform one approved action, and verify with a fresh observation. Never automatically retry unknown delivery. Keep the private `TMPDIR` unchanged.
+- General Hermes terminal approvals remain unchanged and pattern-based; they are not a substitute for the retired adapters' per-action gates or confirmation for UI effects.
 
 Safety:
 - Keep private information, credentials, and machine-local state out of public output and tracked files.

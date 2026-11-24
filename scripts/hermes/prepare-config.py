@@ -630,6 +630,16 @@ def prepare_runtime_config(home, defaults_path):
     defaults = _load_config(defaults_path.read_bytes(), "the declared Nix Hermes config defaults")
     previous = _load_config(previous_content, "the existing Hermes runtime config")
     result = _overlay_config(_replace_managed_mcp(previous, defaults), defaults)
+    default_plugins = defaults.get("plugins")
+    if isinstance(default_plugins, dict):
+        enabled_plugins = default_plugins.get("enabled")
+        if isinstance(enabled_plugins, list):
+            # The enabled list is replaced, but recursive overlay keeps retired settings.
+            entries = result["plugins"].get("entries")
+            if isinstance(entries, dict):
+                for name in ("ego-browser", "agent-desktop"):
+                    if name not in enabled_plugins:
+                        entries.pop(name, None)
     if "nix_managed_mcp_servers" in previous or "nix_managed_mcp_servers" in defaults:
         result["nix_managed_mcp_servers"] = _managed_mcp_names(defaults)
     obsolete_projections, new_projections = _reconcile_skills(home, previous, defaults, result)

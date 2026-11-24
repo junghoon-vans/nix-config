@@ -161,14 +161,12 @@ class PackagedHermesIntegration(unittest.TestCase):
             cls.expected_version,
             cls.expected_command,
             launchd_plist,
-            agent_desktop_source,
+            agent_desktop_command,
             ego_share_root,
             omp_skill_source,
-            ego_browser_source,
         ) = INPUTS
         cls.launchd_plist = Path(launchd_plist)
-        cls.agent_desktop_source = Path(agent_desktop_source)
-        cls.ego_browser_source = Path(ego_browser_source)
+        cls.expected_agent_desktop_command = Path(agent_desktop_command)
         cls.ego_share_root = Path(ego_share_root)
         cls.expected_ego_skill = cls.ego_share_root / "ego-browser"
         cls.expected_ego_command = cls.ego_share_root.parent / "bin/ego-browser"
@@ -183,8 +181,8 @@ class PackagedHermesIntegration(unittest.TestCase):
         )
         fixture_helper.parent.mkdir(parents=True)
         fixture_helper.write_text(
-            f"#!{sys.executable}\nimport json, sys\n"
-            "print(json.dumps({'fixture_argv': sys.argv[1:]}))\n"
+            f"#!{sys.executable}\nimport json, os, sys\n"
+            "print(json.dumps({'fixture_argv': sys.argv[1:], 'tmpdir': os.environ.get('TMPDIR')}))\n"
         )
         fixture_helper.chmod(0o700)
         cls.missing_ego_app = cls.root / "missing Ego fixture.app"
@@ -197,8 +195,6 @@ class PackagedHermesIntegration(unittest.TestCase):
         # Complete the profile before ANY Hermes import can snapshot provider or plugin discovery.
         (home / "plugins").mkdir()
         (home / "plugins" / "advanced-delegation").symlink_to(delegation_source, target_is_directory=True)
-        (home / "plugins" / "agent-desktop").symlink_to(agent_desktop_source, target_is_directory=True)
-        (home / "plugins" / "ego-browser").symlink_to(ego_browser_source, target_is_directory=True)
         from ruamel.yaml import YAML
 
         cls.config = YAML(typ="safe").load(Path(defaults_path).read_text())
@@ -246,6 +242,9 @@ class PackagedHermesIntegration(unittest.TestCase):
             "/nix/store/old-hermes-provider/skills",
         ]
         previous["nix_managed_skill_names"] = ["ego-browser"]
+        for name in ("ego-browser", "agent-desktop"):
+            previous["plugins"]["enabled"].append(name)
+            previous["plugins"]["entries"][name] = {"settings": {"command": f"/obsolete/{name}"}}
         previous.setdefault("approvals", {})["cron_mode"] = "deny"
         previous["approvals"]["discord_prompt_timeout"] = 45
         previous["command_allowlist"] = ["git status --short"]
@@ -460,7 +459,9 @@ class PackagedHermesIntegration(unittest.TestCase):
             finally:
                 clear_skills_cache()
 
-    def test_ego_launcher_resolves_from_launchd_path_with_external_app_fixture(self):
+    def test_hermes_terminal_runs_ego_from_launchd_path_without_opening_browser(self):
+        import model_tools
+        from hermes_cli.tools_config import _get_platform_tools
         definition = plistlib.loads(self.launchd_plist.read_bytes())
         launchd_path = definition["EnvironmentVariables"]["PATH"]
         path_entries = launchd_path.split(os.pathsep)
@@ -474,21 +475,22 @@ class PackagedHermesIntegration(unittest.TestCase):
         self.assertIsNotNone(resolved_ego)
         self.assertEqual(Path(resolved_ego).resolve(), self.expected_ego_command.resolve())
 
-        result = subprocess.run(
-            ["ego-browser", "skill"],
-            env={
-                "HOME": str(self.root),
-                "PATH": launchd_path,
-                "TMPDIR": str(self.root),
-                "EGO_LITE_APP": str(self.ego_fixture_app),
-            },
-            capture_output=True,
-            text=True,
-            timeout=30,
-            check=False,
+        with patch.dict(os.environ, {
+            "PATH": launchd_path,
+            "TMPDIR": str(self.root),
+            "EGO_LITE_APP": str(self.ego_fixture_app),
+            "HERMES_GATEWAY_SESSION": "1",
+        }):
+            response = json.loads(model_tools.handle_function_call(
+                "terminal",
+                {"command": "ego-browser skill", "workdir": str(self.root), "timeout": 30},
+                task_id="isolated-ego-terminal",
+                enabled_toolsets=sorted(_get_platform_tools(self.config, "slack")),
+            ))
+        self.assertEqual(response["exit_code"], 0, response)
+        self.assertEqual(
+            json.loads(response["output"]), {"fixture_argv": ["skill"], "tmpdir": str(self.root)},
         )
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        self.assertEqual(json.loads(result.stdout), {"fixture_argv": ["skill"]})
 
         # Explicit missing app keeps this deterministic even on a host with Ego installed.
         missing = subprocess.run(
@@ -1152,7 +1154,6 @@ atexit.register(_record_runtime)
 
 
     def check_platform_tools(self, config, platform):
-
         import model_tools
         from hermes_cli.tools_config import _get_platform_tools
         # Match the platform's live session; cron is unavailable in batch mode.
@@ -1170,19 +1171,19 @@ atexit.register(_record_runtime)
         functions = {tool["function"]["name"]: tool["function"] for tool in definitions}
         required = {
             "delegate_task", "cronjob_manage", "session_search", "memory",
-            "skills_list", "skill_view", "skill_manage", "agent_desktop", "ego_browser",
+            "skills_list", "skill_view", "skill_manage", "terminal", "process_manage",
         }
         self.assertFalse(
             required - functions.keys(),
             f"{platform} raw tools missing: {sorted(required - functions.keys())}",
         )
-        self.assertFalse({"omp_task", "omp_status", "omp_cancel"} & functions.keys())
+        retired = {"omp_task", "omp_status", "omp_cancel", "agent_desktop", "ego_browser", "computer_use"}
+        self.assertFalse(retired & functions.keys())
         properties = functions["delegate_task"]["parameters"]["properties"]["tasks"]["items"]["properties"]
         self.assertEqual(properties.get("option", {}).get("enum"), ["fast", "deep", "omp"])
         selected = _get_platform_tools(config, platform)
-        self.assertIn("agent_desktop", selected)
-        self.assertIn("ego_browser", selected)
-        self.assertNotIn("terminal", selected)
+        self.assertTrue({"agent_desktop", "ego_browser", "computer_use"}.isdisjoint(selected))
+
     def test_platform_coordinator_raw_tools(self):
         for platform in ("slack", "cli"):
             with self.subTest(platform=platform):
@@ -1221,234 +1222,42 @@ atexit.register(_record_runtime)
         self.assertFalse(isolated_deny_result["approved"], isolated_deny_result)
         self.assertEqual(isolated_deny_result["pattern_key"], "execute_code")
 
-
-
-
-    def test_ego_browser_plugin_is_installed_and_configured(self):
-        self.assertIn("ego-browser", self.config["plugins"]["enabled"])
-        self.assertEqual(
-            (self.home / "plugins" / "ego-browser").resolve(),
-            self.ego_browser_source.resolve(),
-        )
-        settings = self.config["plugins"]["entries"]["ego-browser"]["settings"]
-        command = Path(settings["command"])
-        self.assertTrue(command.is_absolute())
-        self.assertEqual(command.resolve(), self.expected_ego_command.resolve())
-        self.assertTrue(command.is_file())
-        self.assertTrue(os.access(command, os.X_OK))
-        self.assertLessEqual(settings["timeout"], 120)
-
-        from cron.scheduler import _resolve_cron_enabled_toolsets
-        from hermes_cli.plugins import get_plugin_toolsets
+    def test_retired_cli_adapters_are_not_configured_or_registered(self):
         from tools.registry import registry
 
-        plugin = next(
-            (plugin for plugin in self.manager.list_plugins() if plugin["name"] == "ego-browser"),
-            None,
-        )
-        self.assertIsNotNone(plugin, "ego-browser was not discovered from the isolated profile")
-        self.assertTrue(plugin["enabled"])
-        self.assertIsNone(plugin["error"])
-        entry = registry.get_entry("ego_browser")
-        self.assertIsNotNone(entry, "ego_browser tool was not registered")
-        self.assertEqual(entry.toolset, "ego_browser")
-        self.assertIn("ego_browser", {toolset for toolset, _, _ in get_plugin_toolsets()})
+        for plugin, tool in (("ego-browser", "ego_browser"), ("agent-desktop", "agent_desktop")):
+            with self.subTest(plugin=plugin):
+                self.assertNotIn(plugin, self.config["plugins"]["enabled"])
+                self.assertNotIn(plugin, self.config["plugins"]["entries"])
+                self.assertIsNone(registry.get_entry(tool))
+
+    def test_hermes_terminal_runs_pinned_agent_desktop_without_operating_apps(self):
         import model_tools
+        from hermes_cli.tools_config import _get_platform_tools
 
-        cron_toolsets = _resolve_cron_enabled_toolsets({}, self.config)
-        self.assertIn("ego_browser", cron_toolsets)
+        definition = plistlib.loads(self.launchd_plist.read_bytes())
+        launchd_path = definition["EnvironmentVariables"]["PATH"]
+        resolved = shutil.which("agent-desktop", path=launchd_path)
+        self.assertIsNotNone(resolved)
+        self.assertEqual(Path(resolved).resolve(), self.expected_agent_desktop_command.resolve())
 
-        with patch.dict(os.environ, {"EGO_LITE_APP": str(self.ego_fixture_app)}):
-            result = model_tools.handle_function_call(
-                "ego_browser",
-                {"operation": "skill"},
-                task_id="isolated-ego-browser-skill",
-                enabled_toolsets=cron_toolsets,
-            )
-        envelope = json.loads(result)
-        self.assertTrue(envelope["ok"], envelope)
-        self.assertEqual(
-            json.loads(envelope["data"]["skill"]), {"fixture_argv": ["skill"]}
-        )
+        # The JSON `version` subcommand starts a command host whose UNIX socket
+        # can exceed macOS's path limit under the build sandbox's fixture home.
+        # `--version` checks the same pinned CLI without starting that host.
 
-        with patch.dict(os.environ, {"EGO_LITE_APP": str(self.missing_ego_app)}):
-            result = model_tools.handle_function_call(
-                "ego_browser",
-                {"operation": "skill"},
-                task_id="isolated-ego-browser-missing-app",
-                enabled_toolsets=["ego_browser"],
-            )
-        envelope = json.loads(result)
-        self.assertFalse(envelope["ok"], envelope)
-        self.assertEqual(envelope["error"]["code"], "CLI_FAILED")
-        self.assertIn("Install the official Ego Lite app", envelope["error"]["message"])
-        self.assertIn("EGO_LITE_APP", envelope["error"]["message"])
-        self.assertEqual(
-            envelope["error"]["disposition"],
-            {"delivery": "not_delivered", "retry": "unsafe"},
-        )
-        self.assertFalse(self.missing_ego_app.exists())
-
-    def test_ego_screenshot_dispatch_delivers_multimodal_image_offline(self):
-        from types import SimpleNamespace
-        from unittest.mock import patch
-
-        import model_tools
-
-        plugin = next(
-            loaded.module
-            for loaded in self.manager._plugins.values()
-            if loaded.manifest.name == "ego-browser"
-        )
-        screenshot_path = plugin._screenshot_output_path()
-        png_bytes = b"\x89PNG\r\n\x1a\n" + b"offline-fixture"
-
-        def offline_screenshot(command, argv, timeout):
-            screenshot_path.write_bytes(png_bytes)
-            return SimpleNamespace(
-                returncode=0,
-                stdout=json.dumps({
-                    "ok": True,
-                    "data": {
-                        "screenshot_path": str(screenshot_path),
-                        "title": "offline screenshot fixture",
-                    },
-                }),
-                stderr="",
-            )
-
-        with (
-            patch.object(plugin, "_run", side_effect=offline_screenshot),
-            patch.object(plugin, "_screenshot_output_path", return_value=screenshot_path),
-        ):
-            result = model_tools.handle_function_call(
-                "ego_browser",
-                {"operation": "screenshot", "space_id": 1},
-                task_id="isolated-ego-browser-screenshot",
-                enabled_toolsets=["ego_browser"],
-            )
-
-        envelope = json.loads(result) if isinstance(result, str) else result
-        self.assertTrue(envelope.get("_multimodal"), envelope)
-        image = next(part for part in envelope["content"] if part["type"] == "image_url")
-        self.assertEqual(
-            base64.b64decode(image["image_url"]["url"].split(",", 1)[1]),
-            png_bytes,
-        )
-        summary = json.loads(envelope["text_summary"].split("\n", 1)[1])
-        self.assertEqual(summary["data"]["image_delivery"], "attached")
-        self.assertFalse(screenshot_path.exists())
-
-        from agent.tool_dispatch_helpers import make_tool_result_message
-        from agent.vision_message_prep import VisionMessagePrepMixin
-
-        class VisionProvider(VisionMessagePrepMixin):
-            def _model_supports_vision(self):
-                return True
-
-            def _provider_supports_vision_tool_messages(self):
-                return True
-
-        content = VisionProvider()._tool_result_content_for_active_model("ego_browser", envelope)
-        self.assertEqual(content[1], image)
-        consumed = make_tool_result_message(
-            "ego_browser", content, "ego-screenshot-consumer-fixture"
-        )
-        self.assertEqual(consumed["name"], "ego_browser")
-        self.assertEqual(consumed["content"][1], image)
-        self.assertEqual(consumed["content"][0], envelope["content"][0])
-
-    def test_ego_mutation_is_blocked_by_real_single_query_approval_deny(self):
-        import model_tools
-        from unittest.mock import patch
-
-        self.assertEqual(self.config["approvals"]["single_query_mode"], "deny")
-        plugin = next(
-            loaded.module
-            for loaded in self.manager._plugins.values()
-            if loaded.manifest.name == "ego-browser"
-        )
-        fixture = self.root / "ego-browser"
-        marker = self.root / "ego-executed.json"
-        fixture.write_text(
-            f"#!{sys.executable}\nimport json, pathlib, sys\n"
-            f"pathlib.Path({str(marker)!r}).write_text(json.dumps(sys.argv[1:]))\n"
-            "print('offline Ego CLI fixture')\n"
-        )
-        fixture.chmod(0o700)
-        run = plugin._run
-
-        def fixture_run(command, argv, timeout):
-            return run(str(fixture), argv, timeout)
-
-        with (
-            patch.dict(os.environ, {"HERMES_SINGLE_QUERY_SESSION": "1"}),
-            patch.object(plugin, "_run", side_effect=fixture_run),
-        ):
-            result = model_tools.handle_function_call(
-                "ego_browser",
-                {"operation": "navigate", "space_id": 1, "url": "https://example.test"},
-                task_id="isolated-ego-browser-denied-navigation",
-                enabled_toolsets=["ego_browser"],
-            )
-        self.assertIn("BLOCKED", result)
-        self.assertFalse(marker.exists(), "denied operation executed the CLI fixture")
-        with patch.object(plugin, "_run", side_effect=fixture_run):
-            control = model_tools.handle_function_call(
-                "ego_browser", {"operation": "skill"},
-                task_id="isolated-ego-browser-fixture-control", enabled_toolsets=["ego_browser"],
-            )
-        self.assertIn("offline Ego CLI fixture", control)
-        self.assertEqual(json.loads(marker.read_text()), ["skill"])
-    def test_agent_desktop_discovery_registration_and_status_dispatch(self):
-        from hermes_cli.plugins import get_plugin_toolsets
-        from tools.registry import registry
-        import model_tools
-
-        self.assertIn("agent-desktop", self.config["plugins"]["enabled"])
-        self.assertEqual(
-            (self.home / "plugins" / "agent-desktop").resolve(),
-            self.agent_desktop_source.resolve(),
-        )
-        settings = self.config["plugins"]["entries"]["agent-desktop"]["settings"]
-        command = Path(settings["command"])
-        self.assertTrue(command.is_absolute())
-        self.assertEqual(command.name, "agent-desktop")
-        self.assertTrue(command.is_file())
-        self.assertTrue(os.access(command, os.X_OK))
-        plugin = next(
-            (plugin for plugin in self.manager.list_plugins() if plugin["name"] == "agent-desktop"),
-            None,
-        )
-        self.assertIsNotNone(plugin, "agent-desktop was not discovered from the isolated profile")
-        self.assertTrue(plugin["enabled"])
-        self.assertIsNone(plugin["error"])
-
-        entry = registry.get_entry("agent_desktop")
-        self.assertIsNotNone(entry, "agent_desktop tool was not registered")
-        self.assertEqual(entry.toolset, "agent_desktop")
-        self.assertIn("agent_desktop", {toolset for toolset, _, _ in get_plugin_toolsets()})
-        definitions = model_tools.get_tool_definitions(
-            enabled_toolsets=["agent_desktop"],
-            quiet_mode=True,
-            skip_tool_search_assembly=True,
-        )
-        self.assertIn(
-            "agent_desktop",
-            {tool["function"]["name"] for tool in definitions},
-        )
-
-        result = model_tools.handle_function_call(
-            "agent_desktop",
-            {"command": "status", "args": []},
-            task_id="isolated-agent-desktop-status",
-            enabled_toolsets=["agent_desktop"],
-        )
-        self.assertTrue(result, "direct status dispatch returned no result")
-        envelope = json.loads(result) if isinstance(result, str) else result
-        self.assertIs(type(envelope.get("ok")), bool, envelope)
-        self.assertNotEqual(envelope.get("error_type"), "tool_result_contract", envelope)
-
+        with patch.dict(os.environ, {
+            "PATH": launchd_path,
+            "TMPDIR": str(self.root),
+            "HERMES_GATEWAY_SESSION": "1",
+        }):
+            response = json.loads(model_tools.handle_function_call(
+                "terminal",
+                {"command": "agent-desktop --version", "workdir": str(self.root), "timeout": 30},
+                task_id="isolated-agent-desktop-terminal",
+                enabled_toolsets=sorted(_get_platform_tools(self.config, "slack")),
+            ))
+        self.assertEqual(response["exit_code"], 0, response)
+        self.assertRegex(response["output"].strip(), r"^agent-desktop \d+\.\d+\.\d+")
 
     def test_direct_openai_routes(self):
         from agent.delegation_registry import backend_status
@@ -1511,9 +1320,9 @@ atexit.register(_record_runtime)
 
 if __name__ == "__main__":
     INPUTS = sys.argv[1:]
-    if len(INPUTS) != 10:
+    if len(INPUTS) != 9:
         raise SystemExit(
             "usage: test_packaged_runtime.py CONFIG PROVIDER DELEGATION VERSION OMP LAUNCHD_PLIST "
-            "AGENT_DESKTOP_PLUGIN EGO_SHARE_ROOT OMP_SKILL_SOURCE EGO_BROWSER_PLUGIN"
+            "AGENT_DESKTOP_EXECUTABLE EGO_SHARE_ROOT OMP_SKILL_SOURCE"
         )
     unittest.main(argv=[sys.argv[0]], verbosity=2)
