@@ -95,6 +95,7 @@
     "baseUrl": "https://app.paseo.sh"
   },
   "agents": {
+    "resumeOnStartup": true,
     "providers": {
       "claude": {
         "enabled": false
