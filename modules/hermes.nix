@@ -65,6 +65,7 @@ let
                   {
                     "3b421578588243f920886e6fe79a6faa87ea026e" = "sha256-c5SncErlf7IRWYj+b8MsAle7aplRt6Ip7rHWS037wzo=";
                     "ae2a81ccc00e9b7c06301523e5bb09608397149c" = "sha256-0DFhYHo5HDps1hz6Haqv3cQfA1ug10LL/ohxKZGSDlw=";
+                    "caafe5389ae585ef77387a962aee05b1bcf17029" = "sha256-W5V/4xsKZKolR2MQL5GN9GBa7844IPNmKVTTcLaZnvI=";
                   }
                   .${inputs.hermes-agent.rev} or fetchArgs.hash;
               }

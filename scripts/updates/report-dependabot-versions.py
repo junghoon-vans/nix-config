@@ -10,6 +10,7 @@ import subprocess
 import sys
 from urllib.parse import quote
 
+from dependabot_policy import DEPENDABOT_ACTION_PATHS
 from dependency_report import collect_rows
 from version_table import render_table
 
@@ -21,12 +22,6 @@ NIX_BRANCH = re.compile(r"dependabot/nix/flake-inputs-[0-9a-f]{10}")
 ACTIONS_BRANCH = re.compile(r"dependabot/github_actions/github-actions-[0-9a-f]{10}")
 NIX_PATHS = {"flake.nix", "flake.lock"}
 MIXED_NIX_PATHS = {"flake.lock", "release-pins.json"}
-ACTION_PATHS = {
-    ".github/workflows/validate.yml",
-    ".github/workflows/update-dependencies.yml",
-    ".github/workflows/mcp-security.yml",
-    ".github/workflows/dependabot-automerge.yml",
-}
 START_MARKER = "<!-- dependabot-version-report:start -->"
 END_MARKER = "<!-- dependabot-version-report:end -->"
 
@@ -87,7 +82,7 @@ def validate_pr(pr, number, expected_head):
     if NIX_BRANCH.fullmatch(branch):
         return "nix", NIX_PATHS, _required_string(base.get("sha"), "base SHA")
     if ACTIONS_BRANCH.fullmatch(branch):
-        return "actions", ACTION_PATHS, _required_string(base.get("sha"), "base SHA")
+        return "actions", DEPENDABOT_ACTION_PATHS, _required_string(base.get("sha"), "base SHA")
     raise ValueError("Unsupported Dependabot branch")
 
 

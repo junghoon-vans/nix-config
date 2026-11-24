@@ -41,11 +41,21 @@
       },
       {
         "id": "agent_profile_mtmtxlv9_37mq53frt34",
-        "name": "Worker · GPT-6 LUNA · max",
+        "name": "Worker · GPT-6.1 TERRA · medium",
+        "provider": "omp",
+        "model": "openai-codex/gpt-6.1-terra",
+        "modeId": "full",
+        "thinkingOptionId": "medium",
+        "notes": "Use for scoped implementation with clear acceptance criteria, including running the relevant tests. Use Daily or Deep when the problem itself is still unclear."
+      },
+      {
+        "id": "agent_profile_omp_worker_lite",
+        "name": "Worker Lite · GPT-6 LUNA · max",
         "provider": "omp",
         "model": "openai-codex/gpt-6-luna",
         "modeId": "full",
-        "thinkingOptionId": "max"
+        "thinkingOptionId": "max",
+        "notes": "Use for routine, well-defined work when lower model usage matters more than turnaround time."
       },
       {
         "id": "agent_profile_omp_review",
