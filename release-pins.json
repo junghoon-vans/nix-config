@@ -29,8 +29,8 @@
     "skillHash": "sha256-yVDShc5gAhcStHU/stn1kjCNViK6t3YikGHf7LHOVdQ="
   },
   "omp": {
-    "version": "19.1.0",
-    "hash": "sha256-3KVkNmntXlU/cHvQZUmbq9D+MDBpa7skydoJx5ivWrs="
+    "version": "19.1.1",
+    "hash": "sha256-1aMySs2YN1oBaYobDAGL5Iyu0pVsiqkEStE3/kO8BAA="
   },
   "openmarket": {
     "version": "0.1.9",
