@@ -49,6 +49,41 @@ dependencies:
     - git: https://github.com/JetBrains/go-modern-guidelines.git
       path: plugin/skills/use-modern-go
       ref: v0.1.1
+    # Import standalone skill directories only, not the pstack plugin or automations.
+    # Existing owners of type-system discipline, TypeScript, TDD, and unslop stay.
+    - git: https://github.com/backnotprop/pstack.git
+      path: skills/principle-boundary-discipline
+      ref: c81f1bf680803f9e3f0cade6adb62593f43fb61f
+    - git: https://github.com/backnotprop/pstack.git
+      path: skills/principle-encode-lessons-in-structure
+      ref: c81f1bf680803f9e3f0cade6adb62593f43fb61f
+    - git: https://github.com/backnotprop/pstack.git
+      path: skills/principle-fix-root-causes
+      ref: c81f1bf680803f9e3f0cade6adb62593f43fb61f
+    - git: https://github.com/backnotprop/pstack.git
+      path: skills/principle-foundational-thinking
+      ref: c81f1bf680803f9e3f0cade6adb62593f43fb61f
+    - git: https://github.com/backnotprop/pstack.git
+      path: skills/principle-make-operations-idempotent
+      ref: c81f1bf680803f9e3f0cade6adb62593f43fb61f
+    - git: https://github.com/backnotprop/pstack.git
+      path: skills/principle-migrate-callers-then-delete-legacy-apis
+      ref: c81f1bf680803f9e3f0cade6adb62593f43fb61f
+    - git: https://github.com/backnotprop/pstack.git
+      path: skills/principle-minimize-reader-load
+      ref: c81f1bf680803f9e3f0cade6adb62593f43fb61f
+    - git: https://github.com/backnotprop/pstack.git
+      path: skills/principle-model-the-domain
+      ref: c81f1bf680803f9e3f0cade6adb62593f43fb61f
+    - git: https://github.com/backnotprop/pstack.git
+      path: skills/principle-sequence-verifiable-units
+      ref: c81f1bf680803f9e3f0cade6adb62593f43fb61f
+    - git: https://github.com/backnotprop/pstack.git
+      path: skills/principle-subtract-before-you-add
+      ref: c81f1bf680803f9e3f0cade6adb62593f43fb61f
+    - git: https://github.com/backnotprop/pstack.git
+      path: skills/principle-test-behavior-not-implementation
+      ref: c81f1bf680803f9e3f0cade6adb62593f43fb61f
     - git: https://github.com/cursor/plugins.git
       path: pstack/skills/principle-type-system-discipline
       ref: c1c0a32802223f4be824112dd83d33ad29a8b26c
