@@ -22,6 +22,7 @@ SPEC.loader.exec_module(fixed_release)
 PATHS = (
     "flake.nix", "flake.lock", "release-pins.json", "modules/languages/gno.nix",
     "home/.omp/agent/mcp.json", "apm.yml", "apm.lock.yaml", "modules/paseo-plugins.json",
+    "modules/hermes-pnpm-hashes.json",
 )
 
 
@@ -178,6 +179,11 @@ def collect_rows(before, after):
             new = json.loads(new_text) if new_text else {}
             if path == "flake.lock":
                 rows.extend(flake_rows(old, new))
+            elif path == "modules/hermes-pnpm-hashes.json":
+                for rev in sorted(old.keys() | new.keys()):
+                    if old.get(rev) != new.get(rev):
+                        item = row(f"Hermes Darwin pnpm hash ({rev})", old.get(rev), new.get(rev))
+                        rows.append(item | {"title": "Hermes Darwin pnpm hash"})
             elif path == "home/.omp/agent/mcp.json":
                 old, new = old.get("mcpServers", {}), new.get("mcpServers", {})
                 for name in sorted(old.keys() | new.keys()):
