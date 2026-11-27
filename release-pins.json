@@ -37,8 +37,8 @@
     "hash": "sha256-pA5BKl71JD+udzHndCOG3j79wPeUF47+IAkVyzmnyZA="
   },
   "paseo": {
-    "version": "0.17.5",
-    "hash": "sha256-WyI83jpmu3LikudSG93w70/2dhOSamhNolLghY98wEI="
+    "version": "0.18.1",
+    "hash": "sha256-oLnXn3C3RmdDsKuX4gCHoEYmcnkhID8RVu+Rqvn/eLk="
   },
   "sem": {
     "version": "0.29.1",
