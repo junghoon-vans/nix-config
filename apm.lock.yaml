@@ -1,5 +1,5 @@
 lockfile_version: '1'
-apm_version: 0.36.0
+apm_version: 0.36.1
 dependencies:
 - repo_url: _local/humanize-korean
   name: humanize-korean
@@ -184,6 +184,259 @@ dependencies:
     .agents/skills/skill-creator/scripts/run_loop.py: sha256:7bd6f674203168520517eec94c55f493c0d154339b061b4d7c0f0dad187d0f21
     .agents/skills/skill-creator/scripts/utils.py: sha256:3af8ae62c40c73ab712207436a0d9a981e845f25c5a7040229eb189cc8e45bb1
   content_hash: sha256:b2bfe91d69ca99994c0566baede889e7d2b9bb8791c6b6106c5d387392f717f6
+- repo_url: backnotprop/pstack
+  name: principle-boundary-discipline
+  host: github.com
+  resolved_commit: c81f1bf680803f9e3f0cade6adb62593f43fb61f
+  resolved_ref: c81f1bf680803f9e3f0cade6adb62593f43fb61f
+  version: unknown
+  virtual_path: skills/principle-boundary-discipline
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .agents/skills/principle-boundary-discipline
+  - .agents/skills/principle-boundary-discipline/LICENSE
+  - .agents/skills/principle-boundary-discipline/SKILL.md
+  - .agents/skills/principle-boundary-discipline/agents/openai.yaml
+  deployed_file_hashes:
+    .agents/skills/principle-boundary-discipline/LICENSE: sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e
+    .agents/skills/principle-boundary-discipline/SKILL.md: sha256:c02c26cca3906bfd57829535f8fa7ee9e00df037b4dbb24e5f85ec9e12710b48
+    .agents/skills/principle-boundary-discipline/agents/openai.yaml: sha256:b9b07e5ea44b7e271957aedf60277653809da9e54bd90c0833fabcb384c7dc95
+  content_hash: sha256:516b6832e90c9526af079537eec2cd122a6370ef3f0e26ef11967ef55eb833c4
+  carried_licenses:
+  - path: LICENSE
+    source: LICENSE
+    hash: sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e
+- repo_url: backnotprop/pstack
+  name: principle-encode-lessons-in-structure
+  host: github.com
+  resolved_commit: c81f1bf680803f9e3f0cade6adb62593f43fb61f
+  resolved_ref: c81f1bf680803f9e3f0cade6adb62593f43fb61f
+  version: unknown
+  virtual_path: skills/principle-encode-lessons-in-structure
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .agents/skills/principle-encode-lessons-in-structure
+  - .agents/skills/principle-encode-lessons-in-structure/LICENSE
+  - .agents/skills/principle-encode-lessons-in-structure/SKILL.md
+  - .agents/skills/principle-encode-lessons-in-structure/agents/openai.yaml
+  deployed_file_hashes:
+    .agents/skills/principle-encode-lessons-in-structure/LICENSE: sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e
+    .agents/skills/principle-encode-lessons-in-structure/SKILL.md: sha256:228963799189f481827d6f28065f278bc2008ffa37030b1234cbd5814d36b9e9
+    .agents/skills/principle-encode-lessons-in-structure/agents/openai.yaml: sha256:b9b07e5ea44b7e271957aedf60277653809da9e54bd90c0833fabcb384c7dc95
+  content_hash: sha256:0924b954a4d0237461bd9578aa7befa14bfa520756ce66f77f07fbe4318cc9f7
+  carried_licenses:
+  - path: LICENSE
+    source: LICENSE
+    hash: sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e
+- repo_url: backnotprop/pstack
+  name: principle-fix-root-causes
+  host: github.com
+  resolved_commit: c81f1bf680803f9e3f0cade6adb62593f43fb61f
+  resolved_ref: c81f1bf680803f9e3f0cade6adb62593f43fb61f
+  version: unknown
+  virtual_path: skills/principle-fix-root-causes
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .agents/skills/principle-fix-root-causes
+  - .agents/skills/principle-fix-root-causes/LICENSE
+  - .agents/skills/principle-fix-root-causes/SKILL.md
+  - .agents/skills/principle-fix-root-causes/agents/openai.yaml
+  deployed_file_hashes:
+    .agents/skills/principle-fix-root-causes/LICENSE: sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e
+    .agents/skills/principle-fix-root-causes/SKILL.md: sha256:79afd7e67d8951203231f6f1ccfc7b4a1f30d8d6cdb68e92755c80012414dbeb
+    .agents/skills/principle-fix-root-causes/agents/openai.yaml: sha256:b9b07e5ea44b7e271957aedf60277653809da9e54bd90c0833fabcb384c7dc95
+  content_hash: sha256:0524bf2e11e6b954dca679400c7823a71018d69c342fa640f8a9bd104bfea120
+  carried_licenses:
+  - path: LICENSE
+    source: LICENSE
+    hash: sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e
+- repo_url: backnotprop/pstack
+  name: principle-foundational-thinking
+  host: github.com
+  resolved_commit: c81f1bf680803f9e3f0cade6adb62593f43fb61f
+  resolved_ref: c81f1bf680803f9e3f0cade6adb62593f43fb61f
+  version: unknown
+  virtual_path: skills/principle-foundational-thinking
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .agents/skills/principle-foundational-thinking
+  - .agents/skills/principle-foundational-thinking/LICENSE
+  - .agents/skills/principle-foundational-thinking/SKILL.md
+  - .agents/skills/principle-foundational-thinking/agents/openai.yaml
+  deployed_file_hashes:
+    .agents/skills/principle-foundational-thinking/LICENSE: sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e
+    .agents/skills/principle-foundational-thinking/SKILL.md: sha256:5c63eecf4b83ea5a99eda7a95a96cac0929d2dce7393d7089c83917bc12cf820
+    .agents/skills/principle-foundational-thinking/agents/openai.yaml: sha256:b9b07e5ea44b7e271957aedf60277653809da9e54bd90c0833fabcb384c7dc95
+  content_hash: sha256:9149a14333c39947cf35bbdb44dde74057281338c15e0ae821fbed9b35e3fd2d
+  carried_licenses:
+  - path: LICENSE
+    source: LICENSE
+    hash: sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e
+- repo_url: backnotprop/pstack
+  name: principle-make-operations-idempotent
+  host: github.com
+  resolved_commit: c81f1bf680803f9e3f0cade6adb62593f43fb61f
+  resolved_ref: c81f1bf680803f9e3f0cade6adb62593f43fb61f
+  version: unknown
+  virtual_path: skills/principle-make-operations-idempotent
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .agents/skills/principle-make-operations-idempotent
+  - .agents/skills/principle-make-operations-idempotent/LICENSE
+  - .agents/skills/principle-make-operations-idempotent/SKILL.md
+  - .agents/skills/principle-make-operations-idempotent/agents/openai.yaml
+  deployed_file_hashes:
+    .agents/skills/principle-make-operations-idempotent/LICENSE: sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e
+    .agents/skills/principle-make-operations-idempotent/SKILL.md: sha256:76ad0a99b6ff2a05a159accfeee48412d62f62774eb8d05bbff26a1f3aa3eab5
+    .agents/skills/principle-make-operations-idempotent/agents/openai.yaml: sha256:b9b07e5ea44b7e271957aedf60277653809da9e54bd90c0833fabcb384c7dc95
+  content_hash: sha256:96313b96907a04bab0a1f82d38db8c17ffb704bd2e1db02bebd3022c7f56e829
+  carried_licenses:
+  - path: LICENSE
+    source: LICENSE
+    hash: sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e
+- repo_url: backnotprop/pstack
+  name: principle-migrate-callers-then-delete-legacy-apis
+  host: github.com
+  resolved_commit: c81f1bf680803f9e3f0cade6adb62593f43fb61f
+  resolved_ref: c81f1bf680803f9e3f0cade6adb62593f43fb61f
+  version: unknown
+  virtual_path: skills/principle-migrate-callers-then-delete-legacy-apis
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .agents/skills/principle-migrate-callers-then-delete-legacy-apis
+  - .agents/skills/principle-migrate-callers-then-delete-legacy-apis/LICENSE
+  - .agents/skills/principle-migrate-callers-then-delete-legacy-apis/SKILL.md
+  - .agents/skills/principle-migrate-callers-then-delete-legacy-apis/agents/openai.yaml
+  deployed_file_hashes:
+    .agents/skills/principle-migrate-callers-then-delete-legacy-apis/LICENSE: sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e
+    .agents/skills/principle-migrate-callers-then-delete-legacy-apis/SKILL.md: sha256:580ad9bb1a0994ecb924321ba49efc38a2f85c64e22c76fb133f57a78272a2e6
+    .agents/skills/principle-migrate-callers-then-delete-legacy-apis/agents/openai.yaml: sha256:b9b07e5ea44b7e271957aedf60277653809da9e54bd90c0833fabcb384c7dc95
+  content_hash: sha256:7702f07ce922716573a14457142a9db73e7a0c8413594cc9b975d90d33cd90af
+  carried_licenses:
+  - path: LICENSE
+    source: LICENSE
+    hash: sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e
+- repo_url: backnotprop/pstack
+  name: principle-minimize-reader-load
+  host: github.com
+  resolved_commit: c81f1bf680803f9e3f0cade6adb62593f43fb61f
+  resolved_ref: c81f1bf680803f9e3f0cade6adb62593f43fb61f
+  version: unknown
+  virtual_path: skills/principle-minimize-reader-load
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .agents/skills/principle-minimize-reader-load
+  - .agents/skills/principle-minimize-reader-load/LICENSE
+  - .agents/skills/principle-minimize-reader-load/SKILL.md
+  - .agents/skills/principle-minimize-reader-load/agents/openai.yaml
+  deployed_file_hashes:
+    .agents/skills/principle-minimize-reader-load/LICENSE: sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e
+    .agents/skills/principle-minimize-reader-load/SKILL.md: sha256:22d27deffb0a3726858d0d4b02d71acd4a3eb4d44e218bc89b66e49dc9823937
+    .agents/skills/principle-minimize-reader-load/agents/openai.yaml: sha256:b9b07e5ea44b7e271957aedf60277653809da9e54bd90c0833fabcb384c7dc95
+  content_hash: sha256:d8f50755691f23201b935256eed643389db3bcc92cfadbf37b2f546897867445
+  carried_licenses:
+  - path: LICENSE
+    source: LICENSE
+    hash: sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e
+- repo_url: backnotprop/pstack
+  name: principle-model-the-domain
+  host: github.com
+  resolved_commit: c81f1bf680803f9e3f0cade6adb62593f43fb61f
+  resolved_ref: c81f1bf680803f9e3f0cade6adb62593f43fb61f
+  version: unknown
+  virtual_path: skills/principle-model-the-domain
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .agents/skills/principle-model-the-domain
+  - .agents/skills/principle-model-the-domain/LICENSE
+  - .agents/skills/principle-model-the-domain/SKILL.md
+  - .agents/skills/principle-model-the-domain/agents/openai.yaml
+  deployed_file_hashes:
+    .agents/skills/principle-model-the-domain/LICENSE: sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e
+    .agents/skills/principle-model-the-domain/SKILL.md: sha256:97c6214dc6a18b93177dda6429185a8640878b36ddee6ec9400c23a0eb9be2d8
+    .agents/skills/principle-model-the-domain/agents/openai.yaml: sha256:b9b07e5ea44b7e271957aedf60277653809da9e54bd90c0833fabcb384c7dc95
+  content_hash: sha256:b1e3043172285ac7aeebbc872bae504e991b7e00f32feb93c1aef584f988f9ea
+  carried_licenses:
+  - path: LICENSE
+    source: LICENSE
+    hash: sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e
+- repo_url: backnotprop/pstack
+  name: principle-sequence-verifiable-units
+  host: github.com
+  resolved_commit: c81f1bf680803f9e3f0cade6adb62593f43fb61f
+  resolved_ref: c81f1bf680803f9e3f0cade6adb62593f43fb61f
+  version: unknown
+  virtual_path: skills/principle-sequence-verifiable-units
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .agents/skills/principle-sequence-verifiable-units
+  - .agents/skills/principle-sequence-verifiable-units/LICENSE
+  - .agents/skills/principle-sequence-verifiable-units/SKILL.md
+  - .agents/skills/principle-sequence-verifiable-units/agents/openai.yaml
+  deployed_file_hashes:
+    .agents/skills/principle-sequence-verifiable-units/LICENSE: sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e
+    .agents/skills/principle-sequence-verifiable-units/SKILL.md: sha256:ab0cc331cf317c07bb0ed6dd13ee9f618338b36e4e851521977bc5c4a8d429e1
+    .agents/skills/principle-sequence-verifiable-units/agents/openai.yaml: sha256:b9b07e5ea44b7e271957aedf60277653809da9e54bd90c0833fabcb384c7dc95
+  content_hash: sha256:8e3322a3e0261f165dcf2a36a2f5bdd3d3d535076f566ba7aa1adc3918b96395
+  carried_licenses:
+  - path: LICENSE
+    source: LICENSE
+    hash: sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e
+- repo_url: backnotprop/pstack
+  name: principle-subtract-before-you-add
+  host: github.com
+  resolved_commit: c81f1bf680803f9e3f0cade6adb62593f43fb61f
+  resolved_ref: c81f1bf680803f9e3f0cade6adb62593f43fb61f
+  version: unknown
+  virtual_path: skills/principle-subtract-before-you-add
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .agents/skills/principle-subtract-before-you-add
+  - .agents/skills/principle-subtract-before-you-add/LICENSE
+  - .agents/skills/principle-subtract-before-you-add/SKILL.md
+  - .agents/skills/principle-subtract-before-you-add/agents/openai.yaml
+  deployed_file_hashes:
+    .agents/skills/principle-subtract-before-you-add/LICENSE: sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e
+    .agents/skills/principle-subtract-before-you-add/SKILL.md: sha256:8c93bb9d1a7f38e2ef37655d93f0e790fa59903105af3d500cc8a663ebe45f3f
+    .agents/skills/principle-subtract-before-you-add/agents/openai.yaml: sha256:b9b07e5ea44b7e271957aedf60277653809da9e54bd90c0833fabcb384c7dc95
+  content_hash: sha256:3d96382b54570242ba6ecdf8035e08c1c5bb1887cd6f48e786b2c3d788e635d0
+  carried_licenses:
+  - path: LICENSE
+    source: LICENSE
+    hash: sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e
+- repo_url: backnotprop/pstack
+  name: principle-test-behavior-not-implementation
+  host: github.com
+  resolved_commit: c81f1bf680803f9e3f0cade6adb62593f43fb61f
+  resolved_ref: c81f1bf680803f9e3f0cade6adb62593f43fb61f
+  version: unknown
+  virtual_path: skills/principle-test-behavior-not-implementation
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .agents/skills/principle-test-behavior-not-implementation
+  - .agents/skills/principle-test-behavior-not-implementation/LICENSE
+  - .agents/skills/principle-test-behavior-not-implementation/SKILL.md
+  - .agents/skills/principle-test-behavior-not-implementation/agents/openai.yaml
+  deployed_file_hashes:
+    .agents/skills/principle-test-behavior-not-implementation/LICENSE: sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e
+    .agents/skills/principle-test-behavior-not-implementation/SKILL.md: sha256:42afc1a2c7176363b6410cfde06a9fd3e96f5022ba86bdb8de4838ad65c2442d
+    .agents/skills/principle-test-behavior-not-implementation/agents/openai.yaml: sha256:b9b07e5ea44b7e271957aedf60277653809da9e54bd90c0833fabcb384c7dc95
+  content_hash: sha256:36a22fc3f89263942eb055d6c76c45692ea8687bf7731290f12e2c79e9362236
+  carried_licenses:
+  - path: LICENSE
+    source: LICENSE
+    hash: sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e
 - repo_url: blader/humanizer
   name: humanizer
   host: github.com
@@ -7137,6 +7390,402 @@ deployments:
   - scrapecreators/social-media-research-skills/skills/outlier-post-finder
   active_owner: scrapecreators/social-media-research-skills/skills/outlier-post-finder
   content_hash: sha256:c648fbe9dda692cc7c034ca8b193e3b129ba4db45f8ff992f463206610d80bfa
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/principle-boundary-discipline
+  runtime: null
+  scope: project
+  owners:
+  - backnotprop/pstack/skills/principle-boundary-discipline
+  active_owner: backnotprop/pstack/skills/principle-boundary-discipline
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/principle-boundary-discipline/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - backnotprop/pstack/skills/principle-boundary-discipline
+  active_owner: backnotprop/pstack/skills/principle-boundary-discipline
+  content_hash: sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/principle-boundary-discipline/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - backnotprop/pstack/skills/principle-boundary-discipline
+  active_owner: backnotprop/pstack/skills/principle-boundary-discipline
+  content_hash: sha256:c02c26cca3906bfd57829535f8fa7ee9e00df037b4dbb24e5f85ec9e12710b48
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/principle-boundary-discipline/agents/openai.yaml
+  runtime: null
+  scope: project
+  owners:
+  - backnotprop/pstack/skills/principle-boundary-discipline
+  active_owner: backnotprop/pstack/skills/principle-boundary-discipline
+  content_hash: sha256:b9b07e5ea44b7e271957aedf60277653809da9e54bd90c0833fabcb384c7dc95
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/principle-encode-lessons-in-structure
+  runtime: null
+  scope: project
+  owners:
+  - backnotprop/pstack/skills/principle-encode-lessons-in-structure
+  active_owner: backnotprop/pstack/skills/principle-encode-lessons-in-structure
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/principle-encode-lessons-in-structure/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - backnotprop/pstack/skills/principle-encode-lessons-in-structure
+  active_owner: backnotprop/pstack/skills/principle-encode-lessons-in-structure
+  content_hash: sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/principle-encode-lessons-in-structure/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - backnotprop/pstack/skills/principle-encode-lessons-in-structure
+  active_owner: backnotprop/pstack/skills/principle-encode-lessons-in-structure
+  content_hash: sha256:228963799189f481827d6f28065f278bc2008ffa37030b1234cbd5814d36b9e9
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/principle-encode-lessons-in-structure/agents/openai.yaml
+  runtime: null
+  scope: project
+  owners:
+  - backnotprop/pstack/skills/principle-encode-lessons-in-structure
+  active_owner: backnotprop/pstack/skills/principle-encode-lessons-in-structure
+  content_hash: sha256:b9b07e5ea44b7e271957aedf60277653809da9e54bd90c0833fabcb384c7dc95
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/principle-fix-root-causes
+  runtime: null
+  scope: project
+  owners:
+  - backnotprop/pstack/skills/principle-fix-root-causes
+  active_owner: backnotprop/pstack/skills/principle-fix-root-causes
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/principle-fix-root-causes/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - backnotprop/pstack/skills/principle-fix-root-causes
+  active_owner: backnotprop/pstack/skills/principle-fix-root-causes
+  content_hash: sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/principle-fix-root-causes/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - backnotprop/pstack/skills/principle-fix-root-causes
+  active_owner: backnotprop/pstack/skills/principle-fix-root-causes
+  content_hash: sha256:79afd7e67d8951203231f6f1ccfc7b4a1f30d8d6cdb68e92755c80012414dbeb
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/principle-fix-root-causes/agents/openai.yaml
+  runtime: null
+  scope: project
+  owners:
+  - backnotprop/pstack/skills/principle-fix-root-causes
+  active_owner: backnotprop/pstack/skills/principle-fix-root-causes
+  content_hash: sha256:b9b07e5ea44b7e271957aedf60277653809da9e54bd90c0833fabcb384c7dc95
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/principle-foundational-thinking
+  runtime: null
+  scope: project
+  owners:
+  - backnotprop/pstack/skills/principle-foundational-thinking
+  active_owner: backnotprop/pstack/skills/principle-foundational-thinking
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/principle-foundational-thinking/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - backnotprop/pstack/skills/principle-foundational-thinking
+  active_owner: backnotprop/pstack/skills/principle-foundational-thinking
+  content_hash: sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/principle-foundational-thinking/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - backnotprop/pstack/skills/principle-foundational-thinking
+  active_owner: backnotprop/pstack/skills/principle-foundational-thinking
+  content_hash: sha256:5c63eecf4b83ea5a99eda7a95a96cac0929d2dce7393d7089c83917bc12cf820
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/principle-foundational-thinking/agents/openai.yaml
+  runtime: null
+  scope: project
+  owners:
+  - backnotprop/pstack/skills/principle-foundational-thinking
+  active_owner: backnotprop/pstack/skills/principle-foundational-thinking
+  content_hash: sha256:b9b07e5ea44b7e271957aedf60277653809da9e54bd90c0833fabcb384c7dc95
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/principle-make-operations-idempotent
+  runtime: null
+  scope: project
+  owners:
+  - backnotprop/pstack/skills/principle-make-operations-idempotent
+  active_owner: backnotprop/pstack/skills/principle-make-operations-idempotent
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/principle-make-operations-idempotent/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - backnotprop/pstack/skills/principle-make-operations-idempotent
+  active_owner: backnotprop/pstack/skills/principle-make-operations-idempotent
+  content_hash: sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/principle-make-operations-idempotent/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - backnotprop/pstack/skills/principle-make-operations-idempotent
+  active_owner: backnotprop/pstack/skills/principle-make-operations-idempotent
+  content_hash: sha256:76ad0a99b6ff2a05a159accfeee48412d62f62774eb8d05bbff26a1f3aa3eab5
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/principle-make-operations-idempotent/agents/openai.yaml
+  runtime: null
+  scope: project
+  owners:
+  - backnotprop/pstack/skills/principle-make-operations-idempotent
+  active_owner: backnotprop/pstack/skills/principle-make-operations-idempotent
+  content_hash: sha256:b9b07e5ea44b7e271957aedf60277653809da9e54bd90c0833fabcb384c7dc95
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/principle-migrate-callers-then-delete-legacy-apis
+  runtime: null
+  scope: project
+  owners:
+  - backnotprop/pstack/skills/principle-migrate-callers-then-delete-legacy-apis
+  active_owner: backnotprop/pstack/skills/principle-migrate-callers-then-delete-legacy-apis
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/principle-migrate-callers-then-delete-legacy-apis/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - backnotprop/pstack/skills/principle-migrate-callers-then-delete-legacy-apis
+  active_owner: backnotprop/pstack/skills/principle-migrate-callers-then-delete-legacy-apis
+  content_hash: sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/principle-migrate-callers-then-delete-legacy-apis/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - backnotprop/pstack/skills/principle-migrate-callers-then-delete-legacy-apis
+  active_owner: backnotprop/pstack/skills/principle-migrate-callers-then-delete-legacy-apis
+  content_hash: sha256:580ad9bb1a0994ecb924321ba49efc38a2f85c64e22c76fb133f57a78272a2e6
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/principle-migrate-callers-then-delete-legacy-apis/agents/openai.yaml
+  runtime: null
+  scope: project
+  owners:
+  - backnotprop/pstack/skills/principle-migrate-callers-then-delete-legacy-apis
+  active_owner: backnotprop/pstack/skills/principle-migrate-callers-then-delete-legacy-apis
+  content_hash: sha256:b9b07e5ea44b7e271957aedf60277653809da9e54bd90c0833fabcb384c7dc95
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/principle-minimize-reader-load
+  runtime: null
+  scope: project
+  owners:
+  - backnotprop/pstack/skills/principle-minimize-reader-load
+  active_owner: backnotprop/pstack/skills/principle-minimize-reader-load
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/principle-minimize-reader-load/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - backnotprop/pstack/skills/principle-minimize-reader-load
+  active_owner: backnotprop/pstack/skills/principle-minimize-reader-load
+  content_hash: sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/principle-minimize-reader-load/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - backnotprop/pstack/skills/principle-minimize-reader-load
+  active_owner: backnotprop/pstack/skills/principle-minimize-reader-load
+  content_hash: sha256:22d27deffb0a3726858d0d4b02d71acd4a3eb4d44e218bc89b66e49dc9823937
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/principle-minimize-reader-load/agents/openai.yaml
+  runtime: null
+  scope: project
+  owners:
+  - backnotprop/pstack/skills/principle-minimize-reader-load
+  active_owner: backnotprop/pstack/skills/principle-minimize-reader-load
+  content_hash: sha256:b9b07e5ea44b7e271957aedf60277653809da9e54bd90c0833fabcb384c7dc95
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/principle-model-the-domain
+  runtime: null
+  scope: project
+  owners:
+  - backnotprop/pstack/skills/principle-model-the-domain
+  active_owner: backnotprop/pstack/skills/principle-model-the-domain
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/principle-model-the-domain/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - backnotprop/pstack/skills/principle-model-the-domain
+  active_owner: backnotprop/pstack/skills/principle-model-the-domain
+  content_hash: sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/principle-model-the-domain/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - backnotprop/pstack/skills/principle-model-the-domain
+  active_owner: backnotprop/pstack/skills/principle-model-the-domain
+  content_hash: sha256:97c6214dc6a18b93177dda6429185a8640878b36ddee6ec9400c23a0eb9be2d8
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/principle-model-the-domain/agents/openai.yaml
+  runtime: null
+  scope: project
+  owners:
+  - backnotprop/pstack/skills/principle-model-the-domain
+  active_owner: backnotprop/pstack/skills/principle-model-the-domain
+  content_hash: sha256:b9b07e5ea44b7e271957aedf60277653809da9e54bd90c0833fabcb384c7dc95
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/principle-sequence-verifiable-units
+  runtime: null
+  scope: project
+  owners:
+  - backnotprop/pstack/skills/principle-sequence-verifiable-units
+  active_owner: backnotprop/pstack/skills/principle-sequence-verifiable-units
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/principle-sequence-verifiable-units/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - backnotprop/pstack/skills/principle-sequence-verifiable-units
+  active_owner: backnotprop/pstack/skills/principle-sequence-verifiable-units
+  content_hash: sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/principle-sequence-verifiable-units/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - backnotprop/pstack/skills/principle-sequence-verifiable-units
+  active_owner: backnotprop/pstack/skills/principle-sequence-verifiable-units
+  content_hash: sha256:ab0cc331cf317c07bb0ed6dd13ee9f618338b36e4e851521977bc5c4a8d429e1
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/principle-sequence-verifiable-units/agents/openai.yaml
+  runtime: null
+  scope: project
+  owners:
+  - backnotprop/pstack/skills/principle-sequence-verifiable-units
+  active_owner: backnotprop/pstack/skills/principle-sequence-verifiable-units
+  content_hash: sha256:b9b07e5ea44b7e271957aedf60277653809da9e54bd90c0833fabcb384c7dc95
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/principle-subtract-before-you-add
+  runtime: null
+  scope: project
+  owners:
+  - backnotprop/pstack/skills/principle-subtract-before-you-add
+  active_owner: backnotprop/pstack/skills/principle-subtract-before-you-add
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/principle-subtract-before-you-add/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - backnotprop/pstack/skills/principle-subtract-before-you-add
+  active_owner: backnotprop/pstack/skills/principle-subtract-before-you-add
+  content_hash: sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/principle-subtract-before-you-add/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - backnotprop/pstack/skills/principle-subtract-before-you-add
+  active_owner: backnotprop/pstack/skills/principle-subtract-before-you-add
+  content_hash: sha256:8c93bb9d1a7f38e2ef37655d93f0e790fa59903105af3d500cc8a663ebe45f3f
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/principle-subtract-before-you-add/agents/openai.yaml
+  runtime: null
+  scope: project
+  owners:
+  - backnotprop/pstack/skills/principle-subtract-before-you-add
+  active_owner: backnotprop/pstack/skills/principle-subtract-before-you-add
+  content_hash: sha256:b9b07e5ea44b7e271957aedf60277653809da9e54bd90c0833fabcb384c7dc95
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/principle-test-behavior-not-implementation
+  runtime: null
+  scope: project
+  owners:
+  - backnotprop/pstack/skills/principle-test-behavior-not-implementation
+  active_owner: backnotprop/pstack/skills/principle-test-behavior-not-implementation
+  content_hash: null
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/principle-test-behavior-not-implementation/LICENSE
+  runtime: null
+  scope: project
+  owners:
+  - backnotprop/pstack/skills/principle-test-behavior-not-implementation
+  active_owner: backnotprop/pstack/skills/principle-test-behavior-not-implementation
+  content_hash: sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/principle-test-behavior-not-implementation/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - backnotprop/pstack/skills/principle-test-behavior-not-implementation
+  active_owner: backnotprop/pstack/skills/principle-test-behavior-not-implementation
+  content_hash: sha256:42afc1a2c7176363b6410cfde06a9fd3e96f5022ba86bdb8de4838ad65c2442d
+- kind: project-relative
+  target: agent-skills
+  value: .agents/skills/principle-test-behavior-not-implementation/agents/openai.yaml
+  runtime: null
+  scope: project
+  owners:
+  - backnotprop/pstack/skills/principle-test-behavior-not-implementation
+  active_owner: backnotprop/pstack/skills/principle-test-behavior-not-implementation
+  content_hash: sha256:b9b07e5ea44b7e271957aedf60277653809da9e54bd90c0833fabcb384c7dc95
 - kind: project-relative
   target: agent-skills
   value: .agents/skills/principle-type-system-discipline
