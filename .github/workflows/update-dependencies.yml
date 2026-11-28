@@ -163,7 +163,7 @@ jobs:
           fetch-depth: 0
           token: ${{ steps.app-token.outputs.token }}
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
-      - name: Resolve latest stable Hermes release and lock its input
+      - name: Lock latest stable Hermes release and verify its Darwin pnpm store
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: python3 -B scripts/updates/update-hermes.py
@@ -174,9 +174,10 @@ jobs:
         run: |
           scripts/updates/open-update-pr.sh \
             automation/update-hermes \
-            "Automated stable Hermes release update. Updates the tagged flake input and its lockfile graph; package version metadata follows the locked release tag automatically. Normal PR validation builds both Darwin hosts and verifies OMP tool exposure in the packaged Hermes runtime. Trusted CI updates request SQUASH auto-merge after required validation. Activation remains manual." \
+            "Automated stable Hermes release update. Locks the tagged flake input and builds its Darwin pnpm store with a verified, revision-specific hash correction when needed. Normal PR validation builds both Darwin hosts and verifies OMP tool exposure in the packaged Hermes runtime. Trusted CI updates request SQUASH auto-merge after required validation. Activation remains manual." \
             flake.nix \
-            flake.lock
+            flake.lock \
+            modules/hermes-pnpm-hashes.json
 
   tagged-skills:
     runs-on: macos-15
